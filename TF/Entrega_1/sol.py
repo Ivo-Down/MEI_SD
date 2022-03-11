@@ -17,16 +17,6 @@ def choose_quorum(list):
   return random.sample(list, quorum_size)
 
 
-def get_value(dict, key):
-  return dict.get(key)
-
-
-def set_value(dict, key, value, timestamp):
-  if(timestamp > dict.get(key)[1]):
-    new_value = ( value, timestamp)
-    dict[key] = new_value
-
-
 """
 'qr_reply'
 'qr_read'
@@ -88,7 +78,7 @@ while True:
                     'type': 'qr_read',
                     'msg_id': next_id,
                     'in_reply_to': msg['body']['msg_id'],  #TODO CORRIGIR ISTO
-                    'value': key
+                    'key': key
                 }
                 })
                 next_id += 1
@@ -98,16 +88,17 @@ while True:
 
             # 3 - Receives the requested (value, timestamp) from each qr member
             for node in quorum_to_use:
-                msg = receive()
+                msg_aux = receive()
 
-                if not msg:
+                if not msg_aux:
                     break
                 
-                if msg['body']['type'] == 'qr_reply':  # when an element of qr reads a key and return its value and version
-                    value_read, timestamp_read = msg['body']['value']
-                    if timestamp_read > max_timestamp_read:
-                        updated_value = value_read
-                        max_timestamp_read = timestamp_read
+                if msg_aux['body']['type'] == 'qr_reply':  # when an element of qr reads a key and return its value and version
+                    if(msg_aux['body']['value']): # some qr nodes might not yet have that value on their dict
+                        value_read, timestamp_read = msg_aux['body']['value']
+                        if timestamp_read > max_timestamp_read:
+                            updated_value = value_read
+                            max_timestamp_read = timestamp_read
 
             send({
                 'dest': msg['src'],
@@ -123,8 +114,7 @@ while True:
 
 
     elif msg['body']['type'] == 'qr_read':  #reads a value from a qr node
-        logging.info('reading key %s from a quorum node', msg['body']['key'])
-
+        logging.info('reading key %s from quorum node %s', msg['body']['key'], msg['src'])
         key = msg['body']['key']
         send({
             'dest': msg['src'],
@@ -214,7 +204,7 @@ while True:
                 timestamp = max_timestamp_read + 1
                 to_send = (updated_value, timestamp)
                 send({
-                    'dest': msg['src'],
+                    'dest': node,
                     'src': node_id,
                     'body': {
                         'type': 'qr_write',
@@ -444,7 +434,7 @@ while True:
                 timestamp = max_timestamp_read + 1
                 to_send = (updated_value, timestamp)
                 send({
-                    'dest': msg['src'],
+                    'dest': node,
                     'src': node_id,
                     'body': {
                         'type': 'cas_write',
