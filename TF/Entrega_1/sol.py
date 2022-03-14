@@ -136,7 +136,6 @@ while True:
         timestamp_read = 0
         client_id = msg['src']
         max_timestamp_read = 0
-        updated_value = 0
         logging.info('writing key and value %s %s', key, value)
 
         # 1 - Choose a write quorum 
@@ -167,7 +166,6 @@ while True:
             if msg_aux['body']['type'] == 'qr_reply':  # when an element of qr reads a key and return its value and version
                 value_read, timestamp_read = msg_aux['body']['value']
                 if timestamp_read > max_timestamp_read:
-                    updated_value = value_read
                     max_timestamp_read = timestamp_read
 
             elif msg_aux['body']['type'] == 'qr_lock_fail':
@@ -186,7 +184,7 @@ while True:
                 }
             })
             next_id += 1
-            for lock in failed_locks:
+            for lock in list(set(quorum_to_use) - set(failed_locks)):
                 send({
                     'dest': lock,
                     'src': node_id,
@@ -202,7 +200,7 @@ while True:
             # 3 - Write in each qw node
             for node in quorum_to_use:
                 timestamp = max_timestamp_read + 1
-                to_send = (updated_value, timestamp)
+                to_send = (value, timestamp)
                 send({
                     'dest': node,
                     'src': node_id,
@@ -304,21 +302,22 @@ while True:
         locked = False
 
 
-    elif msg['body']['type'] == 'cas_write':
+    elif msg['body']['type'] == 'cas_aux':
 
         key = msg['body']['key']
         value_from = msg['body']['from']
         value_to = msg['body']['to']
-        real_value = dict.get(key)
+        timestamp = msg['body']['timestamp']
         
         if key in dict.keys():
+            real_value = dict.get(key)[0]
             if value_from == real_value:
-                dict[key] = value_to
+                dict[key] = (value_to, timestamp)
                 send({
                     'dest': msg['src'],
                     'src': node_id,
                     'body': {
-                        'type': 'cas_write_ok',
+                        'type': 'cas_ok',
                         'msg_id': next_id,
                         'in_reply_to': msg['body']['msg_id']
                     }
@@ -348,7 +347,40 @@ while True:
         next_id += 1
 
         locked = False
+    
+
+
+    # There is no need to compare, only to set
+    elif msg['body']['type'] == 'cas_aux2':
+
+        key = msg['body']['key']
+        value_to = msg['body']['to']
+        timestamp = msg['body']['timestamp']
         
+        if key in dict.keys():
+            dict[key] = (value_to, timestamp)
+            send({
+                'dest': msg['src'],
+                'src': node_id,
+                'body': {
+                    'type': 'cas_ok',
+                    'msg_id': next_id,
+                    'in_reply_to': msg['body']['msg_id']
+                }
+            })     
+        else:
+            send({
+                'dest': msg['src'],
+                'src': node_id,
+                'body': {
+                    'type': 'error',
+                    'in_reply_to': msg['body']['msg_id'],
+                    'code': 20,
+                    'text': 'Key does not exist'
+                }
+            })
+        next_id += 1
+        locked = False
 
 
 
@@ -362,14 +394,13 @@ while True:
         key = msg['body']['key']
         value_read = 0
         timestamp_read = 0
+        max_timestamp_read = 0
         client_id = msg['src']
         value_from = msg['body']['from']
         value_to = msg['body']['to']
 
-        updated_value = 0
-        max_timestamp_read = 0
 
-        # 1 - Choose a write quorum 
+        # 1 - Choose a quorum 
         quorum_to_use = choose_quorum(node_ids)
 
         # 2 - To each node, request timestamp and request lock and saves the highest timestamp
@@ -388,6 +419,7 @@ while True:
             next_id += 1
 
         failed_locks = []
+        node_info = {}  #key: node_id,  value: (value, timestamp)
         
         for node in quorum_to_use:
             msg_aux = receive()
@@ -396,8 +428,8 @@ while True:
             
             if msg_aux['body']['type'] == 'qr_reply':  # when an element of qr reads a key and return its value and version
                 value_read, timestamp_read = msg_aux['body']['value']
+                node_info[node] = msg_aux['body']['value']
                 if timestamp_read > max_timestamp_read:
-                    updated_value = value_read
                     max_timestamp_read = timestamp_read
 
             elif msg_aux['body']['type'] == 'qr_lock_fail':
@@ -412,11 +444,11 @@ while True:
                     'type': 'error',
                     'in_reply_to': msg['body']['msg_id'],
                     'code': 11,
-                    'text': 'Write quorum not available'
+                    'text': 'Quorum not available for CAS'
                 }
             })
             next_id += 1
-            for lock in failed_locks:
+            for lock in list(set(quorum_to_use) - set(failed_locks)):
                 send({
                     'dest': lock,
                     'src': node_id,
@@ -429,24 +461,39 @@ while True:
                 next_id += 1
 
         else: 
-            # 3 - Compare and set in each qw node
+            # 3 - Compare and set the nodes which have the latest version
             for node in quorum_to_use:
-                timestamp = max_timestamp_read + 1
-                to_send = (updated_value, timestamp)
-                send({
-                    'dest': node,
-                    'src': node_id,
-                    'body': {
-                        'type': 'cas_write',
-                        'msg_id': next_id,
-                        'in_reply_to': msg['body']['msg_id'],
-                        'value' : to_send,
-                        'key': key,
-                        'from': value_from,
-                        'to': value_to
-                    }
-                })
-                next_id += 1
+                if(node_info.get(node)[1] == max_timestamp_read):
+                    timestamp = max_timestamp_read + 1
+                    send({
+                        'dest': node,
+                        'src': node_id,
+                        'body': {
+                            'type': 'cas_aux',
+                            'msg_id': next_id,
+                            'in_reply_to': msg['body']['msg_id'],
+                            'key': key,
+                            'from': value_from,
+                            'to': value_to,
+                            'timestamp': timestamp
+                        }
+                    })
+                    next_id += 1
+                else:
+                    send({
+                        'dest': node,
+                        'src': node_id,
+                        'body': {
+                            'type': 'cas_aux2',
+                            'msg_id': next_id,
+                            'in_reply_to': msg['body']['msg_id'],
+                            'key': key,
+                            'to': value_to,
+                            'timestamp': timestamp
+                        }
+                    })
+                    next_id += 1
+                
         
             # 4 - Wait for all the qw node acks
             i = 0
