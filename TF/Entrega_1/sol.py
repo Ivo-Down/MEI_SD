@@ -16,18 +16,37 @@ import random
 def choose_quorum(list):
   return random.sample(list, quorum_size)
 
+# -------------------- Constants --------------------
 
-"""
-'qr_reply'
-'qr_read'
-'qr_read_lock' -> saber o valor do lock
-'qr_lock_fail' -> lock já atribuido
-'qr_unlock'    -> pedido para dar release ao lock
+# Default
 
-qr_write
-qr_write_ok
-"""
+M_INIT = 'init'
+M_INIT_OK = 'init_ok'
 
+M_READ = 'read'
+M_READ_OK = 'read_ok'
+
+M_WRITE = 'write'
+M_WRITE_OK = 'write_ok'
+
+M_CAS = 'cas'
+M_CAS_OK = 'cas_ok'
+
+M_ERROR = 'error'
+
+# Custom
+
+QR_REPLY = 'qr_reply'
+QR_READ = 'qr_read'
+QR_READ_LOCK = 'qr_read_lock'   # -> saber o valor do lock
+QR_LOCK_FAIL = 'qr_lock_fail'   # -> lock já atribuido
+QR_UNLOCK = 'qr_unlock'         # -> pedido para dar release ao lock
+
+QR_WRITE = 'qr_write'
+QR_WRITE_OK = 'qr_write_ok'
+
+QR_CAS_AUX_1 = 'cas_aux'        # ??
+QR_CAS_AUX_2 = 'cas_aux2'       # ??
 
 
 logging.getLogger().setLevel(logging.DEBUG)
@@ -40,7 +59,7 @@ while True:
     if not msg:
         break
 
-    if msg['body']['type'] == 'init':
+    if msg['body']['type'] == M_INIT:
         next_id=1
         node_id = msg['body']['node_id']
         node_ids = msg['body']['node_ids']
@@ -51,7 +70,7 @@ while True:
             'dest': msg['src'],
             'src': node_id,
             'body': {
-                'type': 'init_ok',
+                'type': M_INIT_OK,
                 'msg_id': next_id,
                 'in_reply_to': msg['body']['msg_id']
             }
@@ -60,7 +79,7 @@ while True:
 
 
 
-    elif msg['body']['type'] == 'read':
+    elif msg['body']['type'] == M_READ:
         logging.info('reading key %s', msg['body']['key'])
         key = msg['body']['key']
 
@@ -75,7 +94,7 @@ while True:
                 'dest': node,
                 'src': node_id,
                 'body': {
-                    'type': 'qr_read',
+                    'type': QR_READ,
                     'msg_id': next_id,
                     'in_reply_to': msg['body']['msg_id'],  #TODO CORRIGIR ISTO
                     'key': key
@@ -93,7 +112,7 @@ while True:
                 if not msg_aux:
                     break
                 
-                if msg_aux['body']['type'] == 'qr_reply':  # when an element of qr reads a key and return its value and version
+                if msg_aux['body']['type'] == QR_REPLY:  # when an element of qr reads a key and return its value and version
                     if(msg_aux['body']['value']): # some qr nodes might not yet have that value on their dict
                         value_read, timestamp_read = msg_aux['body']['value']
                         if timestamp_read > max_timestamp_read:
@@ -104,7 +123,7 @@ while True:
                 'dest': msg['src'],
                 'src': node_id,
                 'body': {
-                    'type': 'read_ok',
+                    'type': M_READ_OK,
                     'msg_id': next_id,
                     'in_reply_to': msg['body']['msg_id'],
                     'value': updated_value
@@ -113,14 +132,14 @@ while True:
             next_id += 1
 
 
-    elif msg['body']['type'] == 'qr_read':  #reads a value from a qr node
+    elif msg['body']['type'] == QR_READ:  #reads a value from a qr node
         logging.info('reading key %s from quorum node %s', msg['body']['key'], msg['src'])
         key = msg['body']['key']
         send({
             'dest': msg['src'],
             'src': node_id,
             'body': {
-                'type': 'qr_reply',
+                'type': QR_REPLY,
                 'msg_id': next_id,
                 'in_reply_to': msg['body']['msg_id'],
                 'value': dict.get(key)
@@ -129,7 +148,7 @@ while True:
         next_id += 1
 
 
-    elif msg['body']['type'] == 'write':
+    elif msg['body']['type'] == M_WRITE:
         key = msg['body']['key']
         value = msg['body']['value']
         value_read = 0
@@ -147,7 +166,7 @@ while True:
                 'dest': node,
                 'src': node_id,
                 'body': {
-                    'type': 'qr_read_lock',
+                    'type': QR_READ_LOCK,
                     'msg_id': next_id,
                     'in_reply_to': msg['body']['msg_id'],  #TODO CORRIGIR ISTO
                     'key': key,
@@ -163,12 +182,12 @@ while True:
             if not msg_aux:
                 break
             
-            if msg_aux['body']['type'] == 'qr_reply':  # when an element of qr reads a key and return its value and version
+            if msg_aux['body']['type'] == QR_REPLY:  # when an element of qr reads a key and return its value and version
                 value_read, timestamp_read = msg_aux['body']['value']
                 if timestamp_read > max_timestamp_read:
                     max_timestamp_read = timestamp_read
 
-            elif msg_aux['body']['type'] == 'qr_lock_fail':
+            elif msg_aux['body']['type'] == QR_LOCK_FAIL:
                 failed_locks.append(msg_aux['src'])
 
         # 2.1 - If some quorum node doesn't give the lock, it fails and tells the nodes that gave the lock to unlock
@@ -177,7 +196,7 @@ while True:
                 'dest': msg['src'],
                 'src': node_id,
                 'body': {
-                    'type': 'error',
+                    'type': M_ERROR,
                     'in_reply_to': msg['body']['msg_id'],
                     'code': 11,
                     'text': 'Write quorum not available'
@@ -189,7 +208,7 @@ while True:
                     'dest': lock,
                     'src': node_id,
                     'body': {
-                        'type': 'qr_unlock',
+                        'type': QR_UNLOCK,
                         'in_reply_to': msg['body']['msg_id'],
                         'text': 'Release lock request'
                     }
@@ -205,7 +224,7 @@ while True:
                     'dest': node,
                     'src': node_id,
                     'body': {
-                        'type': 'qr_write',
+                        'type': QR_WRITE,
                         'msg_id': next_id,
                         'in_reply_to': msg['body']['msg_id'],
                         'value' : to_send,
@@ -219,7 +238,7 @@ while True:
             i = 0
             while i < len(quorum_to_use):
                 msg = receive()
-                if msg['body']['type'] == 'qr_write_ok':
+                if msg['body']['type'] == QR_WRITE_OK:
                     i += 1
 
     
@@ -228,7 +247,7 @@ while True:
                 'dest': client_id,
                 'src': node_id,
                 'body': {
-                    'type': 'write_ok',
+                    'type': M_WRITE_OK,
                     'msg_id': next_id,
                     'in_reply_to': msg['body']['msg_id']
                 }
@@ -237,7 +256,7 @@ while True:
 
 
     # Check if lock is available and if it is it returns the key's timestamp
-    elif msg['body']['type'] == 'qr_read_lock':
+    elif msg['body']['type'] == QR_READ_LOCK:
         if(not locked):
             locked = True
             key = msg['body']['key']
@@ -246,7 +265,7 @@ while True:
                     'dest': msg['src'],
                     'src': node_id,
                     'body': {
-                        'type': 'qr_reply',
+                        'type': QR_REPLY,
                         'msg_id': next_id,
                         'in_reply_to': msg['body']['msg_id'],
                         'value': dict.get(key)
@@ -257,7 +276,7 @@ while True:
                     'dest': msg['src'],
                     'src': node_id,
                     'body': {
-                        'type': 'qr_reply',
+                        'type': QR_REPLY,
                         'msg_id': next_id,
                         'in_reply_to': msg['body']['msg_id'],
                         'value': (None, 0)
@@ -268,7 +287,7 @@ while True:
                 'dest': msg['src'],
                 'src': node_id,
                 'body': {
-                    'type': 'qr_lock_fail',
+                    'type': QR_LOCK_FAIL,
                     'msg_id': next_id,
                     'in_reply_to': msg['body']['msg_id']
                 }
@@ -277,11 +296,11 @@ while True:
 
 
     # Releases the lock
-    elif msg['body']['type'] == 'qr_unlock':
+    elif msg['body']['type'] == QR_UNLOCK:
         locked = False
 
 
-    elif msg['body']['type'] == 'qr_write':
+    elif msg['body']['type'] == QR_WRITE:
 
         key = msg['body']['key']
         updated_values = msg['body']['value']
@@ -292,7 +311,7 @@ while True:
             'dest': msg['src'],
             'src': node_id,
             'body': {
-                'type': 'qr_write_ok',
+                'type': QR_WRITE_OK,
                 'msg_id': next_id,
                 'in_reply_to': msg['body']['msg_id']
             }
@@ -302,7 +321,7 @@ while True:
         locked = False
 
 
-    elif msg['body']['type'] == 'cas_aux':
+    elif msg['body']['type'] == QR_CAS_AUX_1:
 
         key = msg['body']['key']
         value_from = msg['body']['from']
@@ -317,7 +336,7 @@ while True:
                     'dest': msg['src'],
                     'src': node_id,
                     'body': {
-                        'type': 'cas_ok',
+                        'type': M_CAS_OK,
                         'msg_id': next_id,
                         'in_reply_to': msg['body']['msg_id']
                     }
@@ -327,7 +346,7 @@ while True:
                     'dest': msg['src'],
                     'src': node_id,
                     'body': {
-                        'type': 'error',
+                        'type': M_ERROR,
                         'in_reply_to': msg['body']['msg_id'],
                         'code': 22,
                         'text': 'From value does not match'
@@ -338,7 +357,7 @@ while True:
                 'dest': msg['src'],
                 'src': node_id,
                 'body': {
-                    'type': 'error',
+                    'type': M_ERROR,
                     'in_reply_to': msg['body']['msg_id'],
                     'code': 20,
                     'text': 'Key does not exist'
@@ -351,7 +370,7 @@ while True:
 
 
     # There is no need to compare, only to set
-    elif msg['body']['type'] == 'cas_aux2':
+    elif msg['body']['type'] == QR_CAS_AUX_2:
 
         key = msg['body']['key']
         value_to = msg['body']['to']
@@ -363,7 +382,7 @@ while True:
                 'dest': msg['src'],
                 'src': node_id,
                 'body': {
-                    'type': 'cas_ok',
+                    'type': M_CAS_OK,
                     'msg_id': next_id,
                     'in_reply_to': msg['body']['msg_id']
                 }
@@ -373,7 +392,7 @@ while True:
                 'dest': msg['src'],
                 'src': node_id,
                 'body': {
-                    'type': 'error',
+                    'type': M_ERROR,
                     'in_reply_to': msg['body']['msg_id'],
                     'code': 20,
                     'text': 'Key does not exist'
@@ -388,7 +407,7 @@ while True:
 
 
     # Compares and sets 
-    elif msg['body']['type'] == 'cas':
+    elif msg['body']['type'] == M_CAS:
         logging.info('Compare-and-set key %s', msg['body']['key'])
         error = False
         key = msg['body']['key']
@@ -409,7 +428,7 @@ while True:
                 'dest': node,
                 'src': node_id,
                 'body': {
-                    'type': 'qr_read_lock',
+                    'type': QR_READ_LOCK,
                     'msg_id': next_id,
                     'in_reply_to': msg['body']['msg_id'],  #TODO CORRIGIR ISTO
                     'key': key,
@@ -426,13 +445,13 @@ while True:
             if not msg_aux:
                 break
             
-            if msg_aux['body']['type'] == 'qr_reply':  # when an element of qr reads a key and return its value and version
+            if msg_aux['body']['type'] == QR_REPLY:  # when an element of qr reads a key and return its value and version
                 value_read, timestamp_read = msg_aux['body']['value']
                 node_info[node] = msg_aux['body']['value']
                 if timestamp_read > max_timestamp_read:
                     max_timestamp_read = timestamp_read
 
-            elif msg_aux['body']['type'] == 'qr_lock_fail':
+            elif msg_aux['body']['type'] == QR_LOCK_FAIL:
                 failed_locks.append(msg_aux['src'])
 
         # 2.1 - If some quorum node doesn't give the lock, it fails and tells the nodes that gave the lock to unlock
@@ -441,7 +460,7 @@ while True:
                 'dest': msg['src'],
                 'src': node_id,
                 'body': {
-                    'type': 'error',
+                    'type': M_ERROR,
                     'in_reply_to': msg['body']['msg_id'],
                     'code': 11,
                     'text': 'Quorum not available for CAS'
@@ -453,7 +472,7 @@ while True:
                     'dest': lock,
                     'src': node_id,
                     'body': {
-                        'type': 'qr_unlock',
+                        'type': QR_UNLOCK,
                         'in_reply_to': msg['body']['msg_id'],
                         'text': 'Release lock request'
                     }
@@ -469,7 +488,7 @@ while True:
                         'dest': node,
                         'src': node_id,
                         'body': {
-                            'type': 'cas_aux',
+                            'type': QR_CAS_AUX_1,
                             'msg_id': next_id,
                             'in_reply_to': msg['body']['msg_id'],
                             'key': key,
@@ -484,7 +503,7 @@ while True:
                         'dest': node,
                         'src': node_id,
                         'body': {
-                            'type': 'cas_aux2',
+                            'type': QR_CAS_AUX_2,
                             'msg_id': next_id,
                             'in_reply_to': msg['body']['msg_id'],
                             'key': key,
@@ -499,11 +518,11 @@ while True:
             i = 0
             while i < len(quorum_to_use):
                 msg = receive()
-                if msg['body']['type'] == 'qr_write_ok':
+                if msg['body']['type'] == QR_WRITE_OK:
                     i += 1
 
                 # 4.1 - If reply is error, return the error to client
-                elif msg['body']['type'] == 'error':
+                elif msg['body']['type'] == M_ERROR:
                     send(msg)
                     error = True
                     break
@@ -515,15 +534,13 @@ while True:
                     'dest': client_id,
                     'src': node_id,
                     'body': {
-                        'type': 'cas_ok',
+                        'type': M_CAS_OK,
                         'msg_id': next_id,
                         'in_reply_to': msg['body']['msg_id']
                     }
                 })
                 next_id += 1
 
-
-        
 
     else:
         logging.warning('unknown message type %s', msg['body']['type'])
