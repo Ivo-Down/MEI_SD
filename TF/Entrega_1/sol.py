@@ -314,15 +314,15 @@ while True:
                         'value': dict.get(key)
                     }
                 })
-            else:
+            else:  # When the key does not exist
                 send({
                     'dest': msg['src'],
                     'src': node_id,
                     'body': {
-                        'type': QR_REPLY,
-                        'msg_id': next_id,
+                        'type': M_ERROR,
                         'in_reply_to': msg['body']['msg_id'],
-                        'value': (None, 0)
+                        'code': 20,
+                        'text': 'Key does not exist'
                     }
                 })
         else:
@@ -459,7 +459,9 @@ while True:
         max_timestamp_read = 0
         client_id = msg['src']
         value_from = msg['body']['from']
-        value_to = msg['body']['to']
+        value_to = msg['body']['to'] 
+        failed_locks = []
+        node_info = {}  #key: node_id,  value: (value, timestamp)
 
 
         # 1 - Choose a quorum 
@@ -479,9 +481,6 @@ while True:
                 }
             })
             next_id += 1
-
-        failed_locks = []
-        node_info = {}  #key: node_id,  value: (value, timestamp)
         
         for node in quorum_to_use:
             msg_aux = receive()
@@ -490,7 +489,8 @@ while True:
             
             if msg_aux['body']['type'] == QR_REPLY:  # when an element of qr reads a key and return its value and version
                 value_read, timestamp_read = msg_aux['body']['value']
-                node_info[node] = msg_aux['body']['value']
+                node_info[node] = (value_read, timestamp_read)
+                logging.info(" ivo222222: " + str(node_info))
                 if timestamp_read > max_timestamp_read:
                     max_timestamp_read = timestamp_read
 
@@ -524,36 +524,39 @@ while True:
 
         else: 
             # 3 - Compare and set the nodes which have the latest version
+            logging.info(" ivo1: " + str(node_info))
+            logging.info(" ivo11: " + str(quorum_to_use))
             for node in quorum_to_use:
-                if(node_info.get(node)[1] == max_timestamp_read):
+                if(node in node_info):
                     timestamp = max_timestamp_read + 1
-                    send({
-                        'dest': node,
-                        'src': node_id,
-                        'body': {
-                            'type': QR_CAS_COMP_SET,
-                            'msg_id': next_id,
-                            'in_reply_to': msg['body']['msg_id'],
-                            'key': key,
-                            'from': value_from,
-                            'to': value_to,
-                            'timestamp': timestamp
-                        }
-                    })
-                    next_id += 1
-                else:
-                    send({
-                        'dest': node,
-                        'src': node_id,
-                        'body': {
-                            'type': QR_CAS_SET,
-                            'msg_id': next_id,
-                            'in_reply_to': msg['body']['msg_id'],
-                            'key': key,
-                            'to': value_to,
-                            'timestamp': timestamp
-                        }
-                    })
+                    if(node_info.get(node)[1] == max_timestamp_read):  
+                        send({
+                            'dest': node,
+                            'src': node_id,
+                            'body': {
+                                'type': QR_CAS_COMP_SET,
+                                'msg_id': next_id,
+                                'in_reply_to': msg['body']['msg_id'],
+                                'key': key,
+                                'from': value_from,
+                                'to': value_to,
+                                'timestamp': timestamp
+                            }
+                        })
+                
+                    else:
+                        send({
+                            'dest': node,
+                            'src': node_id,
+                            'body': {
+                                'type': QR_CAS_SET,
+                                'msg_id': next_id,
+                                'in_reply_to': msg['body']['msg_id'],
+                                'key': key,
+                                'to': value_to,
+                                'timestamp': timestamp
+                            }
+                        })
                     next_id += 1
                 
         

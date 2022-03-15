@@ -22,20 +22,20 @@ msg_id = 0
 
 # Usage:
 # send(from, to, type='read_ok')
-def send(src, dest, **body):
-    global msg_id
-    data = json.dumps(sn(dest=dest, src=src, body=sn(msg_id=(msg_id:=msg_id+1), **body)), default=vars)
-    logging.debug("sending %s", data)
-    print(data, flush=True)
+# def send(src, dest, **body):
+#     global msg_id
+#     data = json.dumps(sn(dest=dest, src=src, body=sn(msg_id=(msg_id:=msg_id+1), **body)), default=vars)
+#     logging.debug("sending %s", data)
+#     print(data, flush=True)
 
 # Usage:
 # reply(msg, type='read_ok')
-# reply(msg, type='error', code=22, text='Error Text.')
-def reply(request, **body):
-    send(request.dest, request.src, in_reply_to=request.body.msg_id, **body)
+# # reply(msg, type='error', code=22, text='Error Text.')
+# def reply(request, **body):
+#     send(request.dest, request.src, in_reply_to=request.body.msg_id, **body)
 
 # Usage:
 # error(msg, type='read_ok')
-# error(msg, type='error', code=22, text='Error Text.')
-def error(request, **body):
-    send(request.dest,request.src, in_reply_to=request.body.msg_id, **body)
+# # error(msg, type='error', code=22, text='Error Text.')
+# def error(request, **body):
+#     send(request.dest,request.src, in_reply_to=request.body.msg_id, **body)
