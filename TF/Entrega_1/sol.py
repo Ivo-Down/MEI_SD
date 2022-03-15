@@ -45,8 +45,8 @@ QR_UNLOCK = 'qr_unlock'         # -> pedido para dar release ao lock
 QR_WRITE = 'qr_write'
 QR_WRITE_OK = 'qr_write_ok'
 
-QR_CAS_AUX_1 = 'cas_aux'        # ??
-QR_CAS_AUX_2 = 'cas_aux2'       # ??
+QR_CAS_COMP_SET = 'cas_aux'     # compares and sets the value
+QR_CAS_SET = 'cas_aux2'         # sets the value when the version more recent
 
 
 logging.getLogger().setLevel(logging.DEBUG)
@@ -78,8 +78,14 @@ while True:
         next_id += 1
 
 
-
+    # Reads from a quorum and returns the updated value
     elif msg['body']['type'] == M_READ:
+
+        # VARIÁVEIS
+        updated_value = 0
+        max_timestamp_read = 0
+        failed_locks = []
+
         logging.info('reading key %s', msg['body']['key'])
         key = msg['body']['key']
 
@@ -94,7 +100,7 @@ while True:
                 'dest': node,
                 'src': node_id,
                 'body': {
-                    'type': QR_READ,
+                    'type': QR_READ_LOCK,
                     'msg_id': next_id,
                     'in_reply_to': msg['body']['msg_id'],  #TODO CORRIGIR ISTO
                     'key': key
@@ -102,9 +108,7 @@ while True:
                 })
                 next_id += 1
             
-            updated_value = 0
-            max_timestamp_read = 0
-
+            
             # 3 - Receives the requested (value, timestamp) from each qr member
             for node in quorum_to_use:
                 msg_aux = receive()
@@ -119,17 +123,52 @@ while True:
                             updated_value = value_read
                             max_timestamp_read = timestamp_read
 
-            send({
-                'dest': msg['src'],
-                'src': node_id,
-                'body': {
-                    'type': M_READ_OK,
-                    'msg_id': next_id,
-                    'in_reply_to': msg['body']['msg_id'],
-                    'value': updated_value
-                }
-            })
-            next_id += 1
+                elif msg_aux['body']['type'] == QR_LOCK_FAIL:
+                    failed_locks.append(msg_aux['src'])
+
+            
+            
+
+            # 4 - If some quorum node doesn't give the lock, it fails and tells the other nodes (which gave the lock) to unlock
+            if(failed_locks):
+                send({
+                    'dest': msg['src'],
+                    'src': node_id,
+                    'body': {
+                        'type': M_ERROR,
+                        'in_reply_to': msg['body']['msg_id'],
+                        'code': 11,  #TODO VER QUE ERRO VAI AQUI
+                        'text': 'Read quorum not available'
+                    }
+                })
+                next_id += 1
+                for lock in list(set(quorum_to_use) - set(failed_locks)):
+                    send({
+                        'dest': lock,
+                        'src': node_id,
+                        'body': {
+                            'type': QR_UNLOCK,
+                            'in_reply_to': msg['body']['msg_id'],
+                            'text': 'Release lock request'
+                        }
+                    })
+                    next_id += 1
+
+            else: 
+                # Replies to the client, everything is ok
+                send({
+                    'dest': msg['src'],
+                    'src': node_id,
+                    'body': {
+                        'type': M_READ_OK,
+                        'msg_id': next_id,
+                        'in_reply_to': msg['body']['msg_id'],
+                        'value': updated_value
+                    }
+                })
+                next_id += 1
+
+        
 
 
     elif msg['body']['type'] == QR_READ:  #reads a value from a qr node
@@ -149,12 +188,16 @@ while True:
 
 
     elif msg['body']['type'] == M_WRITE:
-        key = msg['body']['key']
-        value = msg['body']['value']
+        failed_locks = []
         value_read = 0
         timestamp_read = 0
-        client_id = msg['src']
         max_timestamp_read = 0
+        
+        key = msg['body']['key']
+        value = msg['body']['value']
+        
+        client_id = msg['src']
+        
         logging.info('writing key and value %s %s', key, value)
 
         # 1 - Choose a write quorum 
@@ -175,7 +218,7 @@ while True:
             })
             next_id += 1
 
-        failed_locks = []
+       
         
         for node in quorum_to_use:
             msg_aux = receive()
@@ -321,7 +364,7 @@ while True:
         locked = False
 
 
-    elif msg['body']['type'] == QR_CAS_AUX_1:
+    elif msg['body']['type'] == QR_CAS_COMP_SET:
 
         key = msg['body']['key']
         value_from = msg['body']['from']
@@ -370,7 +413,7 @@ while True:
 
 
     # There is no need to compare, only to set
-    elif msg['body']['type'] == QR_CAS_AUX_2:
+    elif msg['body']['type'] == QR_CAS_SET:
 
         key = msg['body']['key']
         value_to = msg['body']['to']
@@ -488,7 +531,7 @@ while True:
                         'dest': node,
                         'src': node_id,
                         'body': {
-                            'type': QR_CAS_AUX_1,
+                            'type': QR_CAS_COMP_SET,
                             'msg_id': next_id,
                             'in_reply_to': msg['body']['msg_id'],
                             'key': key,
@@ -503,7 +546,7 @@ while True:
                         'dest': node,
                         'src': node_id,
                         'body': {
-                            'type': QR_CAS_AUX_2,
+                            'type': QR_CAS_SET,
                             'msg_id': next_id,
                             'in_reply_to': msg['body']['msg_id'],
                             'key': key,
