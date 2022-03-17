@@ -13,7 +13,9 @@ def handle_init(msg):
     node_ids = msg['body']['node_ids']
     logging.info('node %s initialized', node_id)
 
-    replySimple(type=M_INIT_OK)
+    #msg['dest'] = msg['src']
+    #msg['src'] = node_id
+    replySimple(msg, type=M_INIT_OK)
     return math.ceil((len(node_ids)+1)/2), node_ids, node_id
 
 # Handles the read command

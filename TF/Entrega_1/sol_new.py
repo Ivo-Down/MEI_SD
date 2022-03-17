@@ -27,11 +27,31 @@ while True:
 
     # Reads from a quorum and returns the updated value
     elif msg['body']['type'] == M_READ:
-        handle_read(msg, quorum_size, node_ids, node_id)
+        if not locked:
+            locked = True
+            handle_read(msg, quorum_size, node_ids, node_id)
+            locked = False
+        else:
+            errorSimple(msg,type=M_ERROR,code=11,text='Quorum is unavailable.')
 
 
     elif msg['body']['type'] == M_WRITE:
-        handle_write(msg, quorum_size, node_ids, node_id)
+        if not locked:
+            locked = True
+            handle_write(msg, quorum_size, node_ids, node_id)
+            locked = False
+        else:
+            errorSimple(msg,type=M_ERROR,code=11,text='Quorum is unavailable.')
+
+
+    # Compares and sets 
+    elif msg['body']['type'] == M_CAS:
+        if not locked:
+            locked = True
+            handle_cas(msg,quorum_size,node_ids,node_id)
+            locked = False
+        else:
+            errorSimple(msg,type=M_ERROR,code=11,text='Quorum is unavailable.')
 
 
     # Returns the key's timestamp or an error in case the key doesn't exist
@@ -107,9 +127,6 @@ while True:
             errorSimple(msg, type=M_ERROR, code=20, text='Key does not exist')
         locked = False
 
-    # Compares and sets 
-    elif msg['body']['type'] == M_CAS:
-        handle_cas(msg,quorum_size,node_ids,node_id)
 
     else:
         logging.warning('unknown message type %s', msg['body']['type'])
