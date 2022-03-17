@@ -31,3 +31,8 @@ QR_WRITE_OK = 'qr_write_ok'
 QR_CAS_COMP_SET = 'qr_cas_comp_set'     # compares and sets the value
 QR_CAS_SET = 'qr_cas_set'         # sets the value when the version more recent
 QR_CAS_OK = 'qr_cas_ok'         # cas was done successfuly on the qr node
+
+QR_READ_WRITE = 'qr_read_write'
+QR_READ_WRITE_OK = 'qr_read_write_ok'
+
+QR_ERROR = 'qr_error'
