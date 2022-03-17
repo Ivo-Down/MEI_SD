@@ -32,10 +32,10 @@ def sendSimple(src, dest, **body):
 # reply(msg, type='read_ok')
 # # reply(msg, type='error', code=22, text='Error Text.')
 def replySimple(request, **body):
-    sendSimple(request.dest, request.src, in_reply_to=request.body.msg_id, **body)
+    sendSimple(request['dest'], request['src'], in_reply_to=request['body']['msg_id'], **body)
 
 # Usage:
 # error(msg, type='read_ok')
 # # error(msg, type='error', code=22, text='Error Text.')
 def errorSimple(request, **body):
-    sendSimple(request.dest,request.src, in_reply_to=request.body.msg_id, **body)
+    sendSimple(request['dest'], request['src'], in_reply_to=request['body']['msg_id'], **body)

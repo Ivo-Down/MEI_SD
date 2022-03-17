@@ -57,15 +57,12 @@ while True:
     # Returns the key's timestamp or an error in case the key doesn't exist
     elif msg['body']['type'] == QR_READ:
         logging.info('reading key %s from quorum node %s', msg['body']['key'], msg['src'])
-        if(not locked):
-            #locked = True
-            key = msg['body']['key']
-            if key in dict.keys():
-                replySimple(msg,type=QR_READ_OK,value=dict.get(key))
-            else:  # When the key does not exist
-                errorSimple(msg,type=M_ERROR,code=20,text='Key does not exist')
-        else:
-            replySimple(msg,type=QR_LOCK_FAIL)
+        key = msg['body']['key']
+        if key in dict.keys():
+            replySimple(msg,type=QR_READ_OK,value=dict.get(key))
+        else:  # When the key does not exist
+            errorSimple(msg,type=M_ERROR,code=20,text='Key does not exist')
+    
 
 
     # Releases the lock
@@ -76,6 +73,7 @@ while True:
     elif msg['body']['type'] == QR_LOCK:
         if(not locked):
             locked = True
+            replySimple(msg,type=QR_LOCK_OK)
         else:
             replySimple(msg,type=QR_LOCK_FAIL)
 

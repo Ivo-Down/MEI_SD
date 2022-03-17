@@ -18,6 +18,7 @@ M_ERROR = 'error'
 
 # Custom
 QR_LOCK = 'qr_lock'             # -> pede ao nodo o seu lock
+QR_LOCK_OK = 'qr_lock_ok'
 QR_LOCK_FAIL = 'qr_lock_fail'   # -> lock já atribuido
 QR_UNLOCK = 'qr_unlock'         # -> pede ao nodo para dar unlock
 

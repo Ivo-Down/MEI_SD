@@ -12,11 +12,10 @@ def handle_init(msg):
     node_id = msg['body']['node_id']
     node_ids = msg['body']['node_ids']
     logging.info('node %s initialized', node_id)
-
-    #msg['dest'] = msg['src']
-    #msg['src'] = node_id
+    
     replySimple(msg, type=M_INIT_OK)
     return math.ceil((len(node_ids)+1)/2), node_ids, node_id
+
 
 # Handles the read command
 def handle_read(msg, quorum_size, node_ids, node_id):
@@ -34,11 +33,11 @@ def handle_read(msg, quorum_size, node_ids, node_id):
 
     # 2 - Gets the lock for each quorum node
     results = get_locks(msg,quorum_to_use, node_id)
-
+    
     if(results):
         # 2 - Collects pairs (value, timestamp) from each node of the qr
         for node in quorum_to_use:
-            replySimple(msg, type=QR_READ, key=key)
+            sendSimple(node_id, node, type=QR_READ, key=key)
 
         # 3 - Receives the requested (value, timestamp) from each qr member
         for node in quorum_to_use:
@@ -75,7 +74,8 @@ def handle_read(msg, quorum_size, node_ids, node_id):
 
         else:
             # Replies to the client, everything is ok
-            replySimple(type=M_READ_OK, value=updated_value)
+            replySimple(msg, type=M_READ_OK, value=updated_value)
+
 
 # Handles the write command
 def handle_write(msg, quorum_size, node_ids, node_id):
@@ -111,7 +111,7 @@ def handle_write(msg, quorum_size, node_ids, node_id):
 
         # 2.1 - If some quorum node doesn't give the lock, it fails and tells the nodes that gave the lock to unlock
         if(failed_locks):
-            replySimple(type=M_ERROR,code=11,text='Write quorum not available')
+            replySimple(msg, type=M_ERROR,code=11,text='Write quorum not available')
             for lock in list(set(quorum_to_use) - set(failed_locks)):
                 sendSimple(node_id, lock, type=QR_UNLOCK,text = 'Release lock request')
 
@@ -125,10 +125,11 @@ def handle_write(msg, quorum_size, node_ids, node_id):
             # 4 - Wait for all the qw node acks
             i = 0
             while i < len(quorum_to_use):
-                msg = receive()
-                if msg['body']['type'] == QR_WRITE_OK:
+                msg_aux2 = receive()
+                if msg_aux2['body']['type'] == QR_WRITE_OK:
+                    sendSimple(node_id, quorum_to_use[i], type=QR_UNLOCK)
                     i += 1
-    
+
             # 5 - Return to client
             replySimple(msg,type=M_WRITE_OK)
 
@@ -211,4 +212,6 @@ def handle_cas(msg, quorum_size, node_ids, node_id):
                 
                 # 5 - Return to client
                 if(not error):
-                    errorSimple(msg,type=M_CAS_OK)
+                    replySimple(msg,type=M_CAS_OK)
+                else:
+                    errorSimple(msg,type=M_ERROR)

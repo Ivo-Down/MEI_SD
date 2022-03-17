@@ -17,13 +17,10 @@ def get_locks(msg,quorum_to_use, node_id):
     for node in quorum_to_use:
         msg_aux = receive()
 
-        if not msg_aux:
-            break
-
-        elif msg_aux['body']['type'] == QR_LOCK_FAIL:
+        if msg_aux['body']['type'] == QR_LOCK_FAIL:
             failed_locks.append(node)
 
-    if(failed_locks):  #If it failed to get a lock, unlock all the other nodes that were locked and returns false
+    if(len(failed_locks)>0):  #If it failed to get a lock, unlock all the other nodes that were locked and returns false
         errorSimple(msg,type=M_ERROR,code=11,text='Read quorum not available (lock problem)')
         for lock in list(set(quorum_to_use) - set(failed_locks)):
             sendSimple(node_id,lock,type=QR_UNLOCK,text='Release lock request')
