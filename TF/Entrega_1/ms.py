@@ -16,7 +16,7 @@ def receive():
         return json.loads(data)
     else:
         return None
-
+        
 # TODO: Check if msg_id is correctly set
 msg_id = 0
 

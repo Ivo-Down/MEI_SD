@@ -32,49 +32,51 @@ def handle_read(msg, quorum_size, node_ids, node_id):
     quorum_to_use = choose_quorum(node_ids, node_id, quorum_size)
 
     # 2 - Gets the lock for each quorum node
-    results = get_locks(msg,quorum_to_use, node_id)
+    get_locks(msg,quorum_to_use, node_id)
+
+
     
-    if(results):
-        # 2 - Collects pairs (value, timestamp) from each node of the qr
-        for node in quorum_to_use:
-            sendSimple(node_id, node, type=QR_READ, key=key)
+    # if(results):
+    #     # 2 - Collects pairs (value, timestamp) from each node of the qr
+    #     for node in quorum_to_use:
+    #         sendSimple(node_id, node, type=QR_READ, key=key)
 
-        # 3 - Receives the requested (value, timestamp) from each qr member
-        for node in quorum_to_use:
-            msg_aux = receive()
+    #     # 3 - Receives the requested (value, timestamp) from each qr member
+    #     for node in quorum_to_use:
+    #         msg_aux = receive()
 
-            if not msg_aux:
-                break
+    #         if not msg_aux:
+    #             break
 
-            # when an element of qr reads a key and return its value and version
-            if msg_aux['body']['type'] == QR_READ_OK:
-                # some qr nodes might not yet have that value on their dict
-                if(msg_aux['body']['value']):
-                    value_read, timestamp_read = msg_aux['body']['value']
-                    if timestamp_read > max_timestamp_read:
-                        updated_value = value_read
-                        max_timestamp_read = timestamp_read
+    #         # when an element of qr reads a key and return its value and version
+    #         if msg_aux['body']['type'] == QR_READ_OK:
+    #             # some qr nodes might not yet have that value on their dict
+    #             if(msg_aux['body']['value']):
+    #                 value_read, timestamp_read = msg_aux['body']['value']
+    #                 if timestamp_read > max_timestamp_read:
+    #                     updated_value = value_read
+    #                     max_timestamp_read = timestamp_read
 
-            elif msg_aux['body']['type'] == QR_LOCK_FAIL:
-                failed_locks.append(msg_aux['src'])
+    #         elif msg_aux['body']['type'] == QR_LOCK_FAIL:
+    #             failed_locks.append(msg_aux['src'])
 
-            elif msg_aux['body']['type'] == M_ERROR:  # key does not exist
-                nodes_to_unlock.append(msg_aux['src'])
+    #         elif msg_aux['body']['type'] == M_ERROR:  # key does not exist
+    #             nodes_to_unlock.append(msg_aux['src'])
 
-        for n in nodes_to_unlock:
-            sendSimple(node_id,n,type=QR_UNLOCK)
+    #     for n in nodes_to_unlock:
+    #         sendSimple(node_id,n,type=QR_UNLOCK)
 
-        # 4 - If some quorum node doesn't give the lock, it fails and tells the other nodes (which gave the lock) to unlock
-        if(failed_locks):
-            errorSimple(msg, type=M_ERROR, code=11,
-                        text='Read quorum not available')
-            for lock in list(set(quorum_to_use) - set(failed_locks)):
-                sendSimple(node_id, lock, type=QR_UNLOCK,
-                           text='Release lock request')
+    #     # 4 - If some quorum node doesn't give the lock, it fails and tells the other nodes (which gave the lock) to unlock
+    #     if(failed_locks):
+    #         errorSimple(msg, type=M_ERROR, code=11,
+    #                     text='Read quorum not available')
+    #         for lock in list(set(quorum_to_use) - set(failed_locks)):
+    #             sendSimple(node_id, lock, type=QR_UNLOCK,
+    #                        text='Release lock request')
 
-        else:
-            # Replies to the client, everything is ok
-            replySimple(msg, type=M_READ_OK, value=updated_value)
+    #     else:
+    #         # Replies to the client, everything is ok
+    #         replySimple(msg, type=M_READ_OK, value=updated_value)
 
 
 # Handles the write command
