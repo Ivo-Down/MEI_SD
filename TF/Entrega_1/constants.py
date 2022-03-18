@@ -28,6 +28,7 @@ QR_READ_FAIL = 'qr_read_fail'
 
 QR_WRITE = 'qr_write'
 QR_WRITE_OK = 'qr_write_ok'
+QR_WRITE_FAIL = 'qr_write_fail'
 
 QR_CAS_COMP_SET = 'qr_cas_comp_set'     # compares and sets the value
 QR_CAS_SET = 'qr_cas_set'         # sets the value when the version more recent
