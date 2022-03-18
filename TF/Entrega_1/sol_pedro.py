@@ -165,7 +165,7 @@ while True:
             nodes, node_to, in_reply_to  = quorum_dict[request_id]
             if(any(x['body']['type'] == QR_CAS_READ_FAIL and int(x['body']['code']) == CODE_UNAVAILABLE for x in response_queue[request_id])):
                 # One of the nodes was not available so we cant know if what we have is the most recent value so return error
-                sendSimple(node_id, node_to, in_reply_to=in_reply_to, type=M_ERROR,code=CODE_UNAVAILABLE,text='Node is unavailable')
+                sendSimple(node_id, node_to,type=M_ERROR, in_reply_to=in_reply_to ,code=CODE_UNAVAILABLE,text='Node is unavailable')
             else:
                 # otherwise, try to read the most recent value available (keys can't be deleted)
                 r_msg = get_most_recent_msg(filter(lambda x : x['body']['type'] == QR_CAS_READ_OK, response_queue[request_id]))
