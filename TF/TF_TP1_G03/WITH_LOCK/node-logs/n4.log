@@ -1,0 +1,165 @@
+DEBUG:root:received {"dest":"n4","body":{"type":"init","node_id":"n4","node_ids":["n1","n2","n3","n4","n5"],"msg_id":1},"src":"c0","id":0}
+INFO:root:node n4 initialized
+DEBUG:root:sending {"dest": "c0", "src": "n4", "body": {"msg_id": 1, "in_reply_to": 1, "type": "init_ok"}}
+DEBUG:root:received {"dest":"n4","body":{"key":1,"value":2,"type":"write","msg_id":1},"src":"c10","id":10}
+INFO:root:writing key 1
+DEBUG:root:sending {"dest": "n3", "src": "n4", "body": {"msg_id": 2, "type": "qr_write", "request_id": 1647629356.6227608, "key": 1, "value": 2}}
+DEBUG:root:sending {"dest": "n2", "src": "n4", "body": {"msg_id": 3, "type": "qr_write", "request_id": 1647629356.6227608, "key": 1, "value": 2}}
+DEBUG:root:sending {"dest": "n5", "src": "n4", "body": {"msg_id": 4, "type": "qr_write", "request_id": 1647629356.6227608, "key": 1, "value": 2}}
+DEBUG:root:received {"dest":"n4","src":"n3","body":{"msg_id":2,"in_reply_to":2,"type":"qr_write_ok","request_id":1.6476293566227608E9},"id":14}
+DEBUG:root:received {"dest":"n4","src":"n2","body":{"msg_id":2,"in_reply_to":3,"type":"qr_write_ok","request_id":1.6476293566227608E9},"id":15}
+DEBUG:root:received {"dest":"n4","src":"n5","body":{"msg_id":2,"in_reply_to":4,"type":"qr_write_ok","request_id":1.6476293566227608E9},"id":16}
+DEBUG:root:sending {"dest": "c10", "src": "n4", "body": {"msg_id": 5, "in_reply_to": 1, "type": "write_ok"}}
+DEBUG:root:received {"dest":"n4","src":"n3","body":{"msg_id":4,"type":"qr_cas_read","request_id":1.6476293568322334E9,"key":1,"from":4,"to":4},"id":20}
+INFO:root:reading key 1 from quorum node n3
+DEBUG:root:sending {"dest": "n3", "src": "n4", "body": {"msg_id": 6, "in_reply_to": 4, "type": "qr_cas_read_fail", "code": 20, "text": "Key does not exist", "request_id": 1647629356.8322334}}
+DEBUG:root:received {"dest":"n4","src":"n3","body":{"msg_id":8,"type":"qr_cas_read","request_id":1.6476293571944902E9,"key":2,"from":2,"to":3},"id":28}
+INFO:root:reading key 2 from quorum node n3
+DEBUG:root:sending {"dest": "n3", "src": "n4", "body": {"msg_id": 7, "in_reply_to": 8, "type": "qr_cas_read_fail", "code": 20, "text": "Key does not exist", "request_id": 1647629357.1944902}}
+DEBUG:root:received {"dest":"n4","src":"n2","body":{"msg_id":4,"type":"qr_cas_read","request_id":1.6476293573018754E9,"key":2,"from":0,"to":4},"id":35}
+INFO:root:reading key 2 from quorum node n2
+DEBUG:root:sending {"dest": "n2", "src": "n4", "body": {"msg_id": 8, "in_reply_to": 4, "type": "qr_cas_read_fail", "code": 20, "text": "Key does not exist", "request_id": 1647629357.3018754}}
+DEBUG:root:received {"dest":"n4","src":"n5","body":{"msg_id":5,"type":"qr_cas_read","request_id":1.6476293575081403E9,"key":1,"from":4,"to":2},"id":43}
+INFO:root:reading key 1 from quorum node n5
+DEBUG:root:sending {"dest": "n5", "src": "n4", "body": {"msg_id": 9, "in_reply_to": 5, "type": "qr_cas_read_fail", "code": 20, "text": "Key does not exist", "request_id": 1647629357.5081403}}
+DEBUG:root:received {"dest":"n4","body":{"key":3,"from":0,"to":3,"type":"cas","msg_id":1},"src":"c15","id":50}
+INFO:root:reading key 3
+DEBUG:root:sending {"dest": "n3", "src": "n4", "body": {"msg_id": 10, "type": "qr_cas_read", "request_id": 1647629357.7905052, "key": 3, "from": 0, "to": 3}}
+DEBUG:root:sending {"dest": "n4", "src": "n4", "body": {"msg_id": 11, "type": "qr_cas_read", "request_id": 1647629357.7905052, "key": 3, "from": 0, "to": 3}}
+DEBUG:root:sending {"dest": "n1", "src": "n4", "body": {"msg_id": 12, "type": "qr_cas_read", "request_id": 1647629357.7905052, "key": 3, "from": 0, "to": 3}}
+DEBUG:root:received {"dest":"n4","src":"n4","body":{"msg_id":11,"type":"qr_cas_read","request_id":1.6476293577905052E9,"key":3,"from":0,"to":3},"id":52}
+INFO:root:reading key 3 from quorum node n4
+DEBUG:root:sending {"dest": "n4", "src": "n4", "body": {"msg_id": 13, "in_reply_to": 11, "type": "qr_cas_read_fail", "code": 20, "text": "Key does not exist", "request_id": 1647629357.7905052}}
+DEBUG:root:received {"dest":"n4","src":"n3","body":{"msg_id":14,"in_reply_to":10,"type":"qr_cas_read_fail","code":20,"text":"Key does not exist","request_id":1.6476293577905052E9},"id":54}
+DEBUG:root:received {"dest":"n4","src":"n4","body":{"msg_id":13,"in_reply_to":11,"type":"qr_cas_read_fail","code":20,"text":"Key does not exist","request_id":1.6476293577905052E9},"id":55}
+DEBUG:root:received {"dest":"n4","src":"n1","body":{"msg_id":4,"in_reply_to":12,"type":"qr_cas_read_fail","code":20,"text":"Key does not exist","request_id":1.6476293577905052E9},"id":56}
+DEBUG:root:sending {"dest": "c15", "src": "n4", "body": {"msg_id": 14, "in_reply_to": 1, "type": "error", "code": 20, "text": "Key does not exist"}}
+DEBUG:root:received {"dest":"n4","src":"n1","body":{"msg_id":11,"type":"qr_write","request_id":1.6476293582375987E9,"key":1,"value":1},"id":68}
+INFO:root:reading key 1 from quorum node n1
+DEBUG:root:sending {"dest": "n1", "src": "n4", "body": {"msg_id": 15, "in_reply_to": 11, "type": "qr_write_ok", "request_id": 1647629358.2375987}}
+DEBUG:root:received {"dest":"n4","src":"n3","body":{"msg_id":16,"type":"qr_cas_read","request_id":1.647629358449409E9,"key":0,"from":3,"to":3},"id":75}
+INFO:root:reading key 0 from quorum node n3
+DEBUG:root:sending {"dest": "n3", "src": "n4", "body": {"msg_id": 16, "in_reply_to": 16, "type": "qr_cas_read_fail", "code": 20, "text": "Key does not exist", "request_id": 1647629358.449409}}
+DEBUG:root:received {"dest":"n4","src":"n1","body":{"msg_id":18,"type":"qr_read","request_id":1.647629358712011E9,"key":0},"id":93}
+INFO:root:reading key 0 from quorum node n1
+DEBUG:root:sending {"dest": "n1", "src": "n4", "body": {"msg_id": 17, "in_reply_to": 18, "type": "qr_read_fail", "code": 20, "text": "Key does not exist", "request_id": 1647629358.712011}}
+DEBUG:root:received {"dest":"n4","src":"n5","body":{"msg_id":13,"type":"qr_read","request_id":1.647629359062502E9,"key":0},"id":101}
+INFO:root:reading key 0 from quorum node n5
+DEBUG:root:sending {"dest": "n5", "src": "n4", "body": {"msg_id": 18, "in_reply_to": 13, "type": "qr_read_fail", "code": 20, "text": "Key does not exist", "request_id": 1647629359.062502}}
+DEBUG:root:received {"dest":"n4","src":"n5","body":{"msg_id":26,"type":"qr_cas_read","request_id":1.6476293594520097E9,"key":3,"from":1,"to":3},"id":131}
+INFO:root:reading key 3 from quorum node n5
+DEBUG:root:sending {"dest": "n5", "src": "n4", "body": {"msg_id": 19, "in_reply_to": 26, "type": "qr_cas_read_fail", "code": 20, "text": "Key does not exist", "request_id": 1647629359.4520097}}
+DEBUG:root:received {"dest":"n4","src":"n3","body":{"msg_id":40,"type":"qr_read","request_id":1.6476293604039521E9,"key":0},"id":172}
+INFO:root:reading key 0 from quorum node n3
+DEBUG:root:sending {"dest": "n3", "src": "n4", "body": {"msg_id": 20, "in_reply_to": 40, "type": "qr_read_fail", "code": 20, "text": "Key does not exist", "request_id": 1647629360.4039521}}
+DEBUG:root:received {"dest":"n4","src":"n2","body":{"msg_id":24,"type":"qr_cas_read","request_id":1.647629360789338E9,"key":4,"from":2,"to":4},"id":187}
+INFO:root:reading key 4 from quorum node n2
+DEBUG:root:sending {"dest": "n2", "src": "n4", "body": {"msg_id": 21, "in_reply_to": 24, "type": "qr_cas_read_fail", "code": 20, "text": "Key does not exist", "request_id": 1647629360.789338}}
+DEBUG:root:received {"dest":"n4","src":"n3","body":{"msg_id":47,"type":"qr_write","request_id":1.6476293608605032E9,"key":0,"value":3},"id":197}
+INFO:root:reading key 0 from quorum node n3
+DEBUG:root:sending {"dest": "n3", "src": "n4", "body": {"msg_id": 22, "in_reply_to": 47, "type": "qr_write_ok", "request_id": 1647629360.8605032}}
+DEBUG:root:received {"dest":"n4","src":"n3","body":{"msg_id":51,"type":"qr_cas_read","request_id":1.6476293609843426E9,"key":0,"from":0,"to":2},"id":212}
+INFO:root:reading key 0 from quorum node n3
+DEBUG:root:sending {"dest": "n3", "src": "n4", "body": {"msg_id": 23, "in_reply_to": 51, "type": "qr_cas_read_ok", "value": 3, "timestamp": 1647629360.8605032, "request_id": 1647629360.9843426, "from": 0, "to": 2}}
+DEBUG:root:received {"dest":"n4","src":"n2","body":{"msg_id":32,"type":"qr_read","request_id":1.6476293610497344E9,"key":0},"id":220}
+INFO:root:reading key 0 from quorum node n2
+DEBUG:root:sending {"dest": "n2", "src": "n4", "body": {"msg_id": 24, "in_reply_to": 32, "type": "qr_read_ok", "value": 3, "timestamp": 1647629360.8605032, "request_id": 1647629361.0497344}}
+DEBUG:root:received {"dest":"n4","src":"n3","body":{"msg_id":57,"type":"qr_read","request_id":1.6476293610915573E9,"key":0},"id":229}
+INFO:root:reading key 0 from quorum node n3
+DEBUG:root:sending {"dest": "n3", "src": "n4", "body": {"msg_id": 25, "in_reply_to": 57, "type": "qr_read_ok", "value": 3, "timestamp": 1647629360.8605032, "request_id": 1647629361.0915573}}
+DEBUG:root:received {"dest":"n4","src":"n2","body":{"msg_id":39,"type":"qr_cas_read","request_id":1.6476293613842323E9,"key":0,"from":1,"to":3},"id":237}
+INFO:root:reading key 0 from quorum node n2
+DEBUG:root:sending {"dest": "n2", "src": "n4", "body": {"msg_id": 26, "in_reply_to": 39, "type": "qr_cas_read_ok", "value": 3, "timestamp": 1647629360.8605032, "request_id": 1647629361.3842323, "from": 1, "to": 3}}
+DEBUG:root:received {"dest":"n4","body":{"key":4,"value":0,"type":"write","msg_id":1},"src":"c30","id":242}
+INFO:root:writing key 4
+DEBUG:root:sending {"dest": "n1", "src": "n4", "body": {"msg_id": 27, "type": "qr_write", "request_id": 1647629361.4605665, "key": 4, "value": 0}}
+DEBUG:root:sending {"dest": "n4", "src": "n4", "body": {"msg_id": 28, "type": "qr_write", "request_id": 1647629361.4605665, "key": 4, "value": 0}}
+DEBUG:root:sending {"dest": "n3", "src": "n4", "body": {"msg_id": 29, "type": "qr_write", "request_id": 1647629361.4605665, "key": 4, "value": 0}}
+DEBUG:root:received {"dest":"n4","src":"n4","body":{"msg_id":28,"type":"qr_write","request_id":1.6476293614605665E9,"key":4,"value":0},"id":244}
+INFO:root:reading key 4 from quorum node n4
+DEBUG:root:sending {"dest": "n4", "src": "n4", "body": {"msg_id": 30, "in_reply_to": 28, "type": "qr_write_ok", "request_id": 1647629361.4605665}}
+DEBUG:root:received {"dest":"n4","src":"n4","body":{"msg_id":30,"in_reply_to":28,"type":"qr_write_ok","request_id":1.6476293614605665E9},"id":246}
+DEBUG:root:received {"dest":"n4","src":"n1","body":{"msg_id":37,"in_reply_to":27,"type":"qr_write_ok","request_id":1.6476293614605665E9},"id":247}
+DEBUG:root:received {"dest":"n4","src":"n3","body":{"msg_id":59,"in_reply_to":29,"type":"qr_write_ok","request_id":1.6476293614605665E9},"id":248}
+DEBUG:root:sending {"dest": "c30", "src": "n4", "body": {"msg_id": 31, "in_reply_to": 1, "type": "write_ok"}}
+DEBUG:root:received {"dest":"n4","src":"n1","body":{"msg_id":39,"type":"qr_read","request_id":1.647629361659228E9,"key":0},"id":252}
+INFO:root:reading key 0 from quorum node n1
+DEBUG:root:sending {"dest": "n1", "src": "n4", "body": {"msg_id": 32, "in_reply_to": 39, "type": "qr_read_ok", "value": 3, "timestamp": 1647629360.8605032, "request_id": 1647629361.659228}}
+DEBUG:root:received {"dest":"n4","src":"n1","body":{"msg_id":46,"type":"qr_cas_read","request_id":1.647629362185998E9,"key":2,"from":2,"to":3},"id":269}
+INFO:root:reading key 2 from quorum node n1
+DEBUG:root:sending {"dest": "n1", "src": "n4", "body": {"msg_id": 33, "in_reply_to": 46, "type": "qr_cas_read_fail", "code": 20, "text": "Key does not exist", "request_id": 1647629362.185998}}
+DEBUG:root:received {"dest":"n4","body":{"key":2,"from":4,"to":0,"type":"cas","msg_id":1},"src":"c33","id":282}
+INFO:root:reading key 2
+DEBUG:root:sending {"dest": "n3", "src": "n4", "body": {"msg_id": 34, "type": "qr_cas_read", "request_id": 1647629362.5128055, "key": 2, "from": 4, "to": 0}}
+DEBUG:root:sending {"dest": "n1", "src": "n4", "body": {"msg_id": 35, "type": "qr_cas_read", "request_id": 1647629362.5128055, "key": 2, "from": 4, "to": 0}}
+DEBUG:root:sending {"dest": "n5", "src": "n4", "body": {"msg_id": 36, "type": "qr_cas_read", "request_id": 1647629362.5128055, "key": 2, "from": 4, "to": 0}}
+DEBUG:root:received {"dest":"n4","src":"n3","body":{"msg_id":65,"in_reply_to":34,"type":"qr_cas_read_ok","value":3,"timestamp":1.6476293604067166E9,"request_id":1.6476293625128055E9,"from":4,"to":0},"id":286}
+DEBUG:root:received {"dest":"n4","src":"n1","body":{"msg_id":50,"in_reply_to":35,"type":"qr_cas_read_ok","value":3,"timestamp":1.6476293604067166E9,"request_id":1.6476293625128055E9,"from":4,"to":0},"id":287}
+DEBUG:root:received {"dest":"n4","src":"n5","body":{"msg_id":51,"in_reply_to":36,"type":"qr_cas_read_fail","code":20,"text":"Key does not exist","request_id":1.6476293625128055E9},"id":288}
+DEBUG:root:sending {"dest": "c33", "src": "n4", "body": {"msg_id": 37, "in_reply_to": 1, "type": "error", "code": 22, "text": "from value differs"}}
+DEBUG:root:received {"dest":"n4","body":{"key":0,"from":1,"to":3,"type":"cas","msg_id":1},"src":"c36","id":307}
+INFO:root:reading key 0
+DEBUG:root:sending {"dest": "n2", "src": "n4", "body": {"msg_id": 38, "type": "qr_cas_read", "request_id": 1647629363.2528646, "key": 0, "from": 1, "to": 3}}
+DEBUG:root:sending {"dest": "n5", "src": "n4", "body": {"msg_id": 39, "type": "qr_cas_read", "request_id": 1647629363.2528646, "key": 0, "from": 1, "to": 3}}
+DEBUG:root:sending {"dest": "n3", "src": "n4", "body": {"msg_id": 40, "type": "qr_cas_read", "request_id": 1647629363.2528646, "key": 0, "from": 1, "to": 3}}
+DEBUG:root:received {"dest":"n4","src":"n2","body":{"msg_id":50,"in_reply_to":38,"type":"qr_cas_read_fail","code":20,"text":"Key does not exist","request_id":1.6476293632528646E9},"id":317}
+DEBUG:root:received {"dest":"n4","src":"n5","body":{"msg_id":54,"in_reply_to":39,"type":"qr_cas_read_ok","value":3,"timestamp":1.6476293608605032E9,"request_id":1.6476293632528646E9,"from":1,"to":3},"id":318}
+DEBUG:root:received {"dest":"n4","src":"n3","body":{"msg_id":75,"in_reply_to":40,"type":"qr_cas_read_ok","value":3,"timestamp":1.6476293608605032E9,"request_id":1.6476293632528646E9,"from":1,"to":3},"id":319}
+DEBUG:root:sending {"dest": "c36", "src": "n4", "body": {"msg_id": 41, "in_reply_to": 1, "type": "error", "code": 22, "text": "from value differs"}}
+DEBUG:root:received {"dest":"n4","src":"n1","body":{"msg_id":60,"type":"qr_write","request_id":1.6476293634536233E9,"key":4,"value":2},"id":325}
+INFO:root:reading key 4 from quorum node n1
+DEBUG:root:sending {"dest": "n1", "src": "n4", "body": {"msg_id": 42, "in_reply_to": 60, "type": "qr_write_ok", "request_id": 1647629363.4536233}}
+DEBUG:root:received {"dest":"n4","src":"n2","body":{"msg_id":53,"type":"qr_cas_read","request_id":1.6476293637904203E9,"key":4,"from":4,"to":0},"id":332}
+INFO:root:reading key 4 from quorum node n2
+DEBUG:root:sending {"dest": "n2", "src": "n4", "body": {"msg_id": 43, "in_reply_to": 53, "type": "qr_cas_read_ok", "value": 2, "timestamp": 1647629363.4536233, "request_id": 1647629363.7904203, "from": 4, "to": 0}}
+DEBUG:root:received {"dest":"n4","src":"n3","body":{"msg_id":79,"type":"qr_cas_read","request_id":1.6476293640073698E9,"key":0,"from":0,"to":2},"id":340}
+INFO:root:reading key 0 from quorum node n3
+DEBUG:root:sending {"dest": "n3", "src": "n4", "body": {"msg_id": 44, "in_reply_to": 79, "type": "qr_cas_read_ok", "value": 3, "timestamp": 1647629360.8605032, "request_id": 1647629364.0073698, "from": 0, "to": 2}}
+DEBUG:root:received {"dest":"n4","body":{"key":2,"from":3,"to":3,"type":"cas","msg_id":2},"src":"c33","id":346}
+INFO:root:reading key 2
+DEBUG:root:sending {"dest": "n2", "src": "n4", "body": {"msg_id": 45, "type": "qr_cas_read", "request_id": 1647629364.3725095, "key": 2, "from": 3, "to": 3}}
+DEBUG:root:sending {"dest": "n1", "src": "n4", "body": {"msg_id": 46, "type": "qr_cas_read", "request_id": 1647629364.3725095, "key": 2, "from": 3, "to": 3}}
+DEBUG:root:sending {"dest": "n5", "src": "n4", "body": {"msg_id": 47, "type": "qr_cas_read", "request_id": 1647629364.3725095, "key": 2, "from": 3, "to": 3}}
+DEBUG:root:received {"dest":"n4","src":"n2","body":{"msg_id":57,"in_reply_to":45,"type":"qr_cas_read_ok","value":3,"timestamp":1.6476293604067166E9,"request_id":1.6476293643725095E9,"from":3,"to":3},"id":350}
+DEBUG:root:received {"dest":"n4","src":"n5","body":{"msg_id":56,"in_reply_to":47,"type":"qr_cas_read_fail","code":20,"text":"Key does not exist","request_id":1.6476293643725095E9},"id":351}
+DEBUG:root:received {"dest":"n4","src":"n1","body":{"msg_id":63,"in_reply_to":46,"type":"qr_cas_read_ok","value":3,"timestamp":1.6476293604067166E9,"request_id":1.6476293643725095E9,"from":3,"to":3},"id":352}
+DEBUG:root:sending {"dest": "n2", "src": "n4", "body": {"msg_id": 48, "type": "qr_cas_write", "request_id": 1647629364.3725095, "key": 2, "value": 3}}
+DEBUG:root:sending {"dest": "n1", "src": "n4", "body": {"msg_id": 49, "type": "qr_cas_write", "request_id": 1647629364.3725095, "key": 2, "value": 3}}
+DEBUG:root:sending {"dest": "n5", "src": "n4", "body": {"msg_id": 50, "type": "qr_cas_write", "request_id": 1647629364.3725095, "key": 2, "value": 3}}
+DEBUG:root:received {"dest":"n4","src":"n2","body":{"msg_id":58,"in_reply_to":48,"type":"qr_cas_write_ok","request_id":1.6476293643725095E9},"id":356}
+DEBUG:root:received {"dest":"n4","src":"n1","body":{"msg_id":64,"in_reply_to":49,"type":"qr_cas_write_ok","request_id":1.6476293643725095E9},"id":357}
+DEBUG:root:received {"dest":"n4","src":"n5","body":{"msg_id":57,"in_reply_to":50,"type":"qr_cas_write_ok","request_id":1.6476293643725095E9},"id":358}
+DEBUG:root:sending {"dest": "c33", "src": "n4", "body": {"msg_id": 51, "in_reply_to": 2, "type": "cas_ok"}}
+DEBUG:root:received {"dest":"n4","src":"n5","body":{"msg_id":69,"type":"qr_cas_read","request_id":1.6476293650527053E9,"key":4,"from":3,"to":3},"id":384}
+INFO:root:reading key 4 from quorum node n5
+DEBUG:root:sending {"dest": "n5", "src": "n4", "body": {"msg_id": 52, "in_reply_to": 69, "type": "qr_cas_read_ok", "value": 2, "timestamp": 1647629363.4536233, "request_id": 1647629365.0527053, "from": 3, "to": 3}}
+DEBUG:root:received {"dest":"n4","src":"n1","body":{"msg_id":69,"type":"qr_write","request_id":1.6476293653046591E9,"key":3,"value":3},"id":391}
+INFO:root:reading key 3 from quorum node n1
+DEBUG:root:sending {"dest": "n1", "src": "n4", "body": {"msg_id": 53, "in_reply_to": 69, "type": "qr_write_ok", "request_id": 1647629365.3046591}}
+DEBUG:root:received {"dest":"n4","body":{"key":0,"type":"read","msg_id":1},"src":"c42","id":398}
+INFO:root:reading key 0
+DEBUG:root:sending {"dest": "n5", "src": "n4", "body": {"msg_id": 54, "type": "qr_read", "request_id": 1647629365.4122431, "key": 0}}
+DEBUG:root:sending {"dest": "n3", "src": "n4", "body": {"msg_id": 55, "type": "qr_read", "request_id": 1647629365.4122431, "key": 0}}
+DEBUG:root:sending {"dest": "n4", "src": "n4", "body": {"msg_id": 56, "type": "qr_read", "request_id": 1647629365.4122431, "key": 0}}
+DEBUG:root:received {"dest":"n4","src":"n4","body":{"msg_id":56,"type":"qr_read","request_id":1.6476293654122431E9,"key":0},"id":401}
+INFO:root:reading key 0 from quorum node n4
+DEBUG:root:sending {"dest": "n4", "src": "n4", "body": {"msg_id": 57, "in_reply_to": 56, "type": "qr_read_ok", "value": 3, "timestamp": 1647629360.8605032, "request_id": 1647629365.4122431}}
+DEBUG:root:received {"dest":"n4","src":"n5","body":{"msg_id":73,"in_reply_to":54,"type":"qr_read_ok","value":3,"timestamp":1.6476293608605032E9,"request_id":1.6476293654122431E9},"id":402}
+DEBUG:root:received {"dest":"n4","src":"n3","body":{"msg_id":86,"in_reply_to":55,"type":"qr_read_ok","value":3,"timestamp":1.6476293608605032E9,"request_id":1.6476293654122431E9},"id":403}
+DEBUG:root:received {"dest":"n4","src":"n4","body":{"msg_id":57,"in_reply_to":56,"type":"qr_read_ok","value":3,"timestamp":1.6476293608605032E9,"request_id":1.6476293654122431E9},"id":404}
+DEBUG:root:sending {"dest": "c42", "src": "n4", "body": {"msg_id": 58, "in_reply_to": 1, "type": "read_ok", "value": 3}}
+DEBUG:root:received {"dest":"n4","body":{"key":1,"from":4,"to":4,"type":"cas","msg_id":2},"src":"c10","id":406}
+INFO:root:reading key 1
+DEBUG:root:sending {"dest": "n1", "src": "n4", "body": {"msg_id": 59, "type": "qr_cas_read", "request_id": 1647629365.7403371, "key": 1, "from": 4, "to": 4}}
+DEBUG:root:sending {"dest": "n3", "src": "n4", "body": {"msg_id": 60, "type": "qr_cas_read", "request_id": 1647629365.7403371, "key": 1, "from": 4, "to": 4}}
+DEBUG:root:sending {"dest": "n4", "src": "n4", "body": {"msg_id": 61, "type": "qr_cas_read", "request_id": 1647629365.7403371, "key": 1, "from": 4, "to": 4}}
+DEBUG:root:received {"dest":"n4","src":"n4","body":{"msg_id":61,"type":"qr_cas_read","request_id":1.6476293657403371E9,"key":1,"from":4,"to":4},"id":409}
+INFO:root:reading key 1 from quorum node n4
+DEBUG:root:sending {"dest": "n4", "src": "n4", "body": {"msg_id": 62, "in_reply_to": 61, "type": "qr_cas_read_ok", "value": 1, "timestamp": 1647629358.2375987, "request_id": 1647629365.7403371, "from": 4, "to": 4}}
+DEBUG:root:received {"dest":"n4","src":"n3","body":{"msg_id":87,"in_reply_to":60,"type":"qr_cas_read_ok","value":1,"timestamp":1.647629362406959E9,"request_id":1.6476293657403371E9,"from":4,"to":4},"id":412}
+DEBUG:root:received {"dest":"n4","src":"n1","body":{"msg_id":73,"in_reply_to":59,"type":"qr_cas_read_ok","value":1,"timestamp":1.647629362406959E9,"request_id":1.6476293657403371E9,"from":4,"to":4},"id":411}
+DEBUG:root:received {"dest":"n4","src":"n4","body":{"msg_id":62,"in_reply_to":61,"type":"qr_cas_read_ok","value":1,"timestamp":1.6476293582375987E9,"request_id":1.6476293657403371E9,"from":4,"to":4},"id":410}
+DEBUG:root:sending {"dest": "c10", "src": "n4", "body": {"msg_id": 63, "in_reply_to": 2, "type": "error", "code": 22, "text": "from value differs"}}
+DEBUG:root:received {"dest":"n4","src":"n2","body":{"msg_id":68,"type":"qr_cas_read","request_id":1.6476293659813428E9,"key":1,"from":3,"to":4},"id":425}
+INFO:root:reading key 1 from quorum node n2
+DEBUG:root:sending {"dest": "n2", "src": "n4", "body": {"msg_id": 64, "in_reply_to": 68, "type": "qr_cas_read_ok", "value": 1, "timestamp": 1647629358.2375987, "request_id": 1647629365.9813428, "from": 3, "to": 4}}

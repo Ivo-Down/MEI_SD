@@ -1,0 +1,869 @@
+{:perf {:latency-graph {:valid? true},
+        :rate-graph {:valid? true},
+        :valid? true},
+ :timeline {:valid? true},
+ :exceptions {:valid? true},
+ :stats {:valid? true,
+         :count 57,
+         :ok-count 29,
+         :fail-count 1,
+         :info-count 27,
+         :by-f {:cas {:valid? true,
+                      :count 34,
+                      :ok-count 7,
+                      :fail-count 0,
+                      :info-count 27},
+                :read {:valid? true,
+                       :count 4,
+                       :ok-count 3,
+                       :fail-count 1,
+                       :info-count 0},
+                :write {:valid? true,
+                        :count 19,
+                        :ok-count 19,
+                        :fail-count 0,
+                        :info-count 0}}},
+ :net {:stats {:all {:send-count 508,
+                     :recv-count 508,
+                     :msg-count 508,
+                     :msgs-per-op 8.912281},
+               :clients {:send-count 124,
+                         :recv-count 124,
+                         :msg-count 124},
+               :servers {:send-count 384,
+                         :recv-count 384,
+                         :msg-count 384,
+                         :msgs-per-op 6.736842}},
+       :valid? true},
+ :workload {:valid? false,
+            :results {0 {:linearizable {:valid? true,
+                                        :configs ({:model #knossos.model.CASRegister{:value 4},
+                                                   :last-op {:process 5,
+                                                             :type :ok,
+                                                             :f :write,
+                                                             :value 4,
+                                                             :index 101,
+                                                             :time 8901755500},
+                                                   :pending [{:process 8,
+                                                              :type :invoke,
+                                                              :f :cas,
+                                                              :value [4
+                                                                      3],
+                                                              :index 14,
+                                                              :time 1426378900}]}),
+                                        :final-paths ()},
+                         :timeline {:valid? true},
+                         :valid? true},
+                      1 {:linearizable {:valid? true,
+                                        :configs ({:model #knossos.model.CASRegister{:value 0},
+                                                   :last-op {:process 10,
+                                                             :type :ok,
+                                                             :f :write,
+                                                             :value 0,
+                                                             :index 107,
+                                                             :time 9516185300},
+                                                   :pending [{:process 12,
+                                                              :type :invoke,
+                                                              :f :cas,
+                                                              :value [1
+                                                                      1],
+                                                              :index 90,
+                                                              :time 7859820200}
+                                                             {:process 17,
+                                                              :type :invoke,
+                                                              :f :cas,
+                                                              :value [2
+                                                                      0],
+                                                              :index 61,
+                                                              :time 5493652400}]}
+                                                  {:model #knossos.model.CASRegister{:value 0},
+                                                   :last-op {:process 10,
+                                                             :type :ok,
+                                                             :f :write,
+                                                             :value 0,
+                                                             :index 107,
+                                                             :time 9516185300},
+                                                   :pending [{:process 12,
+                                                              :type :invoke,
+                                                              :f :cas,
+                                                              :value [1
+                                                                      1],
+                                                              :index 90,
+                                                              :time 7859820200}
+                                                             {:process 17,
+                                                              :type :invoke,
+                                                              :f :cas,
+                                                              :value [2
+                                                                      0],
+                                                              :index 61,
+                                                              :time 5493652400}
+                                                             {:process 19,
+                                                              :type :invoke,
+                                                              :f :cas,
+                                                              :value [4
+                                                                      1],
+                                                              :index 26,
+                                                              :time 2289442800}]}
+                                                  {:model #knossos.model.CASRegister{:value 0},
+                                                   :last-op {:process 10,
+                                                             :type :ok,
+                                                             :f :write,
+                                                             :value 0,
+                                                             :index 107,
+                                                             :time 9516185300},
+                                                   :pending [{:process 17,
+                                                              :type :invoke,
+                                                              :f :cas,
+                                                              :value [2
+                                                                      0],
+                                                              :index 61,
+                                                              :time 5493652400}]}),
+                                        :final-paths ()},
+                         :timeline {:valid? true},
+                         :valid? true},
+                      4 {:linearizable {:valid? false,
+                                        :configs ({:model #knossos.model.CASRegister{:value 0},
+                                                   :last-op {:process 41,
+                                                             :type :ok,
+                                                             :f :cas,
+                                                             :value [1
+                                                                     0],
+                                                             :index 71,
+                                                             :time 5966441500},
+                                                   :pending [{:process 42,
+                                                              :type :invoke,
+                                                              :f :cas,
+                                                              :value [4
+                                                                      2],
+                                                              :index 2,
+                                                              :time 304700500}
+                                                             {:process 43,
+                                                              :type :invoke,
+                                                              :f :cas,
+                                                              :value [1
+                                                                      2],
+                                                              :index 32,
+                                                              :time 2828022800}
+                                                             {:process 46,
+                                                              :type :invoke,
+                                                              :f :cas,
+                                                              :value [4
+                                                                      2],
+                                                              :index 50,
+                                                              :time 4046469300}
+                                                             {:process 47,
+                                                              :type :invoke,
+                                                              :f :cas,
+                                                              :value [1
+                                                                      0],
+                                                              :index 82,
+                                                              :time 7306302300}
+                                                             {:process 48,
+                                                              :type :invoke,
+                                                              :f :cas,
+                                                              :value [0
+                                                                      0],
+                                                              :index 74,
+                                                              :time 6264154000}]}),
+                                        :final-paths ([{:op {:process 41,
+                                                             :type :ok,
+                                                             :f :cas,
+                                                             :value [1
+                                                                     0],
+                                                             :index 71,
+                                                             :time 5966441500},
+                                                        :model #knossos.model.CASRegister{:value 0}}
+                                                       {:op {:process 48,
+                                                             :type :invoke,
+                                                             :f :cas,
+                                                             :value [0
+                                                                     0],
+                                                             :index 74,
+                                                             :time 6264154000},
+                                                        :model #knossos.model.CASRegister{:value 0}}
+                                                       {:op {:process 47,
+                                                             :type :ok,
+                                                             :f :cas,
+                                                             :value [1
+                                                                     0],
+                                                             :index 83,
+                                                             :time 7312869000},
+                                                        :model #knossos.model.Inconsistent{:msg "can't CAS 0 from 1 to 0"}}]
+                                                      [{:op {:process 41,
+                                                             :type :ok,
+                                                             :f :cas,
+                                                             :value [1
+                                                                     0],
+                                                             :index 71,
+                                                             :time 5966441500},
+                                                        :model #knossos.model.CASRegister{:value 0}}
+                                                       {:op {:process 46,
+                                                             :type :invoke,
+                                                             :f :cas,
+                                                             :value [4
+                                                                     2],
+                                                             :index 50,
+                                                             :time 4046469300},
+                                                        :model #knossos.model.Inconsistent{:msg "can't CAS 0 from 4 to 2"}}]
+                                                      [{:op {:process 41,
+                                                             :type :ok,
+                                                             :f :cas,
+                                                             :value [1
+                                                                     0],
+                                                             :index 71,
+                                                             :time 5966441500},
+                                                        :model #knossos.model.CASRegister{:value 0}}
+                                                       {:op {:process 43,
+                                                             :type :invoke,
+                                                             :f :cas,
+                                                             :value [1
+                                                                     2],
+                                                             :index 32,
+                                                             :time 2828022800},
+                                                        :model #knossos.model.Inconsistent{:msg "can't CAS 0 from 1 to 2"}}]
+                                                      [{:op {:process 41,
+                                                             :type :ok,
+                                                             :f :cas,
+                                                             :value [1
+                                                                     0],
+                                                             :index 71,
+                                                             :time 5966441500},
+                                                        :model #knossos.model.CASRegister{:value 0}}
+                                                       {:op {:process 48,
+                                                             :type :invoke,
+                                                             :f :cas,
+                                                             :value [0
+                                                                     0],
+                                                             :index 74,
+                                                             :time 6264154000},
+                                                        :model #knossos.model.CASRegister{:value 0}}
+                                                       {:op {:process 43,
+                                                             :type :invoke,
+                                                             :f :cas,
+                                                             :value [1
+                                                                     2],
+                                                             :index 32,
+                                                             :time 2828022800},
+                                                        :model #knossos.model.Inconsistent{:msg "can't CAS 0 from 1 to 2"}}]
+                                                      [{:op {:process 41,
+                                                             :type :ok,
+                                                             :f :cas,
+                                                             :value [1
+                                                                     0],
+                                                             :index 71,
+                                                             :time 5966441500},
+                                                        :model #knossos.model.CASRegister{:value 0}}
+                                                       {:op {:process 48,
+                                                             :type :invoke,
+                                                             :f :cas,
+                                                             :value [0
+                                                                     0],
+                                                             :index 74,
+                                                             :time 6264154000},
+                                                        :model #knossos.model.CASRegister{:value 0}}
+                                                       {:op {:process 46,
+                                                             :type :invoke,
+                                                             :f :cas,
+                                                             :value [4
+                                                                     2],
+                                                             :index 50,
+                                                             :time 4046469300},
+                                                        :model #knossos.model.Inconsistent{:msg "can't CAS 0 from 4 to 2"}}]
+                                                      [{:op {:process 41,
+                                                             :type :ok,
+                                                             :f :cas,
+                                                             :value [1
+                                                                     0],
+                                                             :index 71,
+                                                             :time 5966441500},
+                                                        :model #knossos.model.CASRegister{:value 0}}
+                                                       {:op {:process 48,
+                                                             :type :invoke,
+                                                             :f :cas,
+                                                             :value [0
+                                                                     0],
+                                                             :index 74,
+                                                             :time 6264154000},
+                                                        :model #knossos.model.CASRegister{:value 0}}
+                                                       {:op {:process 42,
+                                                             :type :invoke,
+                                                             :f :cas,
+                                                             :value [4
+                                                                     2],
+                                                             :index 2,
+                                                             :time 304700500},
+                                                        :model #knossos.model.Inconsistent{:msg "can't CAS 0 from 4 to 2"}}]
+                                                      [{:op {:process 41,
+                                                             :type :ok,
+                                                             :f :cas,
+                                                             :value [1
+                                                                     0],
+                                                             :index 71,
+                                                             :time 5966441500},
+                                                        :model #knossos.model.CASRegister{:value 0}}
+                                                       {:op {:process 47,
+                                                             :type :ok,
+                                                             :f :cas,
+                                                             :value [1
+                                                                     0],
+                                                             :index 83,
+                                                             :time 7312869000},
+                                                        :model #knossos.model.Inconsistent{:msg "can't CAS 0 from 1 to 0"}}]
+                                                      [{:op {:process 41,
+                                                             :type :ok,
+                                                             :f :cas,
+                                                             :value [1
+                                                                     0],
+                                                             :index 71,
+                                                             :time 5966441500},
+                                                        :model #knossos.model.CASRegister{:value 0}}
+                                                       {:op {:process 42,
+                                                             :type :invoke,
+                                                             :f :cas,
+                                                             :value [4
+                                                                     2],
+                                                             :index 2,
+                                                             :time 304700500},
+                                                        :model #knossos.model.Inconsistent{:msg "can't CAS 0 from 4 to 2"}}]),
+                                        :previous-ok {:process 41,
+                                                      :type :ok,
+                                                      :f :cas,
+                                                      :value [1 0],
+                                                      :index 71,
+                                                      :time 5966441500},
+                                        :last-op {:process 41,
+                                                  :type :ok,
+                                                  :f :cas,
+                                                  :value [1 0],
+                                                  :index 71,
+                                                  :time 5966441500},
+                                        :op {:process 47,
+                                             :type :ok,
+                                             :f :cas,
+                                             :value [1 0],
+                                             :index 83,
+                                             :time 7312869000}},
+                         :timeline {:valid? true},
+                         :valid? false},
+                      3 {:linearizable {:valid? true,
+                                        :configs ({:model #knossos.model.CASRegister{:value 4},
+                                                   :last-op {:process 39,
+                                                             :type :ok,
+                                                             :f :cas,
+                                                             :value [2
+                                                                     4],
+                                                             :index 25,
+                                                             :time 2080397900},
+                                                   :pending [{:process 30,
+                                                              :type :invoke,
+                                                              :f :cas,
+                                                              :value [0
+                                                                      0],
+                                                              :index 8,
+                                                              :time 795426900}
+                                                             {:process 32,
+                                                              :type :invoke,
+                                                              :f :cas,
+                                                              :value [2
+                                                                      4],
+                                                              :index 92,
+                                                              :time 8090833900}
+                                                             {:process 35,
+                                                              :type :invoke,
+                                                              :f :cas,
+                                                              :value [1
+                                                                      0],
+                                                              :index 28,
+                                                              :time 2518960100}
+                                                             {:process 36,
+                                                              :type :invoke,
+                                                              :f :cas,
+                                                              :value [3
+                                                                      2],
+                                                              :index 4,
+                                                              :time 366524900}
+                                                             {:process 37,
+                                                              :type :invoke,
+                                                              :f :cas,
+                                                              :value [1
+                                                                      1],
+                                                              :index 108,
+                                                              :time 9556063900}
+                                                             {:process 38,
+                                                              :type :invoke,
+                                                              :f :cas,
+                                                              :value [3
+                                                                      3],
+                                                              :index 0,
+                                                              :time 42551200}
+                                                             {:process 39,
+                                                              :type :invoke,
+                                                              :f :cas,
+                                                              :value [1
+                                                                      2],
+                                                              :index 110,
+                                                              :time 9800733800}
+                                                             {:process 80,
+                                                              :type :invoke,
+                                                              :f :cas,
+                                                              :value [2
+                                                                      2],
+                                                              :index 72,
+                                                              :time 6218334200}
+                                                             {:process 86,
+                                                              :type :invoke,
+                                                              :f :cas,
+                                                              :value [0
+                                                                      2],
+                                                              :index 30,
+                                                              :time 2595248500}
+                                                             {:process 88,
+                                                              :type :invoke,
+                                                              :f :cas,
+                                                              :value [1
+                                                                      2],
+                                                              :index 86,
+                                                              :time 7398603400}]}),
+                                        :final-paths ()},
+                         :timeline {:valid? true},
+                         :valid? true},
+                      2 {:linearizable {:valid? true,
+                                        :configs ({:model #knossos.model.CASRegister{:value 0},
+                                                   :last-op {:process 20,
+                                                             :type :ok,
+                                                             :f :write,
+                                                             :value 0,
+                                                             :index 95,
+                                                             :time 8449262600},
+                                                   :pending [{:process 21,
+                                                              :type :invoke,
+                                                              :f :cas,
+                                                              :value [4
+                                                                      1],
+                                                              :index 104,
+                                                              :time 9448990400}
+                                                             {:process 78,
+                                                              :type :invoke,
+                                                              :f :cas,
+                                                              :value [2
+                                                                      2],
+                                                              :index 98,
+                                                              :time 8844465300}
+                                                             {:process 122,
+                                                              :type :invoke,
+                                                              :f :cas,
+                                                              :value [2
+                                                                      1],
+                                                              :index 84,
+                                                              :time 7336480200}]}
+                                                  {:model #knossos.model.CASRegister{:value 0},
+                                                   :last-op {:process 20,
+                                                             :type :ok,
+                                                             :f :write,
+                                                             :value 0,
+                                                             :index 95,
+                                                             :time 8449262600},
+                                                   :pending [{:process 21,
+                                                              :type :invoke,
+                                                              :f :cas,
+                                                              :value [4
+                                                                      1],
+                                                              :index 104,
+                                                              :time 9448990400}
+                                                             {:process 28,
+                                                              :type :invoke,
+                                                              :f :cas,
+                                                              :value [2
+                                                                      1],
+                                                              :index 42,
+                                                              :time 3320428100}
+                                                             {:process 72,
+                                                              :type :invoke,
+                                                              :f :cas,
+                                                              :value [1
+                                                                      2],
+                                                              :index 64,
+                                                              :time 5783237700}
+                                                             {:process 78,
+                                                              :type :invoke,
+                                                              :f :cas,
+                                                              :value [2
+                                                                      2],
+                                                              :index 98,
+                                                              :time 8844465300}
+                                                             {:process 122,
+                                                              :type :invoke,
+                                                              :f :cas,
+                                                              :value [2
+                                                                      1],
+                                                              :index 84,
+                                                              :time 7336480200}]}
+                                                  {:model #knossos.model.CASRegister{:value 0},
+                                                   :last-op {:process 20,
+                                                             :type :ok,
+                                                             :f :write,
+                                                             :value 0,
+                                                             :index 95,
+                                                             :time 8449262600},
+                                                   :pending [{:process 21,
+                                                              :type :invoke,
+                                                              :f :cas,
+                                                              :value [4
+                                                                      1],
+                                                              :index 104,
+                                                              :time 9448990400}
+                                                             {:process 22,
+                                                              :type :invoke,
+                                                              :f :cas,
+                                                              :value [1
+                                                                      2],
+                                                              :index 52,
+                                                              :time 4428978100}
+                                                             {:process 26,
+                                                              :type :invoke,
+                                                              :f :cas,
+                                                              :value [2
+                                                                      3],
+                                                              :index 56,
+                                                              :time 4735579800}
+                                                             {:process 27,
+                                                              :type :invoke,
+                                                              :f :cas,
+                                                              :value [3
+                                                                      1],
+                                                              :index 20,
+                                                              :time 1778647200}
+                                                             {:process 72,
+                                                              :type :invoke,
+                                                              :f :cas,
+                                                              :value [1
+                                                                      2],
+                                                              :index 64,
+                                                              :time 5783237700}
+                                                             {:process 78,
+                                                              :type :invoke,
+                                                              :f :cas,
+                                                              :value [2
+                                                                      2],
+                                                              :index 98,
+                                                              :time 8844465300}
+                                                             {:process 122,
+                                                              :type :invoke,
+                                                              :f :cas,
+                                                              :value [2
+                                                                      1],
+                                                              :index 84,
+                                                              :time 7336480200}]}
+                                                  {:model #knossos.model.CASRegister{:value 0},
+                                                   :last-op {:process 20,
+                                                             :type :ok,
+                                                             :f :write,
+                                                             :value 0,
+                                                             :index 95,
+                                                             :time 8449262600},
+                                                   :pending [{:process 21,
+                                                              :type :invoke,
+                                                              :f :cas,
+                                                              :value [4
+                                                                      1],
+                                                              :index 104,
+                                                              :time 9448990400}
+                                                             {:process 22,
+                                                              :type :invoke,
+                                                              :f :cas,
+                                                              :value [1
+                                                                      2],
+                                                              :index 52,
+                                                              :time 4428978100}
+                                                             {:process 28,
+                                                              :type :invoke,
+                                                              :f :cas,
+                                                              :value [2
+                                                                      1],
+                                                              :index 42,
+                                                              :time 3320428100}
+                                                             {:process 72,
+                                                              :type :invoke,
+                                                              :f :cas,
+                                                              :value [1
+                                                                      2],
+                                                              :index 64,
+                                                              :time 5783237700}
+                                                             {:process 78,
+                                                              :type :invoke,
+                                                              :f :cas,
+                                                              :value [2
+                                                                      2],
+                                                              :index 98,
+                                                              :time 8844465300}
+                                                             {:process 122,
+                                                              :type :invoke,
+                                                              :f :cas,
+                                                              :value [2
+                                                                      1],
+                                                              :index 84,
+                                                              :time 7336480200}]}
+                                                  {:model #knossos.model.CASRegister{:value 0},
+                                                   :last-op {:process 20,
+                                                             :type :ok,
+                                                             :f :write,
+                                                             :value 0,
+                                                             :index 95,
+                                                             :time 8449262600},
+                                                   :pending [{:process 21,
+                                                              :type :invoke,
+                                                              :f :cas,
+                                                              :value [4
+                                                                      1],
+                                                              :index 104,
+                                                              :time 9448990400}
+                                                             {:process 22,
+                                                              :type :invoke,
+                                                              :f :cas,
+                                                              :value [1
+                                                                      2],
+                                                              :index 52,
+                                                              :time 4428978100}
+                                                             {:process 27,
+                                                              :type :invoke,
+                                                              :f :cas,
+                                                              :value [3
+                                                                      1],
+                                                              :index 20,
+                                                              :time 1778647200}
+                                                             {:process 78,
+                                                              :type :invoke,
+                                                              :f :cas,
+                                                              :value [2
+                                                                      2],
+                                                              :index 98,
+                                                              :time 8844465300}
+                                                             {:process 122,
+                                                              :type :invoke,
+                                                              :f :cas,
+                                                              :value [2
+                                                                      1],
+                                                              :index 84,
+                                                              :time 7336480200}]}
+                                                  {:model #knossos.model.CASRegister{:value 0},
+                                                   :last-op {:process 20,
+                                                             :type :ok,
+                                                             :f :write,
+                                                             :value 0,
+                                                             :index 95,
+                                                             :time 8449262600},
+                                                   :pending [{:process 21,
+                                                              :type :invoke,
+                                                              :f :cas,
+                                                              :value [4
+                                                                      1],
+                                                              :index 104,
+                                                              :time 9448990400}
+                                                             {:process 22,
+                                                              :type :invoke,
+                                                              :f :cas,
+                                                              :value [1
+                                                                      2],
+                                                              :index 52,
+                                                              :time 4428978100}
+                                                             {:process 26,
+                                                              :type :invoke,
+                                                              :f :cas,
+                                                              :value [2
+                                                                      3],
+                                                              :index 56,
+                                                              :time 4735579800}
+                                                             {:process 27,
+                                                              :type :invoke,
+                                                              :f :cas,
+                                                              :value [3
+                                                                      1],
+                                                              :index 20,
+                                                              :time 1778647200}
+                                                             {:process 78,
+                                                              :type :invoke,
+                                                              :f :cas,
+                                                              :value [2
+                                                                      2],
+                                                              :index 98,
+                                                              :time 8844465300}
+                                                             {:process 122,
+                                                              :type :invoke,
+                                                              :f :cas,
+                                                              :value [2
+                                                                      1],
+                                                              :index 84,
+                                                              :time 7336480200}]}
+                                                  {:model #knossos.model.CASRegister{:value 0},
+                                                   :last-op {:process 20,
+                                                             :type :ok,
+                                                             :f :write,
+                                                             :value 0,
+                                                             :index 95,
+                                                             :time 8449262600},
+                                                   :pending [{:process 21,
+                                                              :type :invoke,
+                                                              :f :cas,
+                                                              :value [4
+                                                                      1],
+                                                              :index 104,
+                                                              :time 9448990400}
+                                                             {:process 22,
+                                                              :type :invoke,
+                                                              :f :cas,
+                                                              :value [1
+                                                                      2],
+                                                              :index 52,
+                                                              :time 4428978100}
+                                                             {:process 28,
+                                                              :type :invoke,
+                                                              :f :cas,
+                                                              :value [2
+                                                                      1],
+                                                              :index 42,
+                                                              :time 3320428100}
+                                                             {:process 78,
+                                                              :type :invoke,
+                                                              :f :cas,
+                                                              :value [2
+                                                                      2],
+                                                              :index 98,
+                                                              :time 8844465300}
+                                                             {:process 122,
+                                                              :type :invoke,
+                                                              :f :cas,
+                                                              :value [2
+                                                                      1],
+                                                              :index 84,
+                                                              :time 7336480200}]}
+                                                  {:model #knossos.model.CASRegister{:value 0},
+                                                   :last-op {:process 20,
+                                                             :type :ok,
+                                                             :f :write,
+                                                             :value 0,
+                                                             :index 95,
+                                                             :time 8449262600},
+                                                   :pending [{:process 21,
+                                                              :type :invoke,
+                                                              :f :cas,
+                                                              :value [4
+                                                                      1],
+                                                              :index 104,
+                                                              :time 9448990400}
+                                                             {:process 22,
+                                                              :type :invoke,
+                                                              :f :cas,
+                                                              :value [1
+                                                                      2],
+                                                              :index 52,
+                                                              :time 4428978100}
+                                                             {:process 78,
+                                                              :type :invoke,
+                                                              :f :cas,
+                                                              :value [2
+                                                                      2],
+                                                              :index 98,
+                                                              :time 8844465300}
+                                                             {:process 122,
+                                                              :type :invoke,
+                                                              :f :cas,
+                                                              :value [2
+                                                                      1],
+                                                              :index 84,
+                                                              :time 7336480200}]}
+                                                  {:model #knossos.model.CASRegister{:value 0},
+                                                   :last-op {:process 20,
+                                                             :type :ok,
+                                                             :f :write,
+                                                             :value 0,
+                                                             :index 95,
+                                                             :time 8449262600},
+                                                   :pending [{:process 21,
+                                                              :type :invoke,
+                                                              :f :cas,
+                                                              :value [4
+                                                                      1],
+                                                              :index 104,
+                                                              :time 9448990400}
+                                                             {:process 27,
+                                                              :type :invoke,
+                                                              :f :cas,
+                                                              :value [3
+                                                                      1],
+                                                              :index 20,
+                                                              :time 1778647200}
+                                                             {:process 72,
+                                                              :type :invoke,
+                                                              :f :cas,
+                                                              :value [1
+                                                                      2],
+                                                              :index 64,
+                                                              :time 5783237700}
+                                                             {:process 78,
+                                                              :type :invoke,
+                                                              :f :cas,
+                                                              :value [2
+                                                                      2],
+                                                              :index 98,
+                                                              :time 8844465300}
+                                                             {:process 122,
+                                                              :type :invoke,
+                                                              :f :cas,
+                                                              :value [2
+                                                                      1],
+                                                              :index 84,
+                                                              :time 7336480200}]}
+                                                  {:model #knossos.model.CASRegister{:value 0},
+                                                   :last-op {:process 20,
+                                                             :type :ok,
+                                                             :f :write,
+                                                             :value 0,
+                                                             :index 95,
+                                                             :time 8449262600},
+                                                   :pending [{:process 21,
+                                                              :type :invoke,
+                                                              :f :cas,
+                                                              :value [4
+                                                                      1],
+                                                              :index 104,
+                                                              :time 9448990400}
+                                                             {:process 26,
+                                                              :type :invoke,
+                                                              :f :cas,
+                                                              :value [2
+                                                                      3],
+                                                              :index 56,
+                                                              :time 4735579800}
+                                                             {:process 27,
+                                                              :type :invoke,
+                                                              :f :cas,
+                                                              :value [3
+                                                                      1],
+                                                              :index 20,
+                                                              :time 1778647200}
+                                                             {:process 72,
+                                                              :type :invoke,
+                                                              :f :cas,
+                                                              :value [1
+                                                                      2],
+                                                              :index 64,
+                                                              :time 5783237700}
+                                                             {:process 78,
+                                                              :type :invoke,
+                                                              :f :cas,
+                                                              :value [2
+                                                                      2],
+                                                              :index 98,
+                                                              :time 8844465300}
+                                                             {:process 122,
+                                                              :type :invoke,
+                                                              :f :cas,
+                                                              :value [2
+                                                                      1],
+                                                              :index 84,
+                                                              :time 7336480200}]}),
+                                        :final-paths ()},
+                         :timeline {:valid? true},
+                         :valid? true}},
+            :failures [4]},
+ :valid? false}

@@ -1,0 +1,172 @@
+<html><head><style>.ops        { position: absolute; }
+.op         { position: absolute; padding: 2px; border-radius: 2px; box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24); transition: all 0.3s cubic-bezier(.25,.8,.25,1); overflow: hidden; }
+.op.invoke  { background: #eeeeee; }
+.op.ok      { background: #6DB6FE; }
+.op.info    { background: #FFAA26; }
+.op.fail    { background: #FEB5DA; }
+.op:target  { box-shadow: 0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22); }
+</style></head><body><div><a href="/">jepsen</a> / <a href="/files/lin-kv">lin-kv</a> / <a href="/files/lin-kv/20220318T184525.000Z">20220318T184525.000Z</a> / <a href="/files/lin-kv/20220318T184525.000Z/">independent</a> / <a href="/files/lin-kv/20220318T184525.000Z/independent/2">2</a></div><h1>lin-kv key 2</h1><div class="ops"><a href="#i7"><div class="op ok" id="i7" style="width:100;left:106;top:0;height:16" title="Dur: 14 ms
+Err: nil
+Wall-clock Time: 2022-03-18T18:45:25.747Z
+
+Op:
+{:type :ok,
+ :f :write,
+ :value 0,
+ :time 747898100,
+ :process 21,
+ :index 7,
+ :sub-index 1}
+">21 write 0</div></a><a href="#i21"><div class="op info" id="i21" style="width:100;left:424;top:32;height:400" title="Dur: 9 ms
+Err: [:unknown &quot;from value differs&quot;]
+Wall-clock Time: 2022-03-18T18:45:26.788Z
+
+Op:
+{:type :info,
+ :f :cas,
+ :value [3 1],
+ :time 1788527900,
+ :process 27,
+ :error [:unknown &quot;from value differs&quot;],
+ :index 21,
+ :sub-index 3}
+">27 cas [3 1]</div></a><a href="#i43"><div class="op info" id="i43" style="width:100;left:530;top:64;height:368" title="Dur: 6 ms
+Err: [:unknown &quot;from value differs&quot;]
+Wall-clock Time: 2022-03-18T18:45:28.327Z
+
+Op:
+{:type :info,
+ :f :cas,
+ :value [2 1],
+ :time 3327059700,
+ :process 28,
+ :error [:unknown &quot;from value differs&quot;],
+ :index 43,
+ :sub-index 5}
+">28 cas [2 1]</div></a><a href="#i53"><div class="op info" id="i53" style="width:100;left:212;top:96;height:336" title="Dur: 11 ms
+Err: [:unknown &quot;from value differs&quot;]
+Wall-clock Time: 2022-03-18T18:45:29.440Z
+
+Op:
+{:type :info,
+ :f :cas,
+ :value [1 2],
+ :time 4440401300,
+ :process 22,
+ :error [:unknown &quot;from value differs&quot;],
+ :index 53,
+ :sub-index 7}
+">22 cas [1 2]</div></a><a href="#i57"><div class="op info" id="i57" style="width:100;left:318;top:128;height:304" title="Dur: 5 ms
+Err: [:unknown &quot;from value differs&quot;]
+Wall-clock Time: 2022-03-18T18:45:29.740Z
+
+Op:
+{:type :info,
+ :f :cas,
+ :value [2 3],
+ :time 4740813000,
+ :process 26,
+ :error [:unknown &quot;from value differs&quot;],
+ :index 57,
+ :sub-index 9}
+">26 cas [2 3]</div></a><a href="#i63"><div class="op ok" id="i63" style="width:100;left:636;top:160;height:16" title="Dur: 19 ms
+Err: nil
+Wall-clock Time: 2022-03-18T18:45:30.509Z
+
+Op:
+{:type :ok,
+ :f :cas,
+ :value [0 4],
+ :time 5509102100,
+ :process 29,
+ :index 63,
+ :sub-index 11}
+">29 cas [0 4]</div></a><a href="#i67"><div class="op info" id="i67" style="width:100;left:742;top:192;height:240" title="Dur: 11 ms
+Err: [:unknown &quot;from value differs&quot;]
+Wall-clock Time: 2022-03-18T18:45:30.794Z
+
+Op:
+{:type :info,
+ :f :cas,
+ :value [1 2],
+ :time 5794259900,
+ :process 72,
+ :error [:unknown &quot;from value differs&quot;],
+ :index 67,
+ :sub-index 13}
+">72 cas [1 2]</div></a><a href="#i79"><div class="op ok" id="i79" style="width:100;left:954;top:224;height:16" title="Dur: 8 ms
+Err: nil
+Wall-clock Time: 2022-03-18T18:45:31.669Z
+
+Op:
+{:type :ok,
+ :f :cas,
+ :value [4 2],
+ :time 6669978900,
+ :process 122,
+ :index 79,
+ :sub-index 15}
+">122 cas [4 2]</div></a><a href="#i81"><div class="op ok" id="i81" style="width:100;left:848;top:256;height:16" title="Dur: 5 ms
+Err: nil
+Wall-clock Time: 2022-03-18T18:45:32.017Z
+
+Op:
+{:type :ok,
+ :f :write,
+ :value 4,
+ :time 7017485800,
+ :process 78,
+ :index 81,
+ :sub-index 17}
+">78 write 4</div></a><a href="#i85"><div class="op info" id="i85" style="width:100;left:954;top:288;height:144" title="Dur: 5 ms
+Err: [:unknown &quot;from value differs&quot;]
+Wall-clock Time: 2022-03-18T18:45:32.342Z
+
+Op:
+{:type :info,
+ :f :cas,
+ :value [2 1],
+ :time 7342138500,
+ :process 122,
+ :error [:unknown &quot;from value differs&quot;],
+ :index 85,
+ :sub-index 19}
+">122 cas [2 1]</div></a><a href="#i95"><div class="op ok" id="i95" style="width:100;left:0;top:320;height:16" title="Dur: 4 ms
+Err: nil
+Wall-clock Time: 2022-03-18T18:45:33.449Z
+
+Op:
+{:type :ok,
+ :f :write,
+ :value 0,
+ :time 8449262600,
+ :process 20,
+ :index 95,
+ :sub-index 21}
+">20 write 0</div></a><a href="#i99"><div class="op info" id="i99" style="width:100;left:848;top:352;height:80" title="Dur: 11 ms
+Err: [:unknown &quot;from value differs&quot;]
+Wall-clock Time: 2022-03-18T18:45:33.856Z
+
+Op:
+{:type :info,
+ :f :cas,
+ :value [2 2],
+ :time 8856108500,
+ :process 78,
+ :error [:unknown &quot;from value differs&quot;],
+ :index 99,
+ :sub-index 23}
+">78 cas [2 2]</div></a><a href="#i105"><div class="op info" id="i105" style="width:100;left:106;top:384;height:48" title="Dur: 5 ms
+Err: [:unknown &quot;from value differs&quot;]
+Wall-clock Time: 2022-03-18T18:45:34.454Z
+
+Op:
+{:type :info,
+ :f :cas,
+ :value [4 1],
+ :time 9454458800,
+ :process 21,
+ :error [:unknown &quot;from value differs&quot;],
+ :index 105,
+ :sub-index 25}
+">21 cas [4 1]</div></a></div></body></html>
