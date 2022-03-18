@@ -23,7 +23,8 @@ QR_LOCK_FAIL = 'qr_lock_fail'   # -> lock já atribuido
 QR_UNLOCK = 'qr_unlock'         # -> pede ao nodo para dar unlock
 
 QR_READ = 'qr_read'
-QR_READ_OK = 'qr_read_ok'
+QR_READ_OK = 'qr_read_ok'       # -> read request response
+QR_READ_FAIL = 'qr_read_fail'
 
 QR_WRITE = 'qr_write'
 QR_WRITE_OK = 'qr_write_ok'
@@ -37,3 +38,8 @@ QR_READ_WRITE_OK = 'qr_read_write_ok'
 
 QR_ERROR = 'qr_error'
 QR_ERROR_WRITE = 'qr_error_write'
+
+# CODES
+
+CODE_UNAVAILABLE = 11
+CODE_KEY_MISSING = 20

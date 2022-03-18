@@ -28,3 +28,13 @@ def check_lock_state(node_locks, node_id, quorum_size, msg, quorum_to_use):
             # 2 - Collects pairs (value, timestamp) from each node of the qr
             for node in quorum_to_use:
                 sendSimple(node_id, node, type=QR_READ, key=key)
+
+# gets the most recent message that has a type of 
+def get_most_recent_msg(messages, to_check):
+    max_timestamp = -1
+    max_msg = None
+    for msg in messages:
+        if msg['body']['timestamp'] > max_timestamp:
+            max_timestamp = msg['body']['timestamp']
+            max_msg = msg
+    return max_msg
