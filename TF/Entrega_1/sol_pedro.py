@@ -14,7 +14,6 @@ from auxiliars import *
 logging.getLogger().setLevel(logging.DEBUG)
 dict = {}
 locked = False
-next_id = 0
 
 node_locks = {} # locks para  cada nodo.
 
@@ -46,7 +45,7 @@ while True:
         request_id = int(time.time()) #id associated with this request
 
         nodes = choose_quorum(node_ids, quorum_size)
-        quorum_dict[request_id] = nodes, msg['src']
+        quorum_dict[request_id] = nodes, msg['src'], msg['body']['msg_id']
         response_queue.setdefault(request_id, list())
         
         for node in nodes:
@@ -72,17 +71,17 @@ while True:
         request_id = int(msg['body']['request_id'])
         response_queue[request_id].append(msg)
         if len(response_queue[request_id]) == quorum_size:
+            _, node_to, in_reply_to  = quorum_dict[request_id]
             if(any(x['body']['type'] == QR_READ_FAIL and int(x['body']['code']) == CODE_UNAVAILABLE for x in response_queue[request_id])):
                 # One of the nodes was not available so we cant know if what we have is the most recent value so return error
-                sendSimple(node_id,reply_to,type=M_ERROR,code=CODE_UNAVAILABLE,text='Node is unavailable')
+                sendSimple(node_id, node_to, in_reply_to=in_reply_to, type=M_ERROR,code=CODE_UNAVAILABLE,text='Node is unavailable')
             else:
                 # otherwise, try to read the most recent value available (keys can't be deleted)
                 r_msg = get_most_recent_msg(filter(lambda x : x['body']['type'] == QR_READ_OK, response_queue[request_id]))
-                _, reply_to = quorum_dict[request_id]
                 if r_msg:
-                    sendSimple(node_id,reply_to, type=M_READ_OK, value=r_msg['body']['value'])
+                    sendSimple(node_id,node_to, in_reply_to=in_reply_to, type=M_READ_OK, value=r_msg['body']['value'])
                 else:
-                    sendSimple(node_id,reply_to, type=M_ERROR, code=CODE_KEY_MISSING, text='Key does not exist')
+                    sendSimple(node_id,node_to, in_reply_to=in_reply_to, type=M_ERROR, code=CODE_KEY_MISSING, text='Key does not exist')
             
     elif msg['body']['type'] == M_WRITE:
         key = msg['body']['key']
@@ -93,7 +92,7 @@ while True:
         request_id = int(time.time()) #id associated with this request
 
         nodes = choose_quorum(node_ids, quorum_size)
-        quorum_dict[request_id] = nodes, msg['src']
+        quorum_dict[request_id] = nodes, msg['src'], msg['body']['msg_id']
         response_queue.setdefault(request_id, list())
         
         for node in nodes:
@@ -122,12 +121,12 @@ while True:
         request_id = int(msg['body']['request_id'])
         response_queue[request_id].append(msg)
         if len(response_queue[request_id]) == quorum_size:
-            _, reply_to = quorum_dict[request_id]
-            if(any(x['body']['type'] == QR_WRITE_FAIL and int(x['body']['code']) == CODE_UNAVAILABLE for x in response_queue[request_id])):
+            _, node_to, in_reply_to = quorum_dict[request_id]
+            if(any((x['body']['type'] == QR_WRITE_FAIL and int(x['body']['code']) == CODE_UNAVAILABLE) for x in response_queue[request_id])):
                 # One of the nodes was not available so we cant know if what we have is the most recent value so return error
-                sendSimple(node_id,reply_to,type=M_ERROR,code=CODE_UNAVAILABLE,text='Node is unavailable')
+                sendSimple(node_id,node_to,type=M_ERROR, in_reply_to=in_reply_to, code=CODE_UNAVAILABLE,text='Node is unavailable')
             else:
-                sendSimple(node_id,reply_to, type=M_WRITE_OK)
+                sendSimple(node_id,node_to, in_reply_to=in_reply_to, type=M_WRITE_OK)
 
     # Compares and sets 
     elif msg['body']['type'] == M_CAS:
