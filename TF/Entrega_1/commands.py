@@ -152,7 +152,7 @@ def handle_cas(msg, quorum_size, node_ids, node_id):
 
 
         # 1 - Choose a quorum 
-        quorum_to_use = choose_quorum(node_ids, node_id, quorum_size)
+        quorum_to_use = choose_quorum(node_ids,quorum_size)
 
         # 2 - To each node, request timestamp and request lock and saves the highest timestamp
         for node in quorum_to_use:

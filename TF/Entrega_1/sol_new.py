@@ -1,8 +1,9 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python3.9
 # -*- coding: iso-8859-15 -*
 
 #from asyncio.windows_events import NULL
 #from ensurepip import version
+import re
 from sqlite3 import Timestamp
 from time import time
 from ms import *
@@ -41,115 +42,167 @@ while True:
     
     # Reads from a quorum and returns the updated value
     elif msg['body']['type'] == M_READ:    
+        key = msg['body']['key']
         logging.info('reading key %s', msg['body']['key'])
 
         # 1 - Choose a read quorum
-        request_id = msg['body']['msg_id'] #id associated with this request
+        request_id = (msg['body']['msg_id'], msg['src']) #id associated with this request
 
         quorum_dict[request_id] = choose_quorum(node_ids, quorum_size)
         response_queue.setdefault(request_id, list())
         
 
         for node in quorum_dict[request_id]:
-            sendSimple(node_id,node,type=QR_READ, request_id=request_id) ## -> ENVIAR O REQUEST_ID PARA CADA QR
+            sendSimple(node_id,node,type=QR_READ, request_id=request_id, key=key) ## -> ENVIAR O REQUEST_ID PARA CADA QR
 
             
     elif msg['body']['type'] == M_WRITE:
+        
         logging.info('reading key %s', msg['body']['key'])
+        key = msg['body']['key']
 
         # 1 - Choose a write quorum
-        request_id = msg['body']['msg_id'] #id associated with this request
+        # request_id = msg['body']['msg_id'] #id associated with this request
+        request_id = (msg['body']['msg_id'], msg['src'])
 
         quorum_dict[request_id] = choose_quorum(node_ids, quorum_size)
         response_queue.setdefault(request_id, list())
         
         for node in quorum_dict[request_id]:
-            sendSimple(node_id,node,type=QR_READ_WRITE, request_id=request_id) ## -> ENVIAR O REQUEST_ID PARA CADA QR
+            sendSimple(node_id,node,type=QR_READ_WRITE, request_id=request_id, key=key) ## -> ENVIAR O REQUEST_ID PARA CADA QR
 
 
-
+        errorSimple(msg,type=M_ERROR,code=11,text='Quorum is unavailable.')
 
 
     # Compares and sets 
     elif msg['body']['type'] == M_CAS:
-        if not locked:
-            locked = True
-            handle_cas(msg,quorum_size,node_ids,node_id)
-            locked = False
-        else:
-            errorSimple(msg,type=M_ERROR,code=11,text='Quorum is unavailable.')
+
+        # if not locked:
+        #     locked = True
+        #     handle_cas(msg,quorum_size,node_ids,node_id)
+        #     locked = False
+        # else:
+        #     errorSimple(msg,type=M_ERROR,code=11,text='Quorum is unavailable.')
+
+        errorSimple(msg,type=M_ERROR,code=11,text='Quorum is unavailable.')
+
+        
 
 
     # Returns the key's timestamp or an error in case the key doesn't exist
     elif msg['body']['type'] == QR_READ:
         if not locked:
+            request_id = tuple(msg['body']['request_id'])
             locked = True
             logging.info('reading key %s from quorum node %s', msg['body']['key'], msg['src'])
             key = msg['body']['key']
             if key in dict.keys():
-                replySimple(msg,type=QR_READ_OK,value=dict.get(key))
+                replySimple(msg,type=QR_READ_OK,value=dict.get(key),request_id=request_id)
             else:  # When the key does not exist
-                errorSimple(msg,type=QR_ERROR,code=20,text='Key does not exist')
+                errorSimple(msg,type=QR_ERROR,code=20,text='Key does not exist',request_id=request_id)
+            locked = False
         else:
-            errorSimple(msg,type=QR_ERROR,code=11,text='Node is unavailable.')
+            errorSimple(msg,type=QR_ERROR,code=11,text='Node is unavailable.',request_id=request_id)
 
     
     elif msg['body']['type'] == QR_READ_OK:
         #some qr nodes might not yet have that value on their dict
-        request_id = msg['body']['request_id']
-
+        request_id = tuple(msg['body']['request_id'])
         response_queue[request_id].append(msg)
-        if len(response_queue[request_id]) == quorum_size:            
-            if not any(x['body']['type'] == QR_ERROR for x in response_queue[request_id]):
-                max_timestamp_read = 0
+
+        if len(response_queue[request_id]) == quorum_size:
+            if not any(x['body']['code'] == 11 for x in response_queue[request_id]):
+                max_timestamp_read = -1
                 updated_value = 0
                 for x in response_queue[request_id]:
-                    value_read, timestamp_read = x['body']['value']
-                    if timestamp_read > max_timestamp_read:
-                        updated_value = value_read
-                        max_timestamp_read = timestamp_read
-                replySimple(msg,type=M_READ_OK,value=updated_value)
+                    if not x['body']['type'] == QR_ERROR:
+                        value_read, timestamp_read, id = x['body']['value']
+                        if timestamp_read > max_timestamp_read:
+                            updated_value = value_read
+                            max_timestamp_read = timestamp_read
+                        elif timestamp_read == max_timestamp_read:
+                            if id > node_id:
+                                updated_value = value_read
+                if max_timestamp_read == -1:
+                    sendSimple(node_id,request_id[1],type=M_ERROR,code=20,text='Quorum unavailable with error 20.')
+                else: 
+                    sendSimple(node_id,request_id[1],type=M_READ_OK,value=updated_value)
+            else:
+                sendSimple(node_id,request_id[1],type=M_ERROR,code=11,text='Quorum unavailable with error 11.')
+
 
     elif msg['body']['type'] == QR_READ_WRITE:
         ## fazer o processo similar, mas guardar o maior timestamp
         if not locked:
+            request_id = tuple(msg['body']['request_id'])
             locked = True
+            
             logging.info('reading key %s from quorum node %s', msg['body']['key'], msg['src'])
             key = msg['body']['key']
             if key in dict.keys():
-                replySimple(msg,type=QR_READ_WRITE_OK,value=dict.get(key))
+                replySimple(msg,type=QR_READ_WRITE_OK,value=dict.get(key),request_id=request_id)
             else:  # When the key does not exist
-                errorSimple(msg,type=QR_ERROR,code=20,text='Key does not exist')
+                errorSimple(msg,type=QR_ERROR_WRITE,code=20,text='Key does not exist',request_id=request_id)
+            locked = False
         else:
-            errorSimple(msg,type=QR_ERROR,code=11,text='Node is unavailable.')
+            errorSimple(msg,type=QR_ERROR_WRITE,code=11,text='Node is unavailable.',request_id=request_id)
 
     elif msg['body']['type'] == QR_READ_WRITE_OK:
         #some qr nodes might not yet have that value on their dict
-        request_id = msg['body']['request_id']
+        request_id = tuple(msg['body']['request_id'])
         key = msg['body']['key']
+
+        max_timestamp_read = 0
+        updated_value = 0
 
         response_queue[request_id].append(msg)
         if len(response_queue[request_id]) == quorum_size:            
-            if not any(x['body']['type'] == QR_ERROR for x in response_queue[request_id]):
-                max_timestamp_read = 0
-                updated_value = 0
+            if not any(x['body']['code'] == 11 for x in response_queue[request_id]):
                 for x in response_queue[request_id]:
-                    value_read, timestamp_read = x['body']['value']
+                    value_read, timestamp_read, id = x['body']['value']
                     if timestamp_read > max_timestamp_read:
                         updated_value = value_read
                         max_timestamp_read = timestamp_read
+                    elif timestamp_read == max_timestamp_read:
+                        if id > node_id:
+                            updated_value = value_read
+            else:
+                errorSimple(msg,type=QR_ERROR_WRITE,code=11,text='Node is unavailable.',request_id=request_id)
 
         timestamp = max_timestamp_read + 1
-        to_send = (updated_value, timestamp)
+        to_send = (updated_value, timestamp, msg['body']['src'])
         for node in quorum_dict[request_id]:
             sendSimple(node_id,node,type=QR_WRITE,key=key,value=to_send)
             ##TODO:  ------------------ FICAMOS AQUI -------------------------------
 
-
     
     elif msg['body']['type'] == QR_ERROR:
+        request_id = tuple(msg['body']['request_id'])
         response_queue[request_id].append(msg)
-        errorSimple(msg,type=M_ERROR,code=msg['body']['code'],text='Quorum unavailable.')
+        if len(response_queue[request_id]) == quorum_size:
+            if any(x['body']['code'] == 11 for x in response_queue[request_id]):
+                sendSimple(node_id,request_id[1],type=M_ERROR,code=11,text='Quorum unavailable with error 11.')
+            else:
+                max_timestamp_read = -1
+                updated_value = 0
+                for x in response_queue[request_id]:
+                    if not x['body']['type'] == QR_ERROR:
+                        value_read, timestamp_read, id = x['body']['value']
+                        if timestamp_read > max_timestamp_read:
+                            updated_value = value_read
+                            max_timestamp_read = timestamp_read
+                        elif timestamp_read == max_timestamp_read:
+                            if id > node_id:
+                                updated_value = value_read
+
+                if max_timestamp_read == -1:
+                    sendSimple(node_id,request_id[1],type=M_ERROR,code=20,text='Quorum unavailable with error 20.')
+                else: 
+                    sendSimple(node_id,request_id[1],type=M_READ_OK,value=updated_value)
+
+
+
 
     # Releases the lock
     elif msg['body']['type'] == QR_UNLOCK:

@@ -36,3 +36,4 @@ QR_READ_WRITE = 'qr_read_write'
 QR_READ_WRITE_OK = 'qr_read_write_ok'
 
 QR_ERROR = 'qr_error'
+QR_ERROR_WRITE = 'qr_error_write'
