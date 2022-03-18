@@ -47,10 +47,11 @@ while True:
         # 1 - Choose a read quorum
         request_id = msg['body']['msg_id'] #id associated with this request
 
-        quorum_dict[request_id] = (choose_quorum(node_ids, quorum_size), msg['src'])
+        nodes = choose_quorum(node_ids, quorum_size)
+        quorum_dict[request_id] = nodes, msg['src']
         response_queue.setdefault(request_id, list())
         
-        for node in quorum_dict[request_id]:
+        for node in nodes:
             sendSimple(node_id, node, type=QR_READ, request_id=request_id, key=key) ## -> ENVIAR O REQUEST_ID PARA CADA QR
 
     # Returns the key's timestamp or an error in case the key doesn't exist
@@ -78,7 +79,7 @@ while True:
                 sendSimple(node_id,reply_to,type=M_ERROR,code=CODE_UNAVAILABLE,text='Node is unavailable')
             else:
                 # otherwise, try to read the most recent value available (keys can't be deleted)
-                r_msg = get_most_recent_msg(x['body']['type'] == QR_READ_OK for x in response_queue[request_id])
+                r_msg = get_most_recent_msg(filter(lambda x : x['body']['type'] == QR_READ_OK, response_queue[request_id]))
                 _, reply_to = quorum_dict[request_id]
                 if r_msg:
                     sendSimple(node_id,reply_to, type=M_READ_OK, value=r_msg['body']['value'])

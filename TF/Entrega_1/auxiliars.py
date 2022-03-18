@@ -30,7 +30,7 @@ def check_lock_state(node_locks, node_id, quorum_size, msg, quorum_to_use):
                 sendSimple(node_id, node, type=QR_READ, key=key)
 
 # gets the most recent message that has a type of 
-def get_most_recent_msg(messages, to_check):
+def get_most_recent_msg(messages):
     max_timestamp = -1
     max_msg = None
     for msg in messages:
