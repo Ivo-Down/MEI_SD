@@ -15,4 +15,3 @@ def handle_init(msg):
     
     replySimple(msg, type=M_INIT_OK)
     return math.ceil((len(node_ids)+1)/2), node_ids, node_id
-
