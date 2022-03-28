@@ -1,0 +1,14 @@
+{:type :invoke, :f :read, :time 1163497100, :process 2, :value nil, :index 10}
+{:type :fail, :f :read, :time 1174625600, :process 2, :value nil, :error [:unknown "Key does not exist"], :index 11}
+{:type :invoke, :f :cas, :value [4 3], :time 1426378900, :process 8, :index 14}
+{:type :info, :f :cas, :value [4 3], :time 1437688500, :process 8, :error [:unknown "Key does not exist"], :index 15}
+{:type :invoke, :f :write, :value 1, :time 1855843400, :process 58, :index 22}
+{:type :ok, :f :write, :value 1, :time 1860210400, :process 58, :index 23}
+{:type :invoke, :f :read, :time 2858976700, :process 2, :value nil, :index 34}
+{:type :ok, :f :read, :time 2865453700, :process 2, :value 1, :index 35}
+{:type :invoke, :f :read, :time 3327393800, :process 2, :value nil, :index 44}
+{:type :ok, :f :read, :time 3341180300, :process 2, :value 1, :index 45}
+{:type :invoke, :f :read, :time 5785301000, :process 2, :value nil, :index 65}
+{:type :ok, :f :read, :time 5793921100, :process 2, :value 1, :index 66}
+{:type :invoke, :f :write, :value 4, :time 8892055700, :process 5, :index 100}
+{:type :ok, :f :write, :value 4, :time 8901755500, :process 5, :index 101}

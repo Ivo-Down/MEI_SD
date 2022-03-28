@@ -1,0 +1,111 @@
+{:linearizable
+ {:valid? true,
+  :configs
+  ({:model {:value 4},
+    :last-op
+    {:process 86,
+     :type :ok,
+     :f :cas,
+     :value [3 4],
+     :index 103,
+     :time 9691929600},
+    :pending
+    [{:process 31,
+      :type :invoke,
+      :f :cas,
+      :value [1 2],
+      :index 88,
+      :time 8247578300}
+     {:process 32,
+      :type :invoke,
+      :f :cas,
+      :value [3 1],
+      :index 74,
+      :time 6688252000}
+     {:process 34,
+      :type :invoke,
+      :f :cas,
+      :value [1 3],
+      :index 30,
+      :time 2882857400}
+     {:process 36,
+      :type :invoke,
+      :f :cas,
+      :value [4 3],
+      :index 62,
+      :time 5280203200}
+     {:process 37,
+      :type :invoke,
+      :f :cas,
+      :value [2 3],
+      :index 98,
+      :time 9354161000}
+     {:process 38,
+      :type :invoke,
+      :f :cas,
+      :value [0 3],
+      :index 10,
+      :time 1225853100}]}
+   {:model {:value 4},
+    :last-op
+    {:process 86,
+     :type :ok,
+     :f :cas,
+     :value [3 4],
+     :index 103,
+     :time 9691929600},
+    :pending
+    [{:process 31,
+      :type :invoke,
+      :f :cas,
+      :value [1 2],
+      :index 88,
+      :time 8247578300}
+     {:process 36,
+      :type :invoke,
+      :f :cas,
+      :value [4 3],
+      :index 62,
+      :time 5280203200}
+     {:process 37,
+      :type :invoke,
+      :f :cas,
+      :value [2 3],
+      :index 98,
+      :time 9354161000}
+     {:process 38,
+      :type :invoke,
+      :f :cas,
+      :value [0 3],
+      :index 10,
+      :time 1225853100}]}
+   {:model {:value 4},
+    :last-op
+    {:process 86,
+     :type :ok,
+     :f :cas,
+     :value [3 4],
+     :index 103,
+     :time 9691929600},
+    :pending
+    [{:process 34,
+      :type :invoke,
+      :f :cas,
+      :value [1 3],
+      :index 30,
+      :time 2882857400}
+     {:process 36,
+      :type :invoke,
+      :f :cas,
+      :value [4 3],
+      :index 62,
+      :time 5280203200}
+     {:process 38,
+      :type :invoke,
+      :f :cas,
+      :value [0 3],
+      :index 10,
+      :time 1225853100}]}),
+  :final-paths ()},
+ :timeline {:valid? true},
+ :valid? true}

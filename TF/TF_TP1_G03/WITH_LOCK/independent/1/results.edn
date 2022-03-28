@@ -1,0 +1,4 @@
+{:linearizable
+ {:valid? true, :model {:value 1}, :final-paths (), :configs ()},
+ :timeline {:valid? true},
+ :valid? true}

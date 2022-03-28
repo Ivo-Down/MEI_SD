@@ -1,0 +1,75 @@
+{:linearizable
+ {:valid? true,
+  :configs
+  ({:model {:value 4},
+    :last-op
+    {:process 39,
+     :type :ok,
+     :f :cas,
+     :value [2 4],
+     :index 25,
+     :time 2080397900},
+    :pending
+    [{:process 30,
+      :type :invoke,
+      :f :cas,
+      :value [0 0],
+      :index 8,
+      :time 795426900}
+     {:process 32,
+      :type :invoke,
+      :f :cas,
+      :value [2 4],
+      :index 92,
+      :time 8090833900}
+     {:process 35,
+      :type :invoke,
+      :f :cas,
+      :value [1 0],
+      :index 28,
+      :time 2518960100}
+     {:process 36,
+      :type :invoke,
+      :f :cas,
+      :value [3 2],
+      :index 4,
+      :time 366524900}
+     {:process 37,
+      :type :invoke,
+      :f :cas,
+      :value [1 1],
+      :index 108,
+      :time 9556063900}
+     {:process 38,
+      :type :invoke,
+      :f :cas,
+      :value [3 3],
+      :index 0,
+      :time 42551200}
+     {:process 39,
+      :type :invoke,
+      :f :cas,
+      :value [1 2],
+      :index 110,
+      :time 9800733800}
+     {:process 80,
+      :type :invoke,
+      :f :cas,
+      :value [2 2],
+      :index 72,
+      :time 6218334200}
+     {:process 86,
+      :type :invoke,
+      :f :cas,
+      :value [0 2],
+      :index 30,
+      :time 2595248500}
+     {:process 88,
+      :type :invoke,
+      :f :cas,
+      :value [1 2],
+      :index 86,
+      :time 7398603400}]}),
+  :final-paths ()},
+ :timeline {:valid? true},
+ :valid? true}

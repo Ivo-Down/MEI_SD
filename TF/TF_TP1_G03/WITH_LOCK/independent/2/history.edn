@@ -1,0 +1,20 @@
+{:type :invoke, :f :cas, :value [2 3], :time 629505800, :process 27, :index 4}
+{:type :info, :f :cas, :value [2 3], :time 649795200, :process 27, :error [:unknown "Key does not exist"], :index 5}
+{:type :invoke, :f :cas, :value [0 4], :time 736260900, :process 26, :index 6}
+{:type :info, :f :cas, :value [0 4], :time 746983200, :process 26, :error [:unknown "Key does not exist"], :index 7}
+{:type :invoke, :f :cas, :value [3 3], :time 2729405500, :process 25, :index 24}
+{:type :info, :f :cas, :value [3 3], :time 2735980200, :process 25, :error [:unknown "Key does not exist"], :index 25}
+{:type :invoke, :f :cas, :value [0 0], :time 3650883000, :process 77, :index 36}
+{:type :info, :f :cas, :value [0 0], :time 3663665100, :process 77, :error [:unknown "Key does not exist"], :index 37}
+{:type :invoke, :f :write, :value 3, :time 3838245600, :process 29, :index 41}
+{:type :ok, :f :write, :value 3, :time 3849187600, :process 29, :index 43}
+{:type :invoke, :f :cas, :value [2 3], :time 5621885300, :process 20, :index 64}
+{:type :info, :f :cas, :value [2 3], :time 5627346400, :process 20, :error [:unknown "from value differs"], :index 65}
+{:type :invoke, :f :cas, :value [4 0], :time 5947088700, :process 28, :index 68}
+{:type :info, :f :cas, :value [4 0], :time 5956357800, :process 28, :error [:unknown "from value differs"], :index 69}
+{:type :invoke, :f :cas, :value [0 0], :time 6255271300, :process 75, :index 70}
+{:type :info, :f :cas, :value [0 0], :time 6260466100, :process 75, :error [:unknown "from value differs"], :index 71}
+{:type :invoke, :f :cas, :value [3 3], :time 7803089200, :process 78, :index 84}
+{:type :ok, :f :cas, :value [3 3], :time 7819152100, :process 78, :index 85}
+{:type :invoke, :f :cas, :value [3 2], :time 7892824100, :process 24, :index 86}
+{:type :ok, :f :cas, :value [3 2], :time 7901586200, :process 24, :index 87}

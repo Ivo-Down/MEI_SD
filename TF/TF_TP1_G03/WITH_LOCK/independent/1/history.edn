@@ -1,0 +1,18 @@
+{:type :invoke, :f :write, :value 2, :time 31716300, :process 13, :index 0}
+{:type :ok, :f :write, :value 2, :time 68380000, :process 13, :index 1}
+{:type :invoke, :f :cas, :value [4 4], :time 263509800, :process 12, :index 2}
+{:type :info, :f :cas, :value [4 4], :time 295563800, :process 12, :error [:unknown "from value differs"], :index 3}
+{:type :invoke, :f :cas, :value [4 2], :time 935719100, :process 19, :index 8}
+{:type :info, :f :cas, :value [4 2], :time 967668500, :process 19, :error [:unknown "from value differs"], :index 9}
+{:type :invoke, :f :write, :value 1, :time 1669942000, :process 10, :index 14}
+{:type :ok, :f :write, :value 1, :time 1681929800, :process 10, :index 15}
+{:type :invoke, :f :cas, :value [3 2], :time 2790845300, :process 69, :index 26}
+{:type :info, :f :cas, :value [3 2], :time 2797992100, :process 69, :error [:unknown "from value differs"], :index 27}
+{:type :invoke, :f :write, :value 2, :time 3127668600, :process 17, :index 32}
+{:type :ok, :f :write, :value 2, :time 3132473500, :process 17, :index 33}
+{:type :invoke, :f :write, :value 1, :time 5838586900, :process 62, :index 66}
+{:type :ok, :f :write, :value 1, :time 5849548700, :process 62, :index 67}
+{:type :invoke, :f :cas, :value [4 4], :time 9170963500, :process 13, :index 96}
+{:type :info, :f :cas, :value [4 4], :time 9181891000, :process 13, :error [:unknown "from value differs"], :index 97}
+{:type :invoke, :f :cas, :value [3 4], :time 9417015700, :process 16, :index 100}
+{:type :info, :f :cas, :value [3 4], :time 9422431900, :process 16, :error [:unknown "from value differs"], :index 101}

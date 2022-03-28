@@ -1,0 +1,28 @@
+{:type :invoke, :f :write, :value 3, :time 1209619300, :process 13, :index 12}
+{:type :ok, :f :write, :value 3, :time 1218374000, :process 13, :index 13}
+{:type :invoke, :f :write, :value 2, :time 1702677500, :process 19, :index 18}
+{:type :ok, :f :write, :value 2, :time 1710860200, :process 19, :index 19}
+{:type :invoke, :f :cas, :value [4 1], :time 2289442800, :process 19, :index 26}
+{:type :info, :f :cas, :value [4 1], :time 2298301900, :process 19, :error [:unknown "from value differs"], :index 27}
+{:type :invoke, :f :write, :value 4, :time 3212954500, :process 69, :index 40}
+{:type :ok, :f :write, :value 4, :time 3219769600, :process 69, :index 41}
+{:type :invoke, :f :write, :value 2, :time 3522103100, :process 69, :index 46}
+{:type :ok, :f :write, :value 2, :time 3527916300, :process 69, :index 47}
+{:type :invoke, :f :write, :value 3, :time 3891403900, :process 14, :index 48}
+{:type :ok, :f :write, :value 3, :time 3899631100, :process 14, :index 49}
+{:type :invoke, :f :write, :value 0, :time 5105937100, :process 17, :index 58}
+{:type :ok, :f :write, :value 0, :time 5110862600, :process 17, :index 59}
+{:type :invoke, :f :cas, :value [2 0], :time 5493652400, :process 17, :index 61}
+{:type :info, :f :cas, :value [2 0], :time 5507180300, :process 17, :error [:unknown "from value differs"], :index 62}
+{:type :invoke, :f :write, :value 0, :time 5955674800, :process 67, :index 69}
+{:type :ok, :f :write, :value 0, :time 5964327700, :process 67, :index 70}
+{:type :invoke, :f :write, :value 3, :time 6449934100, :process 14, :index 76}
+{:type :ok, :f :write, :value 3, :time 6459615600, :process 14, :index 77}
+{:type :invoke, :f :cas, :value [3 4], :time 7490197500, :process 11, :index 88}
+{:type :ok, :f :cas, :value [3 4], :time 7505613600, :process 11, :index 89}
+{:type :invoke, :f :cas, :value [1 1], :time 7859820200, :process 12, :index 90}
+{:type :info, :f :cas, :value [1 1], :time 7868429600, :process 12, :error [:unknown "from value differs"], :index 91}
+{:type :invoke, :f :write, :value 0, :time 9139677000, :process 67, :index 102}
+{:type :ok, :f :write, :value 0, :time 9144192500, :process 67, :index 103}
+{:type :invoke, :f :write, :value 0, :time 9510059900, :process 10, :index 106}
+{:type :ok, :f :write, :value 0, :time 9516185300, :process 10, :index 107}

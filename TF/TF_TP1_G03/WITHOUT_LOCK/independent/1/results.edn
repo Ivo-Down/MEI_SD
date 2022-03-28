@@ -1,0 +1,69 @@
+{:linearizable
+ {:valid? true,
+  :configs
+  ({:model {:value 0},
+    :last-op
+    {:process 10,
+     :type :ok,
+     :f :write,
+     :value 0,
+     :index 107,
+     :time 9516185300},
+    :pending
+    [{:process 12,
+      :type :invoke,
+      :f :cas,
+      :value [1 1],
+      :index 90,
+      :time 7859820200}
+     {:process 17,
+      :type :invoke,
+      :f :cas,
+      :value [2 0],
+      :index 61,
+      :time 5493652400}]}
+   {:model {:value 0},
+    :last-op
+    {:process 10,
+     :type :ok,
+     :f :write,
+     :value 0,
+     :index 107,
+     :time 9516185300},
+    :pending
+    [{:process 12,
+      :type :invoke,
+      :f :cas,
+      :value [1 1],
+      :index 90,
+      :time 7859820200}
+     {:process 17,
+      :type :invoke,
+      :f :cas,
+      :value [2 0],
+      :index 61,
+      :time 5493652400}
+     {:process 19,
+      :type :invoke,
+      :f :cas,
+      :value [4 1],
+      :index 26,
+      :time 2289442800}]}
+   {:model {:value 0},
+    :last-op
+    {:process 10,
+     :type :ok,
+     :f :write,
+     :value 0,
+     :index 107,
+     :time 9516185300},
+    :pending
+    [{:process 17,
+      :type :invoke,
+      :f :cas,
+      :value [2 0],
+      :index 61,
+      :time 5493652400}]}),
+  :final-paths ()},
+ :timeline {:valid? true},
+ :valid? true}

@@ -17,13 +17,13 @@ M_ERROR = 'error'
 
 
 # Custom
-QR_LOCK = 'qr_lock'             # -> pede ao nodo o seu lock
+QR_LOCK = 'qr_lock'             
 QR_LOCK_OK = 'qr_lock_ok'
-QR_LOCK_FAIL = 'qr_lock_fail'   # -> lock já atribuido
-QR_UNLOCK = 'qr_unlock'         # -> pede ao nodo para dar unlock
+QR_LOCK_FAIL = 'qr_lock_fail'   
+QR_UNLOCK = 'qr_unlock'         
 
 QR_READ = 'qr_read'
-QR_READ_OK = 'qr_read_ok'       # -> read request response
+QR_READ_OK = 'qr_read_ok'       
 QR_READ_FAIL = 'qr_read_fail'
 
 QR_WRITE = 'qr_write'
