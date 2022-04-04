@@ -16,25 +16,40 @@ from types import SimpleNamespace as sn
 
 # - - - Auxiliar Functions - - -
 # build and send a AppendEntriesRPC (this is only sent by the leader)
-def sendAppendEntriesRPC(term, leaderId, prevLogIndex, prevLogTerm, leaderCommitIndex, entries[]): #TODO
+def sendAppendEntriesRPC(term, leaderId, prevLogIndex, prevLogTerm, leaderCommitIndex, entries): #TODO
     pass
 
 
 
 logging.getLogger().setLevel(logging.DEBUG)
 executor=ThreadPoolExecutor(max_workers=1)
-dict = {}
+
+
+# - - - Persistant state on all servers - - -
 leader = False
 currentTerm = -1    # leader's term (-1 for unitialized)
-prevLogIndex = -1   # index of log entry immediately preceding new ones (-1 for unitialized)
-prevLogTerm = -1    # term of prevLogIndex entry (-1 for unitialized)
-leaderCommits = []  # leader’s commitIndex for each node
-
-entries = []        #log entries to store (empty for heartbeat; may send more than one for efficiency)
+log = []            # log entries to store (empty for heartbeat; may send more than one for efficiency)
                     # entries will be pairs of (currentTerm, operation)
+voted_for = None    # candidate that received the vote in the current term
+
+
+# - - - Volatile state on all servers - - -
+commitIndex = 0     # index of highest log entry known to be
+                    # committed (initialized to 0, increases monotonically)
+
+lastApplied = 0     # index of highest log entry applied to state
+                    # machine (initialized to 0, increases monotonically)
+
+
+# - - - Volatile state on leader - - -
+nextIndex = []      # for each server, index of the next log entry to send to that server 
+                    # (initialized to leader last log index + 1)
+
+matchIndex = []     # for each server, index of highest log entry known to be replicated on server
+                    # (initialized to 0, increases monotonically)
+
 
 #leaderId => atm not necessary
-
 # comitIndex: valor pela qual já existe uma maioria de logs que o tem
 # Esse commit iindex, na prox appendEntries vai ser enviado
 # Só se "executa" entre o lastApplieed e o commit index
@@ -73,7 +88,7 @@ while True:
 
             # write on leader dictionary
             dict[key] = to_write
-            entries.append(sn(type = M_WRITE, key = key, value = to_write)) 
+            log.append(sn(type = M_WRITE, key = key, value = to_write)) 
             
             # send to every follower the respective log entries, heartbeats
             #TODO POR ISTO COM PROG POR EVENTOS
@@ -81,7 +96,7 @@ while True:
                 if n != node_id:
                     sendAppendEntriesRPC(
                         currentTerm, node_id, prevLogIndex,
-                         prevLogTerm, leaderCommits[n], entries)
+                         prevLogTerm, leaderCommits[n], log)
 
             # reply to the client
             replySimple(msg, type=M_WRITE_OK)
@@ -102,9 +117,39 @@ while True:
     elif msg['body']['type'] == RPC_APPEND_ENTRIES:  #TODO
         if(not leader):
             term = msg['body']['term']
-            pass
+            prevLogIndexReceived = msg['body']['prevLogIndex']
+            entriesReceived = msg['body']['entries']
+            leaderCommit = msg['body']['leaderCommit']
+            failed = False
+            
+            # 1. Reply false if term < currentTerm
+            if term < currentTerm:
+                failed = True
+            else:
+                # 2. Reply false if log doesn’t contain an entry at prevLogIndex whose term matches prevLogTerm
+                if log[prevLogIndexReceived]:
+                    # If an existing entry conflicts with a new one (same index but different terms),
+                    if log[prevLogIndexReceived][0] != term:
+                        # delete the existing entry and all that follow it
+                        log = log[:prevLogIndexReceived]
+                    else:
+                        failed = True
+                else:
+                    failed = True
+
+                if not failed:
+                    # 4. Append any new entries not already in the log
+                    log.extend(entriesReceived)
+                    
+                    # 5. If leaderCommit > commitIndex, set commitIndex =
+                    # min(leaderCommit, index of last new entry)
+                    if (leaderCommit > commitIndex):
+                        commitIndex = min(leaderCommit, len(log) - 1)
+
+                else: 
+                    replySimple(msg, type=RPC_APPEND_FALSE)
+                
     """
-    1. false if term < currentTerm
     2. false if log doesn't contain an entry at prevLogIndex whose term matches prevLogTerm
     3. If an existing entry conflicts with a new one (same index
         but different terms), delete the existing entry and all that
@@ -125,7 +170,7 @@ while True:
 
 
 # Main loop
-executor.map(lambda msg: exitOnError(handle, msg), receiveAll())
+#executor.map(lambda msg: exitOnError(handle, msg), receiveAll())
 
 
 # schedule deferred work with:
