@@ -3,6 +3,7 @@
 
 #from asyncio.windows_events import NULL
 #from ensurepip import version
+from concurrent.futures import ThreadPoolExecutor
 from sqlite3 import Timestamp
 from time import time
 from ms import *
@@ -16,15 +17,18 @@ from types import SimpleNamespace as sn
 
 # - - - Auxiliar Functions - - -
 # build and send a AppendEntriesRPC (this is only sent by the leader)
-def sendAppendEntriesRPC(term, leaderId, prevLogIndex, prevLogTerm, leaderCommitIndex, entries): #TODO
-    pass
+def sendAppendEntriesRPC(term, toNode, prevLogIndex, prevLogTerm, leaderCommit, entries):
+    sendSimple(node_id, toNode, type=RPC_APPEND_ENTRIES, term=term,
+     prevLogIndex=prevLogIndex,prevLogTerm=prevLogTerm,
+      entries=entries, leaderCommit=leaderCommit )
+
 
 
 
 logging.getLogger().setLevel(logging.DEBUG)
 executor=ThreadPoolExecutor(max_workers=1)
 
-
+dict = {}
 # - - - Persistant state on all servers - - -
 leader = False
 currentTerm = -1    # leader's term (-1 for unitialized)
@@ -42,11 +46,13 @@ lastApplied = 0     # index of highest log entry applied to state
 
 
 # - - - Volatile state on leader - - -
-nextIndex = []      # for each server, index of the next log entry to send to that server 
+nextIndex = {}      # for each server, index of the next log entry to send to that server 
                     # (initialized to leader last log index + 1)
+                    # key: nodeId   value: nextIndex of that node
 
-matchIndex = []     # for each server, index of highest log entry known to be replicated on server
+matchIndex = {}     # for each server, index of highest log entry known to be replicated on server
                     # (initialized to 0, increases monotonically)
+                    # key: nodeId   value: matchIndex of that node
 
 
 #leaderId => atm not necessary
@@ -61,22 +67,32 @@ while True:
 
     if msg['body']['type'] == M_INIT:
         quorum_size, node_ids, node_id = handle_init(msg)
-        if node_id == node_ids[0]:  # We are fixing a leader to develop the 2 phase of the algo first
-            currentTerm = 1
+        currentTerm = 0
+        first_log_entry = (0, None)
+        log.append(first_log_entry)
+
+        if node_id == node_ids[0]:  # We are fixing a leader to develop the 2 phase of the algo first 
             leader = True
-            """
+
             for x in node_ids[1:]:
                 # send initial empty AppendEntries RPCs (heartbeat) to each server
+
+                # initialize leader's structures
+                nextIndex[x] = len(log) # last log index + 1
+                matchIndex[x] = 0
                 pass
-            """
+            
 
 
     # Leader reads the value on its dictionary
     elif msg['body']['type'] == M_READ:
         if leader:
             key = msg['body']['key']
-            value = dict[key]
-            replySimple(msg, type=M_READ_OK, value=value)
+            if key in dict:
+                value = dict[key]
+                replySimple(msg, type=M_READ_OK, value=value)
+            else:
+                errorSimple(msg, type=M_ERROR, code=20, text='Key does not exist.')
         else:
             errorSimple(msg, type=M_ERROR, code=11, text='Not the leader.')
         
@@ -85,18 +101,27 @@ while True:
         if(leader):
             key = msg['body']['key']
             to_write = msg['body']['value']
+            operation = ('write', to_write)
 
-            # write on leader dictionary
-            dict[key] = to_write
-            log.append(sn(type = M_WRITE, key = key, value = to_write)) 
+            # save new command in the logs
+            newLog = (currentTerm, operation)
+            log.append(newLog)
             
             # send to every follower the respective log entries, heartbeats
-            #TODO POR ISTO COM PROG POR EVENTOS
             for n in node_ids:
                 if n != node_id:
+
+                    prevLogIndex = nextIndex[n] - 1
+                    prevLogTerm = log[nextIndex[n] - 1][0]
+
                     sendAppendEntriesRPC(
-                        currentTerm, node_id, prevLogIndex,
-                         prevLogTerm, leaderCommits[n], log)
+                        currentTerm, n, prevLogIndex,
+                         prevLogTerm, commitIndex, log)
+
+            
+            # write on leader dictionary after receiving majority of acks
+            dict[key] = to_write
+            log.append(sn(type = M_WRITE, key = key, value = to_write))
 
             # reply to the client
             replySimple(msg, type=M_WRITE_OK)
@@ -108,13 +133,52 @@ while True:
     # Compares and sets 
     elif msg['body']['type'] == M_CAS:
         if(leader):
-            #do things
-            pass
+            key = msg['body']['key']
+            value_from = msg['body']['from']
+            value_to = msg['body']['to']
+            
+            if(key in dict):
+                real_value = dict.get(key)
+
+                # In this case it will update the key's value
+                if(real_value == value_from):
+                    # save new command in the logs
+                    operation = ('cas', value_to)
+                    newLog = (currentTerm, operation)
+                    log.append(newLog)
+                    
+                    # send to every follower the respective log entries, this could be
+                    # added to a queue and sent in hearthbeats
+                    for n in node_ids:
+                        if n != node_id:
+
+                            prevLogIndex = nextIndex[n] - 1
+                            prevLogTerm = log[nextIndex[n] - 1][0]
+
+                            sendAppendEntriesRPC(
+                                currentTerm, n, prevLogIndex,
+                                prevLogTerm, commitIndex, log)
+
+                    
+                    # write on leader dictionary after receiving majority of acks
+                    dict[key] = value_to
+                    log.append(sn(type = M_WRITE, key = key, value = value_to))
+
+                    # reply to the client
+                    replySimple(msg, type=M_CAS_OK)
+
+                else:
+                    errorSimple(msg, type=M_ERROR, code=22, text='From value does not match.')
+
+                
+            else:
+                errorSimple(msg, type=M_ERROR, code=20, text='Key does not exist.')
+
         else:
             errorSimple(msg, type=M_ERROR, code=11, text='Not the leader.')
 
 
-    elif msg['body']['type'] == RPC_APPEND_ENTRIES:  #TODO
+    elif msg['body']['type'] == RPC_APPEND_ENTRIES:
         if(not leader):
             term = msg['body']['term']
             prevLogIndexReceived = msg['body']['prevLogIndex']
@@ -130,7 +194,7 @@ while True:
                 if log[prevLogIndexReceived]:
                     # If an existing entry conflicts with a new one (same index but different terms),
                     if log[prevLogIndexReceived][0] != term:
-                        # delete the existing entry and all that follow it
+                        # delete the existing entry and all that follows it
                         log = log[:prevLogIndexReceived]
                     else:
                         failed = True
@@ -148,18 +212,6 @@ while True:
 
                 else: 
                     replySimple(msg, type=RPC_APPEND_FALSE)
-                
-    """
-    2. false if log doesn't contain an entry at prevLogIndex whose term matches prevLogTerm
-    3. If an existing entry conflicts with a new one (same index
-        but different terms), delete the existing entry and all that
-        follow it
-    4. Append any new entries not already in the log
-    5.If leaderCommit > commitIndex, set commitIndex =
-        min(leaderCommit, index of last new entry)
-    
-    """
-
 
     else:
         logging.warning('Unknown message type %s', msg['body']['type'])
