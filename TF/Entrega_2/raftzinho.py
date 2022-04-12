@@ -17,10 +17,30 @@ from types import SimpleNamespace as sn
 
 # - - - Auxiliar Functions - - -
 # build and send a AppendEntriesRPC (this is only sent by the leader)
-def sendAppendEntriesRPC(term, toNode, prevLogIndex, prevLogTerm, leaderCommit, entries):
-    sendSimple(node_id, toNode, type=RPC_APPEND_ENTRIES, term=term,
-     prevLogIndex=prevLogIndex,prevLogTerm=prevLogTerm,
-      entries=entries, leaderCommit=leaderCommit )
+def sendAppendEntriesRPC():
+
+    for n in node_ids:
+        if n != node_id:
+
+            prevLogIndex = nextIndex[n] - 1
+            prevLogTerm = log[nextIndex[n] - 1][0]
+
+            sendSimple(node_id, n, type=RPC_APPEND_ENTRIES, 
+            term = currentTerm,
+            prevLogIndex = prevLogIndex,
+            prevLogTerm = prevLogTerm,
+            entries = log,
+            leaderCommit = commitIndex )
+
+                    
+def replicate_log():
+
+    # Time elapsed since last replication
+    elapsed_time = time.time() - last_replication
+
+    pass
+
+    
 
 
 
@@ -35,6 +55,7 @@ currentTerm = -1    # leader's term (-1 for unitialized)
 log = []            # log entries to store (empty for heartbeat; may send more than one for efficiency)
                     # entries will be pairs of (currentTerm, operation)
 voted_for = None    # candidate that received the vote in the current term
+last_replication = 0# time in seconds since last replication
 
 
 # - - - Volatile state on all servers - - -
@@ -61,7 +82,13 @@ matchIndex = {}     # for each server, index of highest log entry known to be re
 # Só se "executa" entre o lastApplieed e o commit index
 
 while True:
+
     msg = receive()
+    # Send AppendEntriesRPC to other nodes
+    if (leader):
+        sendAppendEntriesRPC()
+
+
     if not msg:
         break
 
@@ -108,17 +135,8 @@ while True:
             log.append(newLog)
             
             # send to every follower the respective log entries, heartbeats
-            for n in node_ids:
-                if n != node_id:
+            sendAppendEntriesRPC()
 
-                    prevLogIndex = nextIndex[n] - 1
-                    prevLogTerm = log[nextIndex[n] - 1][0]
-
-                    sendAppendEntriesRPC(
-                        currentTerm, n, prevLogIndex,
-                         prevLogTerm, commitIndex, log)
-
-            
             # write on leader dictionary after receiving majority of acks
             dict[key] = to_write
             log.append(sn(type = M_WRITE, key = key, value = to_write))
@@ -149,15 +167,7 @@ while True:
                     
                     # send to every follower the respective log entries, this could be
                     # added to a queue and sent in hearthbeats
-                    for n in node_ids:
-                        if n != node_id:
-
-                            prevLogIndex = nextIndex[n] - 1
-                            prevLogTerm = log[nextIndex[n] - 1][0]
-
-                            sendAppendEntriesRPC(
-                                currentTerm, n, prevLogIndex,
-                                prevLogTerm, commitIndex, log)
+                    sendAppendEntriesRPC()
 
                     
                     # write on leader dictionary after receiving majority of acks
