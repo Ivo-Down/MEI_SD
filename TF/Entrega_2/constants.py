@@ -20,6 +20,7 @@ M_ERROR = 'error'
 RPC_APPEND_ENTRIES = 'rpc_append_entries'
 RPC_REQUEST_VOTE = 'rpc_request_vote'
 RPC_APPEND_FALSE = 'rpc_append_false'
+RPC_APPEND_OK = 'rpc_apppend_ok'
 
 # Raft details
 HEARTBEAT_INTERVAL = 1          # in seconds

@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python3.9
 # -*- coding: iso-8859-15 -*
 
 #from asyncio.windows_events import NULL
@@ -38,9 +38,12 @@ def replicate_log():
     # Time elapsed since last replication
     elapsed_time = time.time() - last_replication
 
-    pass
-
+    if elapsed_time > MIN_REPLICATION_INTERVAL:
+        sendAppendEntriesRPC()
+        last_replication = time.time()
     
+
+
 
 
 
@@ -219,9 +222,30 @@ while True:
                     # min(leaderCommit, index of last new entry)
                     if (leaderCommit > commitIndex):
                         commitIndex = min(leaderCommit, len(log) - 1)
+                    
+                    # RPC_APPEND_OK
+                    replySimple(msg, commitIndex=commitIndex, entries=log, type=RPC_APPEND_OK)
 
                 else: 
                     replySimple(msg, type=RPC_APPEND_FALSE)
+
+    elif msg['body']['type'] == RPC_APPEND_OK:
+        
+        if leader:
+
+            ci = msg['body']['commitIndex']
+            entries = msg['body']['entries']
+            n = msg['src']
+
+            nextIndex[n] = max(nextIndex[n], ci+len(entries))
+            matchIndex[n] = max(matchIndex[n], ci-1+len(entries))
+
+    elif msg['body']['type'] == RPC_APPEND_FALSE:
+        if leader:
+            n = msg['src']
+
+            # Leader decrements one, so that he sends one more log.
+            #nextIndex[n] -= 1
 
     else:
         logging.warning('Unknown message type %s', msg['body']['type'])
