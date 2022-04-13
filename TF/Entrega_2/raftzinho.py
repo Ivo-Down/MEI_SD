@@ -22,8 +22,8 @@ def sendAppendEntriesRPC():
     for n in node_ids:
         if n != node_id:
 
-            prevLogIndex = nextIndex[n] - 1
-            prevLogTerm = log[nextIndex[n] - 1][0]
+            prevLogIndex = nextIndex.get(n) - 1
+            prevLogTerm = log[nextIndex.get(n) - 1][0]
 
             sendSimple(node_id, n, type=RPC_APPEND_ENTRIES, 
             term = currentTerm,
@@ -131,7 +131,7 @@ while True:
         if(leader):
             key = msg['body']['key']
             to_write = msg['body']['value']
-            operation = ('write', to_write)
+            operation = sn(type = 'write', key = key, value = to_write)
 
             # save new command in the logs
             newLog = (currentTerm, operation)
@@ -142,7 +142,6 @@ while True:
 
             # write on leader dictionary after receiving majority of acks
             dict[key] = to_write
-            log.append(sn(type = M_WRITE, key = key, value = to_write))
 
             # reply to the client
             replySimple(msg, type=M_WRITE_OK)
@@ -164,7 +163,7 @@ while True:
                 # In this case it will update the key's value
                 if(real_value == value_from):
                     # save new command in the logs
-                    operation = ('cas', value_to)
+                    operation = sn(type = 'cas', key = key, value = value_to)
                     newLog = (currentTerm, operation)
                     log.append(newLog)
                     
@@ -175,7 +174,6 @@ while True:
                     
                     # write on leader dictionary after receiving majority of acks
                     dict[key] = value_to
-                    log.append(sn(type = M_WRITE, key = key, value = value_to))
 
                     # reply to the client
                     replySimple(msg, type=M_CAS_OK)
@@ -237,15 +235,15 @@ while True:
             entries = msg['body']['entries']
             n = msg['src']
 
-            nextIndex[n] = max(nextIndex[n], ci+len(entries))
-            matchIndex[n] = max(matchIndex[n], ci-1+len(entries))
+            nextIndex[n] = max(nextIndex.get(n), ci+len(entries))
+            matchIndex[n] = max(matchIndex.get(n), ci-1+len(entries))
 
     elif msg['body']['type'] == RPC_APPEND_FALSE:
         if leader:
             n = msg['src']
-
             # Leader decrements one, so that he sends one more log.
-            #nextIndex[n] -= 1
+            if(nextIndex.get(n) > 0):
+                nextIndex[n] -= 1
 
     else:
         logging.warning('Unknown message type %s', msg['body']['type'])
