@@ -5,46 +5,13 @@
 #from ensurepip import version
 from concurrent.futures import ThreadPoolExecutor
 from sqlite3 import Timestamp
-from time import time
+import time
 from ms import *
-
 import logging
 from commands import *
 from constants import *
 from types import SimpleNamespace as sn
-
-
-
-# - - - Auxiliar Functions - - -
-# build and send a AppendEntriesRPC (this is only sent by the leader)
-def sendAppendEntriesRPC():
-
-    for n in node_ids:
-        if n != node_id:
-
-            prevLogIndex = nextIndex.get(n) - 1
-            prevLogTerm = log[nextIndex.get(n) - 1][0]
-
-            sendSimple(node_id, n, type=RPC_APPEND_ENTRIES, 
-            term = currentTerm,
-            prevLogIndex = prevLogIndex,
-            prevLogTerm = prevLogTerm,
-            entries = log,
-            leaderCommit = commitIndex )
-
-                    
-def replicate_log():
-
-    # Time elapsed since last replication
-    elapsed_time = time.time() - last_replication
-
-    if elapsed_time > MIN_REPLICATION_INTERVAL:
-        sendAppendEntriesRPC()
-        last_replication = time.time()
-    
-
-
-
+import random
 
 
 
@@ -58,7 +25,10 @@ currentTerm = -1    # leader's term (-1 for unitialized)
 log = []            # log entries to store (empty for heartbeat; may send more than one for efficiency)
                     # entries will be pairs of (currentTerm, operation)
 voted_for = None    # candidate that received the vote in the current term
+
 last_replication = 0# time in seconds since last replication
+term_deadline = 0   # time in seconds since last RPC received
+candidate_deadline = 0 # when to give up becoming a leader
 
 
 # - - - Volatile state on all servers - - -
@@ -78,18 +48,122 @@ matchIndex = {}     # for each server, index of highest log entry known to be re
                     # (initialized to 0, increases monotonically)
                     # key: nodeId   value: matchIndex of that node
 
+votes_gathered = [] # list of all votes obtained to become leader for current term
+
 
 #leaderId => atm not necessary
 # comitIndex: valor pela qual já existe uma maioria de logs que o tem
 # Esse commit iindex, na prox appendEntries vai ser enviado
 # Só se "executa" entre o lastApplieed e o commit index
 
+
+
+# - - - - - - - - - - - - - - - Auxiliar Functions - - - - - - - - - - - - - - -
+
+# build and send a AppendEntriesRPC (this is only sent by the leader)
+def sendAppendEntriesRPC():
+
+    for n in node_ids:
+        if n != node_id:
+
+            prevLogIndex = nextIndex.get(n) - 1
+            prevLogTerm = log[nextIndex.get(n) - 1][0]
+
+            sendSimple(node_id, n, type=RPC_APPEND_ENTRIES, 
+            term = currentTerm,
+            prevLogIndex = prevLogIndex,
+            prevLogTerm = prevLogTerm,
+            entries = log,
+            leaderCommit = commitIndex )
+
+
+
+def sendRequestVoteRPC():
+
+    for n in node_ids:
+        if n != node_id:
+
+            sendSimple(node_id, n, type=RPC_REQUEST_VOTE, 
+            term = currentTerm,
+            candidate_id = node_id,
+            last_log_index = len(log),
+            last_log_term = log[-1][0] )
+
+                    
+def replicate_log():
+    # Time elapsed since last replication
+    global last_replication
+    elapsed_time = time.time() - last_replication
+
+    if elapsed_time > MIN_REPLICATION_INTERVAL:
+        sendAppendEntriesRPC()
+        last_replication = time.time()
+    
+
+
+def start_election():
+    global leader, term_deadline
+    if(not leader):
+        # If it didn't receive RPC in some time, timesout and starts new election
+        if(term_deadline < time.time()):
+            become_candidate()
+        # reset deadline
+        else:
+            reset_term_deadline()
+
+
+def reset_term_deadline():
+    global term_deadline
+    term_deadline = time.time() + (TIMEOUT_INTERVAL * (random.random() + 1)) 
+
+
+def reset_give_up_deadline():
+    global candidate_deadline
+    candidate_deadline = time.time() + ELECTION_TIMEOUT
+
+
+def become_candidate():
+    global currentTerm, voted_for, node_id, votes_gathered
+    # clears the list of votes
+    votes_gathered = []
+    currentTerm += 1
+    voted_for = node_id
+    reset_term_deadline()
+    reset_give_up_deadline()
+    logging.info("Becoming candidate for term: " , currentTerm)
+    request_votes()
+
+
+def become_leader():
+    global leader, last_replication
+
+    leader = True
+    last_replication = 0
+    reset_give_up_deadline()
+    # TODO calcular proximo index com base no log size dos outros nodos
+    # TODO fazer o mesmo para o match index
+
+
+
+def request_votes():
+    global votes_gathered
+    votes_gathered.append[node_id]
+
+    # Broadcast vote request
+    pass
+
+
+
+# - - - - - - - - - - - - - - - Main Cycle - - - - - - - - - - - - - - -
+
+
+
 while True:
 
     msg = receive()
     # Send AppendEntriesRPC to other nodes
     if (leader):
-        sendAppendEntriesRPC()
+        replicate_log()
 
 
     if not msg:
@@ -245,21 +319,49 @@ while True:
             if(nextIndex.get(n) > 0):
                 nextIndex[n] -= 1
 
+
+
+    # Some node is requesting my vote
+    elif msg['body']['type'] == RPC_REQUEST_VOTE:
+        reset_give_up_deadline()
+        term = msg['body']['term']
+        candidate_id = msg['body']['candidate_id']
+        last_log_index = msg['body']['last_log_index']
+        last_log_term = msg['body']['last_log_term']
+
+
+        if (term < currentTerm):
+            replySimple(msg, type=RPC_REQUEST_VOTE_FALSE)
+
+        elif (voted_for == None or voted_for == candidate_id) # nao sei se aqui precisa do candidateid
+            replySimple(msg, type=RPC_REQUEST_VOTE_FALSE)
+
+        # if received log is in a lower term
+        elif (last_log_term < log[-1][0]):
+            replySimple(msg, type=RPC_REQUEST_VOTE_FALSE)
+
+        # if logs are in the same term but received log is of smaller size
+        elif (last_log_term == log[-1][0] and last_log_index < len(log)):
+            replySimple(msg, type=RPC_REQUEST_VOTE_FALSE)
+
+        # if it gets here, vote is granted
+        else:
+            voted_for = candidate_id
+            reset_term_deadline()
+            replySimple(msg, type=RPC_REQUEST_VOTE_OK)
+
+
+
+    elif msg['body']['type'] == RPC_REQUEST_VOTE_OK:
+        votes_gathered.append(msg['src'])
+        
+        # Check if majority of votes has been gathered
+        majority = math.ceil((len(node_ids)+1)/2)
+        if(len(votes_gathered) >= majority):
+            become_leader()
+
+
+
+
     else:
         logging.warning('Unknown message type %s', msg['body']['type'])
-
-
-
-
-
-
-# Main loop
-#executor.map(lambda msg: exitOnError(handle, msg), receiveAll())
-
-
-# schedule deferred work with:
-# executor.submit(exitOnError, myTask, args...)
-
-# schedule a timeout with:
-# from threading import Timer
-# Timer(seconds, lambda: executor.submit(exitOnError, myTimeout, args...)).start()
