@@ -4,6 +4,7 @@
 #from asyncio.windows_events import NULL
 #from ensurepip import version
 from concurrent.futures import ThreadPoolExecutor
+from distutils.command import check
 from sqlite3 import Timestamp
 import time
 from ms import *
@@ -89,7 +90,7 @@ def sendRequestVoteRPC():
             last_log_index = len(log),
             last_log_term = log[-1][0] )
 
-                    
+
 def replicate_log():
     # Time elapsed since last replication
     global last_replication
@@ -122,15 +123,26 @@ def reset_give_up_deadline():
     candidate_deadline = time.time() + ELECTION_TIMEOUT
 
 
+def check_if_step_down(term):
+    global currentTerm, voted_for
+    if(currentTerm < term):
+        # This leader is going to step down
+        currentTerm = term
+        voted_for = None
+
+
+
+
 def become_candidate():
-    global currentTerm, voted_for, node_id, votes_gathered
+    global currentTerm, voted_for, node_id, votes_gathered, leader
+    logging.info("Becoming candidate for term: " , currentTerm)
     # clears the list of votes
+    leader = False
     votes_gathered = []
     currentTerm += 1
     voted_for = node_id
     reset_term_deadline()
     reset_give_up_deadline()
-    logging.info("Becoming candidate for term: " , currentTerm)
     request_votes()
 
 
@@ -140,17 +152,27 @@ def become_leader():
     leader = True
     last_replication = 0
     reset_give_up_deadline()
-    # TODO calcular proximo index com base no log size dos outros nodos
-    # TODO fazer o mesmo para o match index
+    # Creates 'nextIndex' | 'matchIndex' for each node, to keep track of their log state
+    for n in node_ids:
+        if n != node_id:
+            nextIndex[n] = len(log) + 1
+            matchIndex[n] = 0
 
+
+def become_follower():
+    global nextIndex, matchIndex, leader, currentTerm
+    logging.info("Becoming follower for term: " , currentTerm)
+    nextIndex = None
+    matchIndex = None
+    leader = False
+    reset_term_deadline()
 
 
 def request_votes():
     global votes_gathered
     votes_gathered.append[node_id]
-
-    # Broadcast vote request
-    pass
+    # Broadcast vote request 
+    sendRequestVoteRPC()
 
 
 
@@ -263,18 +285,27 @@ while True:
             errorSimple(msg, type=M_ERROR, code=11, text='Not the leader.')
 
 
+
+
+
+
     elif msg['body']['type'] == RPC_APPEND_ENTRIES:
+        term = msg['body']['term']
+        prevLogIndexReceived = msg['body']['prevLogIndex']
+        entriesReceived = msg['body']['entries']
+        leaderCommit = msg['body']['leaderCommit']
+        failed = False
+
+        check_if_step_down(term)
+
         if(not leader):
-            term = msg['body']['term']
-            prevLogIndexReceived = msg['body']['prevLogIndex']
-            entriesReceived = msg['body']['entries']
-            leaderCommit = msg['body']['leaderCommit']
-            failed = False
-            
             # 1. Reply false if term < currentTerm
             if term < currentTerm:
                 failed = True
             else:
+                # This leader's heartbeat is invalid so
+                reset_term_deadline()
+
                 # 2. Reply false if log doesn’t contain an entry at prevLogIndex whose term matches prevLogTerm
                 if log[prevLogIndexReceived]:
                     # If an existing entry conflicts with a new one (same index but different terms),
@@ -296,25 +327,37 @@ while True:
                         commitIndex = min(leaderCommit, len(log) - 1)
                     
                     # RPC_APPEND_OK
-                    replySimple(msg, commitIndex=commitIndex, entries=log, type=RPC_APPEND_OK)
+                    replySimple(msg, commitIndex=commitIndex, entries=log, term=currentTerm, type=RPC_APPEND_OK)
 
                 else: 
                     replySimple(msg, type=RPC_APPEND_FALSE)
 
-    elif msg['body']['type'] == RPC_APPEND_OK:
         
-        if leader:
 
-            ci = msg['body']['commitIndex']
-            entries = msg['body']['entries']
-            n = msg['src']
 
+
+
+
+    elif msg['body']['type'] == RPC_APPEND_OK: 
+        ci = msg['body']['commitIndex']
+        entries = msg['body']['entries']
+        term = msg['body']['term']
+        n = msg['src']
+
+        check_if_step_down(term) 
+        if leader and term == currentTerm:   
+            reset_give_up_deadline() 
             nextIndex[n] = max(nextIndex.get(n), ci+len(entries))
             matchIndex[n] = max(matchIndex.get(n), ci-1+len(entries))
 
+
     elif msg['body']['type'] == RPC_APPEND_FALSE:
-        if leader:
-            n = msg['src']
+        term = msg['body']['term']
+        n = msg['src']
+
+        check_if_step_down(term)
+        if leader and term == currentTerm:
+            reset_give_up_deadline()
             # Leader decrements one, so that he sends one more log.
             if(nextIndex.get(n) > 0):
                 nextIndex[n] -= 1
@@ -323,12 +366,12 @@ while True:
 
     # Some node is requesting my vote
     elif msg['body']['type'] == RPC_REQUEST_VOTE:
-        reset_give_up_deadline()
         term = msg['body']['term']
         candidate_id = msg['body']['candidate_id']
         last_log_index = msg['body']['last_log_index']
         last_log_term = msg['body']['last_log_term']
 
+        check_if_step_down(term)
 
         if (term < currentTerm):
             replySimple(msg, type=RPC_REQUEST_VOTE_FALSE)
