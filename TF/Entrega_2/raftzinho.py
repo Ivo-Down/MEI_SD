@@ -176,6 +176,70 @@ def request_votes():
 
 
 
+# Leader updates commit Index with the replies it has gotten
+def update_commit_index():
+    # We only consider an entry commited if it is majority stored
+    # and at least one entry from leader's term is majority stored
+    mean = int(sum(matchIndex.values()) / len(matchIndex))  #TODO n sei se funfa
+
+
+    # if commitIndex is bellow average and 
+    if commitIndex < mean and log[mean][0] == currentTerm:
+        commitIndex = mean
+
+
+# Leader applies one entry that is commited to the log
+def update_state():
+    if lastApplied < commitIndex:
+        lastApplied += 1
+        operation_to_apply = log[lastApplied][1]
+        res = apply_operation(operation_to_apply)
+
+        # if it is the leader, reply to client
+        if leader:
+            replySimple(operation_to_apply['request'], res) # NOTA: NAO SEI SE ISTO FUNFA
+
+
+
+def apply_operation(operation):
+    if operation['type'] == 'read':
+        key = operation['key']
+        if key in dict:
+            value = dict[key]
+            return sn(type=M_READ_OK, value=value)
+        else:
+            #errorSimple(msg, type=M_ERROR, code=20, text='Key does not exist.')
+            return sn(type=M_ERROR, code=20, text='Key does not exist.')
+
+    elif operation['type'] == 'write':
+        key = operation['key']
+        value = operation['value']
+        dict[key] = value
+        return sn(type=M_WRITE_OK)
+        
+    elif operation['type'] == 'cas':
+        key = operation['key']
+        value_to = operation['value_to']
+        value_from = operation['value_from']
+
+        if(key in dict):
+            real_value = dict.get(key)
+            if(real_value == value_from):
+                dict[key] = value_to
+                return sn(type=M_CAS_OK)
+            else:
+                #errorSimple(msg, type=M_ERROR, code=22, text='From value does not match.') 
+                return sn(type=M_ERROR, code=22, text='From value does not match.')
+        else:
+            #errorSimple(msg, type=M_ERROR, code=20, text='Key does not exist.')
+            return sn(type=M_ERROR, code=20, text='Key does not exist.')
+
+
+
+
+
+
+        
 # - - - - - - - - - - - - - - - Main Cycle - - - - - - - - - - - - - - -
 
 
@@ -186,7 +250,9 @@ while True:
     # Send AppendEntriesRPC to other nodes
     if (leader):
         replicate_log()
-
+    start_election()
+    update_commit_index()
+    update_state()
 
     if not msg:
         break
@@ -200,7 +266,7 @@ while True:
         if node_id == node_ids[0]:  # We are fixing a leader to develop the 2 phase of the algo first 
             leader = True
 
-            for x in node_ids[1:]:
+            for x in node_ids[1:]:  #TODO VER ISTO MELHOR
                 # send initial empty AppendEntries RPCs (heartbeat) to each server
 
                 # initialize leader's structures
@@ -214,11 +280,9 @@ while True:
     elif msg['body']['type'] == M_READ:
         if leader:
             key = msg['body']['key']
-            if key in dict:
-                value = dict[key]
-                replySimple(msg, type=M_READ_OK, value=value)
-            else:
-                errorSimple(msg, type=M_ERROR, code=20, text='Key does not exist.')
+            operation = sn(type='read', key=key, request=msg)
+            newLog = (currentTerm, operation)
+            log.append(newLog)
         else:
             errorSimple(msg, type=M_ERROR, code=11, text='Not the leader.')
         
@@ -227,21 +291,11 @@ while True:
         if(leader):
             key = msg['body']['key']
             to_write = msg['body']['value']
-            operation = sn(type = 'write', key = key, value = to_write)
-
-            # save new command in the logs
+            operation = sn(type='write', key=key, value=to_write, request=msg)
             newLog = (currentTerm, operation)
             log.append(newLog)
-            
             # send to every follower the respective log entries, heartbeats
-            sendAppendEntriesRPC()
-
-            # write on leader dictionary after receiving majority of acks
-            dict[key] = to_write
-
-            # reply to the client
-            replySimple(msg, type=M_WRITE_OK)
-
+            #sendAppendEntriesRPC()
         else:
             errorSimple(msg, type=M_ERROR, code=11, text='Not the leader.')
 
@@ -252,35 +306,9 @@ while True:
             key = msg['body']['key']
             value_from = msg['body']['from']
             value_to = msg['body']['to']
-            
-            if(key in dict):
-                real_value = dict.get(key)
-
-                # In this case it will update the key's value
-                if(real_value == value_from):
-                    # save new command in the logs
-                    operation = sn(type = 'cas', key = key, value = value_to)
-                    newLog = (currentTerm, operation)
-                    log.append(newLog)
-                    
-                    # send to every follower the respective log entries, this could be
-                    # added to a queue and sent in hearthbeats
-                    sendAppendEntriesRPC()
-
-                    
-                    # write on leader dictionary after receiving majority of acks
-                    dict[key] = value_to
-
-                    # reply to the client
-                    replySimple(msg, type=M_CAS_OK)
-
-                else:
-                    errorSimple(msg, type=M_ERROR, code=22, text='From value does not match.')
-
-                
-            else:
-                errorSimple(msg, type=M_ERROR, code=20, text='Key does not exist.')
-
+            operation = sn(type='cas', key=key, value_from=value_from , value_to=value_to, request=msg)
+            newLog = (currentTerm, operation)
+            log.append(newLog)
         else:
             errorSimple(msg, type=M_ERROR, code=11, text='Not the leader.')
 
@@ -330,7 +358,7 @@ while True:
                     replySimple(msg, commitIndex=commitIndex, entries=log, term=currentTerm, type=RPC_APPEND_OK)
 
                 else: 
-                    replySimple(msg, type=RPC_APPEND_FALSE)
+                    replySimple(msg, term=currentTerm, type=RPC_APPEND_FALSE)
 
         
 
@@ -376,7 +404,7 @@ while True:
         if (term < currentTerm):
             replySimple(msg, type=RPC_REQUEST_VOTE_FALSE)
 
-        elif (voted_for == None or voted_for == candidate_id) # nao sei se aqui precisa do candidateid
+        elif (voted_for == None or voted_for == candidate_id): # nao sei se aqui precisa do candidateid
             replySimple(msg, type=RPC_REQUEST_VOTE_FALSE)
 
         # if received log is in a lower term
