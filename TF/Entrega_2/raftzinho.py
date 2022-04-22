@@ -22,7 +22,7 @@ executor=ThreadPoolExecutor(max_workers=1)
 dict = {}
 # - - - Persistant state on all servers - - -
 leader = False
-currentTerm = -1    # leader's term (-1 for unitialized)
+currentTerm = 0    # leader's term (-1 for unitialized)
 log = []            # log entries to store (empty for heartbeat; may send more than one for efficiency)
                     # entries will be pairs of (currentTerm, operation)
 voted_for = None    # candidate that received the vote in the current term
@@ -63,9 +63,10 @@ votes_gathered = [] # list of all votes obtained to become leader for current te
 
 # build and send a AppendEntriesRPC (this is only sent by the leader)
 def sendAppendEntriesRPC():
-
     for n in node_ids:
         if n != node_id:
+
+            entries_to_send = log[nextIndex.get(n)-1:]
 
             prevLogIndex = nextIndex.get(n) - 1
             prevLogTerm = log[nextIndex.get(n) - 1][0]
@@ -74,13 +75,12 @@ def sendAppendEntriesRPC():
             term = currentTerm,
             prevLogIndex = prevLogIndex,
             prevLogTerm = prevLogTerm,
-            entries = log,
+            entries = entries_to_send,
             leaderCommit = commitIndex )
 
 
 
 def sendRequestVoteRPC():
-
     for n in node_ids:
         if n != node_id:
 
@@ -96,9 +96,13 @@ def replicate_log():
     global last_replication
     elapsed_time = time.time() - last_replication
 
-    if elapsed_time > MIN_REPLICATION_INTERVAL:
+    if leader and elapsed_time > MIN_REPLICATION_INTERVAL:
+        # enough time has passed so leader is going to replicate its log
+        logging.debug("Replicating log.")
         sendAppendEntriesRPC()
         last_replication = time.time()
+
+    
     
 
 
@@ -129,13 +133,14 @@ def check_if_step_down(term):
         # This leader is going to step down
         currentTerm = term
         voted_for = None
+        become_follower()
 
 
 
 
 def become_candidate():
     global currentTerm, voted_for, node_id, votes_gathered, leader
-    logging.info("Becoming candidate for term: " , currentTerm)
+    logging.debug("Becoming candidate for term: " , currentTerm)
     # clears the list of votes
     leader = False
     votes_gathered = []
@@ -161,7 +166,7 @@ def become_leader():
 
 def become_follower():
     global nextIndex, matchIndex, leader, currentTerm
-    logging.info("Becoming follower for term: " , currentTerm)
+    logging.debug("Becoming follower for term: " , currentTerm)
     nextIndex = None
     matchIndex = None
     leader = False
@@ -178,18 +183,24 @@ def request_votes():
 
 # Leader updates commit Index with the replies it has gotten
 def update_commit_index():
+    global matchIndex, commitIndex, log, currentTerm
     # We only consider an entry commited if it is majority stored
     # and at least one entry from leader's term is majority stored
-    mean = int(sum(matchIndex.values()) / len(matchIndex))  #TODO n sei se funfa
-
+    # median = int(sum(matchIndex.values()) / len(matchIndex))  #TODO n sei se funfa
+    matchIndexValues = list(matchIndex.values())
+    matchIndexValues.sort()
+    size = len(matchIndexValues)
+    median = size - int(math.floor((size / 2.0) + 1))
 
     # if commitIndex is bellow average and 
-    if commitIndex < mean and log[mean][0] == currentTerm:
-        commitIndex = mean
+    if commitIndex < median and log[median][0] == currentTerm:
+        commitIndex = median
 
 
 # Leader applies one entry that is commited to the log
 def update_state():
+    logging.error('Updating state...\n')
+    global lastApplied, commitIndex, log
     if lastApplied < commitIndex:
         lastApplied += 1
         operation_to_apply = log[lastApplied][1]
@@ -197,7 +208,13 @@ def update_state():
 
         # if it is the leader, reply to client
         if leader:
-            replySimple(operation_to_apply['request'], res) # NOTA: NAO SEI SE ISTO FUNFA
+            msg_to_reply = operation_to_apply['request']
+            if res['type'] == M_ERROR:
+                errorSimple(msg_to_reply, type=M_ERROR, code=res['code'], text=res['text'])
+            elif res['type'] == M_READ_OK:
+                replySimple(msg_to_reply, type=M_READ_OK, value=res['value'])
+            else:
+                replySimple(msg_to_reply, type=res['type'])
 
 
 
@@ -245,12 +262,15 @@ def apply_operation(operation):
 
 
 while True:
+    #logging.info("IVOOOO for term: ")
+    #logging.debug("IVOOOOb for term: ")
+    #logging.log( logging.CRITICAL, "IVOOOOc for term: ")   #Nenhum destes está a printar
+
 
     msg = receive()
     # Send AppendEntriesRPC to other nodes
-    if (leader):
-        replicate_log()
-    start_election()
+    replicate_log()
+    #start_election()
     update_commit_index()
     update_state()
 
@@ -331,19 +351,21 @@ while True:
             if term < currentTerm:
                 failed = True
             else:
-                # This leader's heartbeat is invalid so
+                # This leader's heartbeat is valid so we reset the timeout
                 reset_term_deadline()
 
                 # 2. Reply false if log doesn’t contain an entry at prevLogIndex whose term matches prevLogTerm
                 if log[prevLogIndexReceived]:
-                    # If an existing entry conflicts with a new one (same index but different terms),
-                    if log[prevLogIndexReceived][0] != term:
-                        # delete the existing entry and all that follows it
-                        log = log[:prevLogIndexReceived]
+                    # 3. If an existing entry conflicts with a new one (same index but different terms),
+                    if log[prevLogIndexReceived][0] == term:
+                        # 3. delete the existing entry and all that follows it
+                        log = log[0:prevLogIndexReceived]
+
                     else:
                         failed = True
                 else:
                     failed = True
+
 
                 if not failed:
                     # 4. Append any new entries not already in the log
@@ -352,7 +374,7 @@ while True:
                     # 5. If leaderCommit > commitIndex, set commitIndex =
                     # min(leaderCommit, index of last new entry)
                     if (leaderCommit > commitIndex):
-                        commitIndex = min(leaderCommit, len(log) - 1)
+                        commitIndex = min(leaderCommit, len(log))
                     
                     # RPC_APPEND_OK
                     replySimple(msg, commitIndex=commitIndex, entries=log, term=currentTerm, type=RPC_APPEND_OK)
