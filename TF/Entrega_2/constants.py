@@ -19,7 +19,7 @@ M_ERROR = 'error'
 # Custom
 RPC_APPEND_ENTRIES = 'rpc_append_entries'
 RPC_APPEND_FALSE = 'rpc_append_false'
-RPC_APPEND_OK = 'rpc_apppend_ok'
+RPC_APPEND_OK = 'rpc_append_ok'
 
 RPC_REQUEST_VOTE = 'rpc_request_vote'
 RPC_REQUEST_VOTE_FALSE = 'rpc_request_vote_false'
