@@ -13,6 +13,7 @@ import logging
 from commands import *
 from constants import *
 from types import SimpleNamespace as sn
+import math
 import random
 
 
@@ -137,7 +138,7 @@ def apply_operation(operation):
         if key in dict:
             value = dict[key]
             if leader:
-              replySimple(operation, type=M_READ_OK)
+              replySimple(operation, type=M_READ_OK, value=value)
         else:
             if leader:
                 errorSimple(operation, type=M_ERROR, code=20, text='Key does not exist.')
@@ -178,13 +179,13 @@ def apply_operation(operation):
 
 def main_loop():
     msg = receive()
-
-    global node_id, node_ids, 
+    global node_id, node_ids, currentTerm, log, leader, nextIndex, matchIndex, commitIndex
     
     if not msg:
         #logging.debug("NO MESSAGE!!")
         pass
     
+
     if msg['body']['type'] == M_INIT:
         node_ids, node_id = handle_init(msg)
         currentTerm = 0
@@ -200,35 +201,13 @@ def main_loop():
                 matchIndex[x] = 0
             
 
-    elif msg['body']['type'] == M_READ:
+    elif msg['body']['type'] == M_READ or msg['body']['type'] == M_WRITE or msg['body']['type'] == M_CAS:
         if leader:
-            key = msg['body']['key']
             newLog = (currentTerm, msg)
             log.append(newLog)
         else:
             errorSimple(msg, type=M_ERROR, code=11, text='Not the leader.')
         
-
-    elif msg['body']['type'] == M_WRITE:
-        if(leader):
-            key = msg['body']['key']
-            to_write = msg['body']['value']
-            newLog = (currentTerm, msg)
-            log.append(newLog)
-        else:
-            errorSimple(msg, type=M_ERROR, code=11, text='Not the leader.')
-
-
-    elif msg['body']['type'] == M_CAS:
-        if(leader):
-            key = msg['body']['key']
-            value_from = msg['body']['from']
-            value_to = msg['body']['to']
-            newLog = (currentTerm, msg)
-            log.append(newLog)
-        else:
-            errorSimple(msg, type=M_ERROR, code=11, text='Not the leader.')
-
 
     elif msg['body']['type'] == RPC_APPEND_ENTRIES:
         term = msg['body']['term']
