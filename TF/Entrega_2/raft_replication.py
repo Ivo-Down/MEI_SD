@@ -89,8 +89,8 @@ def replicate_log():
 
     if leader and elapsed_time > MIN_REPLICATION_INTERVAL:                  
         # enough time has passed so leader is going to replicate its log
-        sendAppendEntriesRPC()
         last_replication = time.time()
+        sendAppendEntriesRPC()
 
     
     
@@ -165,6 +165,7 @@ def apply_operation(operation):
         else:
             if leader:
                 errorSimple(operation, type=M_ERROR, code=20, text='Key does not exist.')
+    
 
 
 
@@ -178,16 +179,18 @@ def apply_operation(operation):
 
 while True:
     msg = receive()
-    replicate_log()
-    update_commit_index()
-    update_state()
+    
 
     if not msg:
         break
+    else:
+        replicate_log()
+        update_commit_index()
+        update_state()
 
 
     if msg['body']['type'] == M_INIT:
-        quorum_size, node_ids, node_id = handle_init(msg)
+        node_ids, node_id = handle_init(msg)
         currentTerm = 0
         first_log_entry = (0, None)
         log.append(first_log_entry)
@@ -196,8 +199,6 @@ while True:
             leader = True
 
             for x in node_ids[1:]:  #TODO VER ISTO MELHOR
-                # send initial empty AppendEntries RPCs (heartbeat) to each server
-
                 # initialize leader's structures
                 nextIndex[x] = len(log) # last log index + 1
                 matchIndex[x] = 0

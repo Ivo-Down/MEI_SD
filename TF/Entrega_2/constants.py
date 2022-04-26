@@ -30,4 +30,4 @@ RPC_REQUEST_VOTE_OK = 'rpc_request_vote_ok'
 HEARTBEAT_INTERVAL = 1          # in seconds
 ELECTION_TIMEOUT = 2            # in seconds
 TIMEOUT_INTERVAL = 1            # in seconds
-MIN_REPLICATION_INTERVAL = 0.05 # in seconds
+MIN_REPLICATION_INTERVAL = 0.01 # in seconds
