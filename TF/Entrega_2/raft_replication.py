@@ -7,6 +7,7 @@ from concurrent.futures import ThreadPoolExecutor
 from distutils.command import check
 from sqlite3 import Timestamp
 import time
+import traceback
 from ms import *
 import logging
 from commands import *
@@ -175,20 +176,15 @@ def apply_operation(operation):
         
 # - - - - - - - - - - - - - - - Main Cycle - - - - - - - - - - - - - - -
 
-
-
-while True:
+def main_loop():
     msg = receive()
+
+    global node_id, node_ids, 
     
-
     if not msg:
-        break
-    else:
-        replicate_log()
-        update_commit_index()
-        update_state()
-
-
+        #logging.debug("NO MESSAGE!!")
+        pass
+    
     if msg['body']['type'] == M_INIT:
         node_ids, node_id = handle_init(msg)
         currentTerm = 0
@@ -298,3 +294,19 @@ while True:
     else:
         logging.warning('Unknown message type %s', msg['body']['type'])
 
+
+def main():
+    while True:
+        try:
+            main_loop() or \
+            replicate_log() or \
+            update_commit_index() or \
+            update_state() or \
+            time.sleep(0.001)
+        except KeyboardInterrupt:
+            logging.error("Aborted by interrupt!")
+            break
+        except:
+            logging.error("Error!", traceback.format_exc())
+
+main()
