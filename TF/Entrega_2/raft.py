@@ -91,9 +91,7 @@ def start_election():
     global leader, candidate, election_deadline
     if time.time() > election_deadline:
         # If it didn't receive RPC in some time, timesout and starts new election if not leader yet
-        logging.debug("CARALHO1", leader, candidate)
-        if not leader and not candidate:
-            logging.debug("CARALHO2")
+        if not leader:
             become_candidate()
         else:
             reset_election_deadline()
@@ -106,14 +104,13 @@ def reset_election_deadline():
 
 
 def reset_step_down_deadline():
-    global candidate_deadline
-    candidate_deadline = time.time() + ELECTION_TIMEOUT
+    global step_down_deadline
+    step_down_deadline = time.time() + ELECTION_TIMEOUT
 
 
-# maybe_step_down no git
 def maybe_step_down(term):
     global currentTerm, voted_for
-    if(currentTerm < term):
+    if currentTerm < term:
         # This leader is going to step down
         currentTerm = term
         voted_for = None
@@ -129,7 +126,7 @@ def step_down_on_timeout():
 
 def become_candidate():
     global currentTerm, voted_for, node_id, votes_gathered, leader, candidate
-    logging.debug("Becoming candidate for term: " , currentTerm)
+    logging.debug("Becoming candidate for term: " , currentTerm, node_id)
     # clears the list of votes
     leader = False
     candidate = True
@@ -170,8 +167,8 @@ def become_follower():
 
 
 def request_votes():
-    global votes_gathered
-    votes_gathered.append[node_id]  #adds its own vote
+    global votes_gathered, node_id
+    votes_gathered.append(node_id)  #adds its own vote
     # Broadcast vote request 
     sendRequestVoteRPC()
 
@@ -193,17 +190,18 @@ def sendAppendEntriesRPC():
         if n != node_id:
             entries_to_send = log[nextIndex.get(n)-1:]
 
-            prevLogIndex = nextIndex.get(n) - 1
-            prevLogTerm = log[nextIndex.get(n) - 1][0]
+            if len(entries_to_send) > 0:
+                prevLogIndex = nextIndex.get(n) - 1
+                prevLogTerm = log[nextIndex.get(n) - 1][0]
 
-            
+                
 
-            sendSimple(node_id, n, type=RPC_APPEND_ENTRIES, 
-            term = currentTerm,
-            prevLogIndex = prevLogIndex,
-            prevLogTerm = prevLogTerm,
-            entries = entries_to_send,
-            leaderCommit = commitIndex )
+                sendSimple(node_id, n, type=RPC_APPEND_ENTRIES, 
+                term = currentTerm,
+                prevLogIndex = prevLogIndex,
+                prevLogTerm = prevLogTerm,
+                entries = entries_to_send,
+                leaderCommit = commitIndex )
 
 
 
@@ -213,7 +211,7 @@ def replicate_log():
     global last_replication
     elapsed_time = time.time() - last_replication
 
-    if leader and elapsed_time > MIN_REPLICATION_INTERVAL:                  
+    if leader and elapsed_time > MIN_REPLICATION_INTERVAL and elapsed_time >= HEARTBEAT_INTERVAL:                  
         # enough time has passed so leader is going to replicate its log
         last_replication = time.time()
         sendAppendEntriesRPC()
@@ -303,7 +301,7 @@ def apply_operation(operation):
 
 def main_loop():
     msg = receive()
-    global node_id, node_ids, currentTerm, log, leader, nextIndex, matchIndex, commitIndex
+    global node_id, node_ids, currentTerm, log, leader, nextIndex, matchIndex, commitIndex, voted_for
     
     if not msg:
         #logging.debug("NO MESSAGE!!")
@@ -315,14 +313,7 @@ def main_loop():
         currentTerm = 0
         first_log_entry = (0, None)
         log.append(first_log_entry)
-
-        #if node_id == node_ids[0]:  # We are fixing a leader to develop the 2 phase of the algo first 
-         #   leader = True
-
-          #  for x in node_ids[1:]:  #TODO VER ISTO MELHOR
-                # initialize leader's structures
-           #     nextIndex[x] = len(log) # last log index + 1
-            #    matchIndex[x] = 0
+        become_follower()
             
 
     elif msg['body']['type'] == M_READ or msg['body']['type'] == M_WRITE or msg['body']['type'] == M_CAS:
@@ -339,12 +330,17 @@ def main_loop():
         entriesReceived = msg['body']['entries']
         leaderCommit = msg['body']['leaderCommit']
         failed = False
+
+        maybe_step_down(term)
         
         if(not leader):
             # 1. Reply false if term < currentTerm
             if term < currentTerm:
                 failed = True
             else:
+                # There is someone with a higher term so they probably are the leader
+                reset_election_deadline()
+
                 # 2. Reply false if log doesn’t contain an entry at prevLogIndex whose term matches prevLogTerm
                 if prevLogIndexReceived < len(log): #check if index exists
                     # 3. If an existing entry conflicts with a new one (same index but different terms),
