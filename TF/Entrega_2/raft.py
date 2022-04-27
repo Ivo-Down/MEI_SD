@@ -24,14 +24,12 @@ executor=ThreadPoolExecutor(max_workers=1)
 dict = {}
 # - - - Persistant state on all servers - - -
 leader = False
-currentTerm = 0    # leader's term (-1 for unitialized)
+candidate = False
+
+currentTerm = 0     # leader's term (-1 for unitialized)
+
 log = []            # log entries to store (empty for heartbeat; may send more than one for efficiency)
                     # entries will be pairs of (currentTerm, operation)
-voted_for = None    # candidate that received the vote in the current term
-
-last_replication = 0# time in seconds since last replication
-term_deadline = 0   # time in seconds since last RPC received
-candidate_deadline = 0 # when to give up becoming a leader
 
 
 # - - - Volatile state on all servers - - -
@@ -40,6 +38,10 @@ commitIndex = 0     # index of highest log entry known to be
 
 lastApplied = 0     # index of highest log entry applied to state
                     # machine (initialized to 0, increases monotonically)
+
+# comitIndex: valor pela qual já existe uma maioria de logs que o tem
+# Esse commit iindex, na prox appendEntries vai ser enviado
+# Só se "executa" entre o lastApplieed e o commit index
 
 
 # - - - Volatile state on leader - - -
@@ -51,17 +53,139 @@ matchIndex = {}     # for each server, index of highest log entry known to be re
                     # (initialized to 0, increases monotonically)
                     # key: nodeId   value: matchIndex of that node
 
+
+
+# - - - ___Election Variables___ - - -
+
+last_replication = 0 # time in seconds since last replication
+
+#term_deadline = 0   # time in seconds since last RPC received
+
+voted_for = None    # candidate that received the vote in the current term
+
+#candidate_deadline = 0 # when to give up becoming a leader
+
 votes_gathered = [] # list of all votes obtained to become leader for current term
 
+election_deadline =  0 # when to start the next election, in seconds 
 
-#leaderId => atm not necessary
-# comitIndex: valor pela qual já existe uma maioria de logs que o tem
-# Esse commit iindex, na prox appendEntries vai ser enviado
-# Só se "executa" entre o lastApplieed e o commit index
+step_down_deadline = 0 # when to give up becoming a leader
 
 
 
-# - - - - - - - - - - - - - - - Auxiliar Functions - - - - - - - - - - - - - - -
+# - - - - - - - - - - - - - - - Election Functions - - - - - - - - - - - - - - -
+
+def sendRequestVoteRPC():
+    global node_ids, node_id, log, currentTerm
+    for n in node_ids:
+        if n != node_id:
+
+            sendSimple(node_id, n, type=RPC_REQUEST_VOTE, 
+            term = currentTerm,
+            candidate_id = node_id,
+            last_log_index = len(log),
+            last_log_term = log[-1][0] )
+
+    
+def start_election():
+    global leader, candidate, election_deadline
+    if time.time() > election_deadline:
+        # If it didn't receive RPC in some time, timesout and starts new election if not leader yet
+        logging.debug("CARALHO1", leader, candidate)
+        if not leader and not candidate:
+            logging.debug("CARALHO2")
+            become_candidate()
+        else:
+            reset_election_deadline()
+
+
+# Defines time until next election will be triggered if no messages come, using a random factor
+def reset_election_deadline():
+    global election_deadline
+    election_deadline = time.time() + (ELECTION_TIMEOUT * (random.random() + 1)) 
+
+
+def reset_step_down_deadline():
+    global candidate_deadline
+    candidate_deadline = time.time() + ELECTION_TIMEOUT
+
+
+# maybe_step_down no git
+def maybe_step_down(term):
+    global currentTerm, voted_for
+    if(currentTerm < term):
+        # This leader is going to step down
+        currentTerm = term
+        voted_for = None
+        become_follower()
+
+
+# If leader has not received any acks for a while, times out
+def step_down_on_timeout():
+    global leader, step_down_deadline
+    if (leader and time.time() > step_down_deadline):
+        become_follower()
+
+
+def become_candidate():
+    global currentTerm, voted_for, node_id, votes_gathered, leader, candidate
+    logging.debug("Becoming candidate for term: " , currentTerm)
+    # clears the list of votes
+    leader = False
+    candidate = True
+    voted_for = node_id
+    votes_gathered = []
+    currentTerm += 1
+
+    reset_election_deadline()
+    reset_step_down_deadline()
+    request_votes()
+
+
+def become_leader():
+    global leader, candidate, last_replication
+    if candidate:
+        logging.debug("Becoming leader for term: " , currentTerm)
+        leader = True
+        candidate = False
+        last_replication = 0
+        # Creates 'nextIndex' | 'matchIndex' for each node, to keep track of their log state
+        for n in node_ids:
+            if n != node_id:
+                nextIndex[n] = len(log)    #TODO TIREI O +1
+                matchIndex[n] = 0
+        reset_step_down_deadline()
+
+
+def become_follower():
+    global nextIndex, matchIndex, leader, candidate, currentTerm, voted_for, votes_gathered
+    logging.debug("Becoming follower for term: " , currentTerm)
+    nextIndex = None
+    matchIndex = None
+    leader = False
+    candidate = False
+    voted_for = None  
+    votes_gathered = []
+    reset_election_deadline()
+
+
+def request_votes():
+    global votes_gathered
+    votes_gathered.append[node_id]  #adds its own vote
+    # Broadcast vote request 
+    sendRequestVoteRPC()
+
+
+
+
+
+
+
+
+
+
+
+# - - - - - - - - - - - - - - - Replication Functions - - - - - - - - - - - - - - -
 
 # build and send a AppendEntriesRPC (this is only sent by the leader)
 def sendAppendEntriesRPC():
@@ -192,13 +316,13 @@ def main_loop():
         first_log_entry = (0, None)
         log.append(first_log_entry)
 
-        if node_id == node_ids[0]:  # We are fixing a leader to develop the 2 phase of the algo first 
-            leader = True
+        #if node_id == node_ids[0]:  # We are fixing a leader to develop the 2 phase of the algo first 
+         #   leader = True
 
-            for x in node_ids[1:]:  #TODO VER ISTO MELHOR
+          #  for x in node_ids[1:]:  #TODO VER ISTO MELHOR
                 # initialize leader's structures
-                nextIndex[x] = len(log) # last log index + 1
-                matchIndex[x] = 0
+           #     nextIndex[x] = len(log) # last log index + 1
+            #    matchIndex[x] = 0
             
 
     elif msg['body']['type'] == M_READ or msg['body']['type'] == M_WRITE or msg['body']['type'] == M_CAS:
@@ -253,7 +377,7 @@ def main_loop():
         term = msg['body']['term']
         n = msg['src']
         ni = nextIndex[n]
-        entries = log[ni:]   #TODO mudei aquiiiii
+        entries = log[ni:]
 
         if leader and term == currentTerm:   
             nextIndex[n] = max(ni, ni+len(entries))  # é um bocado redundante isto
@@ -270,22 +394,75 @@ def main_loop():
             nextIndex[n] -= 1
 
 
+
+    # Some node is requesting my vote
+    elif msg['body']['type'] == RPC_REQUEST_VOTE:
+        term = msg['body']['term']
+        candidate_id = msg['body']['candidate_id']
+        last_log_index = msg['body']['last_log_index']
+        last_log_term = msg['body']['last_log_term']
+
+        maybe_step_down(term)
+
+        if (term < currentTerm): # candidate has a lower term than this node's
+            replySimple(msg, type=RPC_REQUEST_VOTE_FALSE, term=currentTerm)
+
+        elif (voted_for != None ): # if it has already voted
+            replySimple(msg, type=RPC_REQUEST_VOTE_FALSE, term=currentTerm)
+
+        elif (last_log_term < log[-1][0]): # if received log is in a lower term
+            replySimple(msg, type=RPC_REQUEST_VOTE_FALSE, term=currentTerm)
+
+        # if logs are in the same term but received log is of smaller size
+        elif (last_log_term == log[-1][0] and last_log_index < len(log)):
+            replySimple(msg, type=RPC_REQUEST_VOTE_FALSE, term=currentTerm)
+
+        # if it gets here, vote is granted
+        else:
+            voted_for = candidate_id
+            reset_election_deadline()
+            replySimple(msg, type=RPC_REQUEST_VOTE_OK, term=currentTerm)
+
+
+    elif msg['body']['type'] == RPC_REQUEST_VOTE_OK:
+        term = msg['body']['term']
+        reset_step_down_deadline()
+        maybe_step_down(term)
+        
+        if(currentTerm == term and candidate):
+            votes_gathered.append(msg['src'])
+            # Check if majority of votes has been gathered
+            majority = math.ceil((len(node_ids)+1)/2)
+            if(len(votes_gathered) >= majority):
+                become_leader()
+
+
+    elif msg['body']['type'] == RPC_REQUEST_VOTE_FALSE:
+        term = msg['body']['term']
+        reset_step_down_deadline()
+        maybe_step_down(term)
+
     else:
         logging.warning('Unknown message type %s', msg['body']['type'])
+
+
 
 
 def main():
     while True:
         try:
             main_loop() or \
+            step_down_on_timeout() or \
             replicate_log() or \
+            start_election() or \
             update_commit_index() or \
             update_state() or \
             time.sleep(0.001)
         except KeyboardInterrupt:
-            logging.error("Aborted by interrupt!")
+            logging.error("Interrupted - Aborting!")
             break
         except:
-            logging.error("Error!", traceback.format_exc())
+            logging.error("An error has occured!", traceback.format_exc())
+
 
 main()
