@@ -27,7 +27,6 @@ RPC_REQUEST_VOTE_OK = 'rpc_request_vote_ok'
 
 
 # Raft details
-HEARTBEAT_INTERVAL = 0.4         # in seconds
 ELECTION_TIMEOUT = 0.5            # in seconds
-MIN_REPLICATION_INTERVAL = 0.1  # in seconds
+MIN_REPLICATION_INTERVAL = 0.01  # in seconds
 

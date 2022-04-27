@@ -26,7 +26,7 @@ dict = {}
 leader = False
 candidate = False
 
-currentTerm = 0     # leader's term (-1 for unitialized)
+currentTerm = -1     # leader's term (-1 for unitialized)
 
 log = []            # log entries to store (empty for heartbeat; may send more than one for efficiency)
                     # entries will be pairs of (currentTerm, operation)
@@ -140,7 +140,7 @@ def become_candidate():
 
 
 def become_leader():
-    global leader, candidate, last_replication
+    global leader, candidate, last_replication, nextIndex, matchIndex
     if candidate:
         logging.debug("Becoming leader for term: " , currentTerm)
         leader = True
@@ -157,11 +157,11 @@ def become_leader():
 def become_follower():
     global nextIndex, matchIndex, leader, candidate, currentTerm, voted_for, votes_gathered
     logging.debug("Becoming follower for term: " , currentTerm)
-    nextIndex = None
-    matchIndex = None
+    nextIndex = {}
+    matchIndex = {}
     leader = False
     candidate = False
-    voted_for = None  
+    voted_for = None
     votes_gathered = []
     reset_election_deadline()
 
@@ -186,22 +186,22 @@ def request_votes():
 
 # build and send a AppendEntriesRPC (this is only sent by the leader)
 def sendAppendEntriesRPC():
+    global node_ids, node_id, log, nextIndex, commitIndex, currentTerm
     for n in node_ids:
         if n != node_id:
-            entries_to_send = log[nextIndex.get(n)-1:]
+            entries_to_send = log[nextIndex[n]-1:]
 
-            if len(entries_to_send) > 0:
-                prevLogIndex = nextIndex.get(n) - 1
-                prevLogTerm = log[nextIndex.get(n) - 1][0]
 
-                
+            prevLogIndex = nextIndex[n] - 1
+            prevLogTerm = log[nextIndex[n] - 1][0]
 
-                sendSimple(node_id, n, type=RPC_APPEND_ENTRIES, 
-                term = currentTerm,
-                prevLogIndex = prevLogIndex,
-                prevLogTerm = prevLogTerm,
-                entries = entries_to_send,
-                leaderCommit = commitIndex )
+        
+            sendSimple(node_id, n, type=RPC_APPEND_ENTRIES, 
+            term = currentTerm,
+            prevLogIndex = prevLogIndex,
+            prevLogTerm = prevLogTerm,
+            entries = entries_to_send,
+            leaderCommit = commitIndex )
 
 
 
@@ -211,8 +211,11 @@ def replicate_log():
     global last_replication
     elapsed_time = time.time() - last_replication
 
-    if leader and elapsed_time > MIN_REPLICATION_INTERVAL and elapsed_time >= HEARTBEAT_INTERVAL:                  
+    logging.info(f'Replicate antes do IF {elapsed_time}')
+
+    if leader and elapsed_time > MIN_REPLICATION_INTERVAL:                  
         # enough time has passed so leader is going to replicate its log
+        logging.info("Replicate DEPOIS do if")
         last_replication = time.time()
         sendAppendEntriesRPC()
 
@@ -310,7 +313,7 @@ def main_loop():
 
     if msg['body']['type'] == M_INIT:
         node_ids, node_id = handle_init(msg)
-        currentTerm = 0
+        currentTerm = -1
         first_log_entry = (0, None)
         log.append(first_log_entry)
         become_follower()
@@ -335,15 +338,18 @@ def main_loop():
         
         if(not leader):
             # 1. Reply false if term < currentTerm
+            logging.info(f':-- term: {term} ; currentTerm: {currentTerm}')
             if term < currentTerm:
                 failed = True
             else:
                 # There is someone with a higher term so they probably are the leader
                 reset_election_deadline()
+                logging.info(f':-- prevLogIndexReceived: {prevLogIndexReceived} ; len(log): {len(log)}')
 
                 # 2. Reply false if log doesn’t contain an entry at prevLogIndex whose term matches prevLogTerm
                 if prevLogIndexReceived < len(log): #check if index exists
                     # 3. If an existing entry conflicts with a new one (same index but different terms),
+                    logging.info(f':--term: {term} ; log[prev...]: {log[prevLogIndexReceived]}')
                     if log[prevLogIndexReceived][0] == term:
                         # 3. delete the existing entry and all that follows it
                         log = log[0:prevLogIndexReceived]
@@ -453,7 +459,8 @@ def main():
             start_election() or \
             update_commit_index() or \
             update_state() or \
-            time.sleep(0.001)
+            time.sleep(0.001) or \
+            logging.info("-;-;-----------")
         except KeyboardInterrupt:
             logging.error("Interrupted - Aborting!")
             break
