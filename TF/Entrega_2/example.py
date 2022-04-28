@@ -133,14 +133,6 @@ class Log():
         """Returns the most recent entry"""
         return self.entries[-1]
 
-    def last_term(self):
-        "What's the term of the last entry in the log?"
-        l = self.last()
-        if l:
-            return l['term']
-        else:
-            return 0
-
     def size(self):
         "How many entries are in the log?"
         return len(self.entries)

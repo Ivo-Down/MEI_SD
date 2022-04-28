@@ -137,12 +137,12 @@ def become_candidate():
 
 
 def become_leader():
-    global leader, candidate, last_replication, nextIndex, matchIndex
+    global leader, candidate, last_replication, nextIndex, matchIndex, log, currentTerm
     if candidate:
         logging.debug("Becoming leader for term: " , currentTerm)
         leader = True
         candidate = False
-        last_replication = MIN_REPLICATION_INTERVAL
+        last_replication = 0
         # Creates 'nextIndex' | 'matchIndex' for each node, to keep track of their log state
         for n in node_ids:
             if n != node_id:
@@ -186,11 +186,11 @@ def sendAppendEntriesRPC():
     global node_ids, node_id, log, nextIndex, commitIndex, currentTerm
     for n in node_ids:
         if n != node_id:
-            entries_to_send = log[nextIndex[n]-1:]
-
-
-            prevLogIndex = nextIndex[n] - 1
-            prevLogTerm = log[nextIndex[n] - 1 - 1][0]
+            ni = nextIndex[n]
+            entries_to_send = log[ni - 1:]
+            prevLogIndex = ni - 1
+            logging.info(f"IVO ---- log: {log},  ni:{ni}")
+            prevLogTerm = log[ni - 2][0]
 
         
             sendSimple(node_id, n, type=RPC_APPEND_ENTRIES, 
@@ -324,7 +324,7 @@ def main_loop():
 
     elif msg['body']['type'] == RPC_APPEND_ENTRIES:
         term = msg['body']['term']
-        prevLogIndexReceived = msg['body']['prevLogIndex']
+        prevLogIndexReceived = msg['body']['prevLogIndex'] - 1
         entriesReceived = msg['body']['entries']
         leaderCommit = msg['body']['leaderCommit']
         failed = False
@@ -339,12 +339,15 @@ def main_loop():
                 # There is someone with a higher term so they probably are the leader
                 reset_election_deadline()
 
+                logging.info(f"IVOOOO -- log {log},   prevlogIndexReceived {prevLogIndexReceived}")
+
+
                 # 2. Reply false if log doesn’t contain an entry at prevLogIndex whose term matches prevLogTerm
-                if prevLogIndexReceived < len(log): #check if index exists
+                if prevLogIndexReceived < len(log) or prevLogIndexReceived + 1 > 0: #check if index exists 
                     # 3. If an existing entry conflicts with a new one (same index but different terms),
-                    if log[prevLogIndexReceived - 1][0] == term:
+                    if log[prevLogIndexReceived][0] == term:
                         # 3. delete the existing entry and all that follows it
-                        log = log[0:prevLogIndexReceived - 1]
+                        log = log[0:prevLogIndexReceived]
 
                     else:
                         failed = True
@@ -371,7 +374,7 @@ def main_loop():
         term = msg['body']['term']
         n = msg['src']
         ni = nextIndex[n]
-        entries = log[ni:]
+        entries = log[ni - 1:]
 
         if leader and term == currentTerm:   
             nextIndex[n] = max(ni, ni+len(entries))  # é um bocado redundante isto
