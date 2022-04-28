@@ -1,7 +1,9 @@
+import imp
 import json
 import logging
 import sys
 from types import SimpleNamespace as sn
+import select
 
 # def send(message):
 #     data = json.dumps(message)
@@ -10,6 +12,9 @@ from types import SimpleNamespace as sn
 #     sys.stdout.flush()
 
 def receive():
+    if sys.stdin not in select.select([sys.stdin], [], [], 0)[0]:
+        return None
+
     data = sys.stdin.readline()
     if data:
         logging.debug("received %s", data.strip())

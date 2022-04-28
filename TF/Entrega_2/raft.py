@@ -15,7 +15,6 @@ from constants import *
 from types import SimpleNamespace as sn
 import math
 import random
-import select
 
 
 
@@ -302,12 +301,9 @@ def main_loop():
     msg = receive()
     global node_id, node_ids, currentTerm, log, leader, nextIndex, matchIndex, commitIndex, voted_for
     
-    if sys.stdin not in select.select([sys.stdin], [], [], 0)[0]:
-        return None
-
     if not msg:
         #logging.debug("NO MESSAGE!!")
-        pass
+        return None
     
 
     if msg['body']['type'] == M_INIT:
@@ -315,7 +311,7 @@ def main_loop():
         currentTerm = -1
         first_log_entry = (0, None)
         log.append(first_log_entry)
-        become_follower()
+        #become_follower()
             
 
     elif msg['body']['type'] == M_READ or msg['body']['type'] == M_WRITE or msg['body']['type'] == M_CAS:
