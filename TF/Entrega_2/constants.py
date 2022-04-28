@@ -27,6 +27,6 @@ RPC_REQUEST_VOTE_OK = 'rpc_request_vote_ok'
 
 
 # Raft details
-ELECTION_TIMEOUT = 200          # in seconds
+ELECTION_TIMEOUT = 2          # in seconds
 MIN_REPLICATION_INTERVAL = 0.05  # in seconds
 

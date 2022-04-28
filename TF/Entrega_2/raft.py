@@ -34,9 +34,9 @@ log = []            # log entries to store (empty for heartbeat; may send more t
 
 # - - - Volatile state on all servers - - -
 commitIndex = 0     # index of highest log entry known to be
-                    # committed (initialized to 0, increases monotonically)
+                    # committed (initialized to 0, increases monotonically)   #TODO MUDEI AQUI
 
-lastApplied = 0     # index of highest log entry applied to state
+lastApplied = 1     # index of highest log entry applied to state
                     # machine (initialized to 0, increases monotonically)
 
 # comitIndex: valor pela qual já existe uma maioria de logs que o tem
@@ -146,7 +146,7 @@ def become_leader():
         # Creates 'nextIndex' | 'matchIndex' for each node, to keep track of their log state
         for n in node_ids:
             if n != node_id:
-                nextIndex[n] = len(log)    #TODO TIREI O +1
+                nextIndex[n] = len(log) + 1   #TODO PUS O +1
                 matchIndex[n] = 0
         reset_step_down_deadline()
 
@@ -311,7 +311,7 @@ def main_loop():
         currentTerm = -1
         first_log_entry = (0, None)
         log.append(first_log_entry)
-        #become_follower()
+        become_follower()
             
 
     elif msg['body']['type'] == M_READ or msg['body']['type'] == M_WRITE or msg['body']['type'] == M_CAS:
