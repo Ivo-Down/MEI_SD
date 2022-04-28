@@ -26,9 +26,9 @@ state = {}
 leader = False
 candidate = False
 
-currentTerm = -1     # leader's term (-1 for unitialized)
+currentTerm = 0     # leader's term (0 for unitialized)
 
-log = []            # log entries to store (empty for heartbeat; may send more than one for efficiency)
+log = [(0, None)]   # log entries to store (empty for heartbeat; may send more than one for efficiency)
                     # entries will be pairs of (currentTerm, operation)
 
 
@@ -190,7 +190,7 @@ def sendAppendEntriesRPC():
 
 
             prevLogIndex = nextIndex[n] - 1
-            prevLogTerm = log[nextIndex[n] - 1][0]
+            prevLogTerm = log[nextIndex[n] - 1 - 1][0]
 
         
             sendSimple(node_id, n, type=RPC_APPEND_ENTRIES, 
@@ -235,7 +235,7 @@ def update_commit_index():
         median = matchIndexValues[median_pos]
 
         # if commitIndex is bellow average and 
-        if commitIndex < median and log[median][0] == currentTerm:
+        if commitIndex < median and log[median - 1][0] == currentTerm:
             logging.info("Updating commitIndex to ", median)
             commitIndex = median
 
@@ -246,7 +246,7 @@ def update_state():
 
     if lastApplied < commitIndex:
         lastApplied += 1
-        operation_to_apply = log[lastApplied][1]
+        operation_to_apply = log[lastApplied - 1][1]
         apply_operation(operation_to_apply)
 
 
@@ -308,9 +308,9 @@ def main_loop():
 
     if msg['body']['type'] == M_INIT:
         node_ids, node_id = handle_init(msg)
-        currentTerm = -1
-        first_log_entry = (0, None)
-        log.append(first_log_entry)
+        currentTerm = 0
+        #first_log_entry = (0, None)
+        #log.append(first_log_entry)
         become_follower()
             
 
@@ -333,21 +333,18 @@ def main_loop():
         
         if(not leader):
             # 1. Reply false if term < currentTerm
-            logging.info(f':-- term: {term} ; currentTerm: {currentTerm}')
             if term < currentTerm:
                 failed = True
             else:
                 # There is someone with a higher term so they probably are the leader
                 reset_election_deadline()
-                logging.info(f':-- prevLogIndexReceived: {prevLogIndexReceived} ; len(log): {len(log)}')
 
                 # 2. Reply false if log doesn’t contain an entry at prevLogIndex whose term matches prevLogTerm
                 if prevLogIndexReceived < len(log): #check if index exists
                     # 3. If an existing entry conflicts with a new one (same index but different terms),
-                    logging.info(f':--term: {term} ; log[prev...]: {log[prevLogIndexReceived]}')
-                    if log[prevLogIndexReceived][0] == term:
+                    if log[prevLogIndexReceived - 1][0] == term:
                         # 3. delete the existing entry and all that follows it
-                        log = log[0:prevLogIndexReceived]
+                        log = log[0:prevLogIndexReceived - 1]
 
                     else:
                         failed = True
