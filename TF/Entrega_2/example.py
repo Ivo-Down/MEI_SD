@@ -404,7 +404,7 @@ class RaftNode():
                 # What entries should we send this node?
                 ni = self.next_index[node]
                 entries = self.log.from_index(ni)
-                if 0 < len(entries) or self.heartbeat_interval < elapsed_time:
+                if 0 < len(entries):
                     log('replicating ' + str(ni) + '+ to', node)
 
 

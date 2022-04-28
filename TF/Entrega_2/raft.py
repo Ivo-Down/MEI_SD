@@ -15,13 +15,14 @@ from constants import *
 from types import SimpleNamespace as sn
 import math
 import random
+import select
 
 
 
 logging.getLogger().setLevel(logging.DEBUG)
 executor=ThreadPoolExecutor(max_workers=1)
 
-dict = {}
+state = {}
 # - - - Persistant state on all servers - - -
 leader = False
 candidate = False
@@ -59,11 +60,7 @@ matchIndex = {}     # for each server, index of highest log entry known to be re
 
 last_replication = 0 # time in seconds since last replication
 
-#term_deadline = 0   # time in seconds since last RPC received
-
 voted_for = None    # candidate that received the vote in the current term
-
-#candidate_deadline = 0 # when to give up becoming a leader
 
 votes_gathered = [] # list of all votes obtained to become leader for current term
 
@@ -121,7 +118,8 @@ def maybe_step_down(term):
 def step_down_on_timeout():
     global leader, step_down_deadline
     if (leader and time.time() > step_down_deadline):
-        become_follower()
+       become_follower()
+    pass
 
 
 def become_candidate():
@@ -145,7 +143,7 @@ def become_leader():
         logging.debug("Becoming leader for term: " , currentTerm)
         leader = True
         candidate = False
-        last_replication = 0
+        last_replication = MIN_REPLICATION_INTERVAL
         # Creates 'nextIndex' | 'matchIndex' for each node, to keep track of their log state
         for n in node_ids:
             if n != node_id:
@@ -211,13 +209,10 @@ def replicate_log():
     global last_replication
     elapsed_time = time.time() - last_replication
 
-    logging.info(f'Replicate antes do IF {elapsed_time}')
-
     if leader and elapsed_time > MIN_REPLICATION_INTERVAL:                  
         # enough time has passed so leader is going to replicate its log
-        logging.info("Replicate DEPOIS do if")
+        sendAppendEntriesRPC() # functions as heartbeat as well
         last_replication = time.time()
-        sendAppendEntriesRPC()
 
     
     
@@ -227,8 +222,8 @@ def replicate_log():
 
 # Leader updates commit Index with the replies it has gotten
 def update_commit_index():
+    global matchIndex, commitIndex, log, currentTerm, leader
     if leader:
-        global matchIndex, commitIndex, log, currentTerm
         # We only consider an entry commited if it is majority stored
         # and at least one entry from leader's term is majority stored
 
@@ -258,10 +253,11 @@ def update_state():
 
 # Replies to client if it is the leader
 def apply_operation(operation):
+    global leader, state
     if operation['body']['type'] == 'read':
         key = operation['body']['key']
-        if key in dict:
-            value = dict[key]
+        if key in state:
+            value = state[key]
             if leader:
               replySimple(operation, type=M_READ_OK, value=value)
         else:
@@ -271,7 +267,7 @@ def apply_operation(operation):
     elif operation['body']['type'] == 'write':
         key = operation['body']['key']
         value = operation['body']['value']
-        dict[key] = value
+        state[key] = value
         if leader:
           replySimple(operation, type=M_WRITE_OK)
         
@@ -280,10 +276,10 @@ def apply_operation(operation):
         value_to = operation['body']['to']
         value_from = operation['body']['from']
 
-        if(key in dict):
-            real_value = dict.get(key)
+        if(key in state):
+            real_value = state.get(key)
             if(real_value == value_from):
-                dict[key] = value_to
+                state[key] = value_to
                 if leader:
                   replySimple(operation, type=M_CAS_OK)
             else:
@@ -306,6 +302,9 @@ def main_loop():
     msg = receive()
     global node_id, node_ids, currentTerm, log, leader, nextIndex, matchIndex, commitIndex, voted_for
     
+    if sys.stdin not in select.select([sys.stdin], [], [], 0)[0]:
+        return None
+
     if not msg:
         #logging.debug("NO MESSAGE!!")
         pass
@@ -459,8 +458,7 @@ def main():
             start_election() or \
             update_commit_index() or \
             update_state() or \
-            time.sleep(0.001) or \
-            logging.info("-;-;-----------")
+            time.sleep(0.001)
         except KeyboardInterrupt:
             logging.error("Interrupted - Aborting!")
             break
