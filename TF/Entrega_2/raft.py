@@ -1,14 +1,9 @@
 #!/usr/bin/env python3.9
 # -*- coding: iso-8859-15 -*
 
-#from asyncio.windows_events import NULL
-#from ensurepip import version
-from concurrent.futures import ThreadPoolExecutor
-from distutils.command import check
 from pickle import TRUE
 from sqlite3 import Timestamp
 import time
-import traceback
 from ms import *
 import logging
 from commands import *
@@ -19,8 +14,7 @@ import random
 
 
 
-logging.getLogger().setLevel(logging.DEBUG)
-executor=ThreadPoolExecutor(max_workers=1)
+#logging.getLogger().setLevel(#logging.DEBUG)
 
 state = {}
 # - - - Persistant state on all servers - - -
@@ -124,7 +118,7 @@ def step_down_on_timeout():
 
 def become_candidate():
     global currentTerm, voted_for, node_id, votes_gathered, leader, candidate
-    logging.debug("Becoming candidate for term: " , currentTerm, node_id)
+    #logging.debug("Becoming candidate for term: " , currentTerm, node_id)
     # clears the list of votes
     leader = False
     candidate = True
@@ -140,7 +134,7 @@ def become_candidate():
 def become_leader():
     global leader, candidate, last_replication, nextIndex, matchIndex, log, currentTerm
     if candidate:
-        logging.debug("Becoming leader for term: " , currentTerm)
+        #logging.debug("Becoming leader for term: " , currentTerm)
         leader = True
         candidate = False
         last_replication = 0
@@ -154,7 +148,7 @@ def become_leader():
 
 def become_follower():
     global nextIndex, matchIndex, leader, candidate, currentTerm, voted_for, votes_gathered
-    logging.debug("Becoming follower for term: " , currentTerm)
+    #logging.debug("Becoming follower for term: " , currentTerm)
     nextIndex = {}
     matchIndex = {}
     leader = False
@@ -239,7 +233,7 @@ def update_commit_index():
 
         # if commitIndex is bellow average and 
         if commitIndex < median and log[median - 1][0] == currentTerm:
-            logging.info("Updating commitIndex to ", median)
+            #logging.info("Updating commitIndex to ", median)
             commitIndex = median
 
 
@@ -305,7 +299,7 @@ def main_loop():
     global node_id, node_ids, currentTerm, log, leader, nextIndex, matchIndex, commitIndex, voted_for
     
     if not msg:
-        #logging.debug("NO MESSAGE!!")
+        ##logging.debug("NO MESSAGE!!")
         return None
     
 
@@ -447,8 +441,8 @@ def main_loop():
         reset_step_down_deadline()
         maybe_step_down(term)
 
-    else:
-        logging.warning('Unknown message type %s', msg['body']['type'])
+    #else:
+        #logging.warning('Unknown message type %s', msg['body']['type'])
 
 
 
@@ -463,11 +457,8 @@ def main():
             update_commit_index() or \
             update_state() or \
             time.sleep(0.001)
-        except KeyboardInterrupt:
-            logging.error("Interrupted - Aborting!")
-            break
         except:
-            logging.error("An error has occured!", traceback.format_exc())
+            break
 
-
-main()
+if __name__ == '__main__':
+    main()
