@@ -11,6 +11,8 @@ import select
 #     print(data)
 #     sys.stdout.flush()
 
+
+# select is used so that it is not necessary no have one thread dedicated to receive requests
 def receive():
     if sys.stdin not in select.select([sys.stdin], [], [], 0)[0]:
         return None
