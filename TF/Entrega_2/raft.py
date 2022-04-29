@@ -387,8 +387,8 @@ def main_loop():
 
         if leader and term == currentTerm:
             # Leader decrements one, so that it sends one more log.
-            #if(nextIndex.get(n) > 0):
-            nextIndex[n] -= 1
+            if(nextIndex.get(n) > 0):
+                nextIndex[n] -= 1
 
 
 
@@ -429,8 +429,9 @@ def main_loop():
         if(currentTerm == term and candidate):
             votes_gathered.append(msg['src'])
             # Check if majority of votes has been gathered
-            majority = math.ceil((len(node_ids)+1)/2)
-            if(len(votes_gathered) >= majority):
+            
+            majority = int(math.floor((len(node_ids) / 2.0) + 1))
+            if(majority <= len(votes_gathered)):
                 become_leader()
 
 
