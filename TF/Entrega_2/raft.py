@@ -250,7 +250,7 @@ def update_state():
 # Replies to client if it is the leader
 def apply_operation(operation):
     global leader, state
-    if operation['body']['type'] == 'read':
+    if operation['body']['type'] == M_READ:
         key = operation['body']['key']
         if key in state:
             value = state[key]
@@ -260,14 +260,14 @@ def apply_operation(operation):
             if leader:
                 errorSimple(operation, type=M_ERROR, code=20, text='Key does not exist.')
 
-    elif operation['body']['type'] == 'write':
+    elif operation['body']['type'] == M_WRITE:
         key = operation['body']['key']
         value = operation['body']['value']
         state[key] = value
         if leader:
           replySimple(operation, type=M_WRITE_OK)
         
-    elif operation['body']['type'] == 'cas':
+    elif operation['body']['type'] == M_CAS:
         key = operation['body']['key']
         value_to = operation['body']['to']
         value_from = operation['body']['from']
@@ -449,7 +449,7 @@ def main_loop():
 
 def main():
     while True:
-        try:
+        try: #TODO: importante, tentar tirar os OR pq isto é demasiado parecido
             main_loop() or \
             step_down_on_timeout() or \
             replicate_log() or \
@@ -462,3 +462,9 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+#TODO: IDEIAS PARA SER DAR MAKEUP DISTO:
+#* passar tudo para camelCase (menos sus que é igual ao nosso primeiro trabalho)
+#* juntar mais alguns metodos em grandes métodos, ou então dividir para dentro da auxiliares, semelhante ao nosso primeiro trabalho
+#* mais constantes?
+#* tirar o try except, ou então dar log do erro no fim
