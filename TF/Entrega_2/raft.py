@@ -5,6 +5,7 @@
 #from ensurepip import version
 from concurrent.futures import ThreadPoolExecutor
 from distutils.command import check
+from pickle import TRUE
 from sqlite3 import Timestamp
 import time
 import traceback
@@ -188,17 +189,19 @@ def sendAppendEntriesRPC():
         if n != node_id:
             ni = nextIndex[n]
             entries_to_send = log[ni - 1:]
-            prevLogIndex = ni - 1
-            logging.info(f"IVO ---- log: {log},  ni:{ni}")
-            prevLogTerm = log[ni - 2][0]
 
-        
-            sendSimple(node_id, n, type=RPC_APPEND_ENTRIES, 
-            term = currentTerm,
-            prevLogIndex = prevLogIndex,
-            prevLogTerm = prevLogTerm,
-            entries = entries_to_send,
-            leaderCommit = commitIndex )
+            if len(entries_to_send) > 0:
+
+                prevLogIndex = ni - 1
+                prevLogTerm = log[ni - 2][0]
+
+            
+                sendSimple(node_id, n, type=RPC_APPEND_ENTRIES, 
+                term = currentTerm,
+                prevLogIndex = prevLogIndex,
+                prevLogTerm = prevLogTerm,
+                entries = entries_to_send,
+                leaderCommit = commitIndex )
 
 
 
@@ -323,60 +326,65 @@ def main_loop():
         
 
     elif msg['body']['type'] == RPC_APPEND_ENTRIES:
-        term = msg['body']['term']
-        prevLogIndexReceived = msg['body']['prevLogIndex'] - 1
+        prevLogTerm = msg['body']['prevLogTerm']
+        prevLogIndexReceived = msg['body']['prevLogIndex']
         entriesReceived = msg['body']['entries']
         leaderCommit = msg['body']['leaderCommit']
         failed = False
+        term = msg['body']['term']
 
         maybe_step_down(term)
         
-        if(not leader):
-            # 1. Reply false if term < currentTerm
-            if term < currentTerm:
+        # 1. Reply false if term < currentTerm
+        if term < currentTerm:
+            failed = True
+            
+        else:
+            # There is someone with a higher term so they probably are the leader
+            reset_election_deadline()
+
+            if prevLogIndexReceived <= 0:
                 failed = True
+            
             else:
-                # There is someone with a higher term so they probably are the leader
-                reset_election_deadline()
-
-                logging.info(f"IVOOOO -- log {log},   prevlogIndexReceived {prevLogIndexReceived}")
-
-
                 # 2. Reply false if log doesn’t contain an entry at prevLogIndex whose term matches prevLogTerm
-                if prevLogIndexReceived < len(log) or prevLogIndexReceived + 1 > 0: #check if index exists 
+                if prevLogIndexReceived - 1 < len(log): #check if index exists 
                     # 3. If an existing entry conflicts with a new one (same index but different terms),
-                    if log[prevLogIndexReceived][0] == term:
-                        # 3. delete the existing entry and all that follows it
-                        log = log[0:prevLogIndexReceived]
+                    if log[prevLogIndexReceived - 1][0] != prevLogTerm:
+                        failed = True
 
                     else:
-                        failed = True
+                        # 3. delete the existing entry and all that follows it
+                        log = log[0:prevLogIndexReceived] 
+                        # 4. Append any new entries not already in the log 
+                        log.extend(entriesReceived)
+
+                        # 5. If leaderCommit > commitIndex, set commitIndex =
+                        # min(leaderCommit, index of last new entry)
+                        if (leaderCommit > commitIndex):
+                            commitIndex = min(leaderCommit, len(log))   # TODO AQUI FARIA MAIS SENTIDO SER LEN -1
+
                 else:
                     failed = True
-                                             
-                if not failed:
-                    # 4. Append any new entries not already in the log
-                    log.extend(entriesReceived)
-                    
-                    # 5. If leaderCommit > commitIndex, set commitIndex =
-                    # min(leaderCommit, index of last new entry)
-                    if (leaderCommit > commitIndex):
-                        commitIndex = min(leaderCommit, len(log) - 1)
-                    
-                    # RPC_APPEND_OK
-                    replySimple(msg, term=currentTerm, type=RPC_APPEND_OK)
 
-                else: 
-                    replySimple(msg, term=currentTerm, type=RPC_APPEND_FALSE)
 
+
+        if failed:
+            replySimple(msg, term=currentTerm, type=RPC_APPEND_FALSE)
+        else: 
+            replySimple(msg, term=currentTerm, type=RPC_APPEND_OK)
+
+            
   
     elif msg['body']['type'] == RPC_APPEND_OK: 
         term = msg['body']['term']
         n = msg['src']
         ni = nextIndex[n]
         entries = log[ni - 1:]
+        maybe_step_down(term)
 
-        if leader and term == currentTerm:   
+        if leader and term == currentTerm:
+            reset_step_down_deadline()   
             nextIndex[n] = max(ni, ni+len(entries))  # é um bocado redundante isto
             matchIndex[n] = max(matchIndex.get(n), ni+len(entries)-1)
 
@@ -384,11 +392,12 @@ def main_loop():
     elif msg['body']['type'] == RPC_APPEND_FALSE:
         term = msg['body']['term']
         n = msg['src']
+        maybe_step_down(term)
 
         if leader and term == currentTerm:
+            reset_step_down_deadline()
             # Leader decrements one, so that it sends one more log.
-            if(nextIndex.get(n) > 0):
-                nextIndex[n] -= 1
+            nextIndex[n] -= 1
 
 
 
