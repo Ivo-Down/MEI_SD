@@ -367,8 +367,6 @@ def main_loop():
                 else:
                     failed = True
 
-
-
         if failed:
             replySimple(msg, term=currentTerm, type=RPC_APPEND_FALSE)
         else: 
@@ -379,11 +377,11 @@ def main_loop():
     elif msg['body']['type'] == RPC_APPEND_OK: 
         term = msg['body']['term']
         n = msg['src']
-        ni = nextIndex[n]
-        entries = log[ni - 1:]
         maybe_step_down(term)
 
         if leader and term == currentTerm:
+            ni = nextIndex[n]
+            entries = log[ni - 1:]
             reset_step_down_deadline()   
             nextIndex[n] = max(ni, ni+len(entries))  # é um bocado redundante isto
             matchIndex[n] = max(matchIndex.get(n), ni+len(entries)-1)
