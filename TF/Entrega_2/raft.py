@@ -28,9 +28,9 @@ log = [(0, None)]   # log entries to store (empty for heartbeat; may send more t
 
 # - - - Volatile state on all servers - - -
 commitIndex = 0     # index of highest log entry known to be
-                    # committed (initialized to 0, increases monotonically)   #TODO MUDEI AQUI
+                    # committed (initialized to 0, increases monotonically)   
 
-lastApplied = 1     # index of highest log entry applied to state
+lastApplied = 0     # index of highest log entry applied to state
                     # machine (initialized to 0, increases monotonically)
 
 # comitIndex: valor pela qual já existe uma maioria de logs que o tem
@@ -250,7 +250,7 @@ def changeToLeader():
         # Creates 'nextIndex' | 'matchIndex' for each node, to keep track of their log state
         for n in node_ids:
             if n != node_id:
-                nextIndex[n] = len(log) + 1   #TODO PUS O +1
+                nextIndex[n] = len(log) + 1   
                 matchIndex[n] = 0
         resetGiveUpTimer()
 
@@ -282,7 +282,7 @@ def requestVotes():
 # Handles messages that arrive to the node
 def mainLoop():
     msg = receive()
-    global node_id, node_ids, currentTerm, log, leader, nextIndex, matchIndex, commitIndex, votedFor
+    global node_id, node_ids, currentTerm, lastApplied, log, leader, nextIndex, matchIndex, commitIndex, votedFor
     
     if not msg:
         logging.debug("NO MESSAGE!!")
@@ -292,6 +292,7 @@ def mainLoop():
     if msg['body']['type'] == M_INIT:
         node_ids, node_id = handle_init(msg)
         currentTerm = 0
+        lastApplied = 1
         #first_log_entry = (0, None)
         #log.append(first_log_entry)
         changeToFollower()
@@ -342,7 +343,7 @@ def mainLoop():
                         # 5. If leaderCommit > commitIndex, set commitIndex =
                         # min(leaderCommit, index of last new entry)
                         if (leaderCommit > commitIndex):
-                            commitIndex = min(leaderCommit, len(log))   # TODO AQUI FARIA MAIS SENTIDO SER LEN -1
+                            commitIndex = min(leaderCommit, len(log))  
 
                 else:
                     failed = True
@@ -429,23 +430,19 @@ def mainLoop():
 
 
 
-
+# Main cycle where constantly tries to receive message, check if it should timeout,
+# tries to replicateLog if leader, tries to begin a new election if enough time has passed,
+# and tries to update commitIndex as well as the state if it's the leader.
 def main():
     while True:
-        try: #TODO: importante, tentar tirar os OR pq isto é demasiado parecido
-            mainLoop() or \
-            stepDownOnTimeout() or \
-            replicateLog() or \
-            startElection() or \
-            updateCommitIndex() or \
-            updateState() or \
-            time.sleep(0.001)
+        try:
+            mainLoop() or stepDownOnTimeout() or replicateLog() or \
+            startElection() or updateCommitIndex() or updateState() or \
+            time.sleep(0.002)
         except:
+            logging.debug("AN ERROR HAS OCCURRED!!")
             break
 
 
 if __name__ == '__main__':
     main()
-
-#TODO: IDEIAS PARA SER DAR MAKEUP DISTO:
-#* tirar o try except, ou então dar log do erro no fim
