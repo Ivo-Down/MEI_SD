@@ -88,6 +88,10 @@ def sendAppendEntriesRPC():
                 entries = entries_to_send,
                 leaderCommit = commitIndex )
 
+            # if it dosen´t have anything to send, send heartbeat
+            else:
+                sendSimple(node_id, n, type=HEART_BEAT, term = currentTerm)
+
 
 def replicateLog():
     # Time elapsed since last replication
@@ -428,6 +432,16 @@ def mainLoop():
         checkGiveUp(term)
 
 
+    elif msg['body']['type'] == HEART_BEAT:
+        term = msg['body']['term']
+        checkGiveUp(term)
+        resetElectionTimer()
+        replySimple(msg, term=currentTerm, type=HEART_BEAT_OK)
+
+    elif msg['body']['type'] == HEART_BEAT_OK:
+        term = msg['body']['term']
+        resetGiveUpTimer()
+        checkGiveUp(term)
 
 
 # Main cycle where constantly tries to receive message, check if it should timeout,

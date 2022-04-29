@@ -25,6 +25,9 @@ RPC_REQUEST_VOTE = 'rpc_request_vote'
 RPC_REQUEST_VOTE_FALSE = 'rpc_request_vote_false'
 RPC_REQUEST_VOTE_OK = 'rpc_request_vote_ok'
 
+HEART_BEAT = 'heart_beat'
+HEART_BEAT_OK = 'heart_beat_ok'
+
 
 # Raft details
 ELECTION_TIMEOUT = 2          # in seconds
