@@ -1,5 +1,5 @@
 #!/usr/bin/env python3.9
-#isto é um teste
+
 import logging
 from asyncio import run, create_task, sleep
 
