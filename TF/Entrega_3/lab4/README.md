@@ -5,5 +5,10 @@ Requires:
 Run:
 ```
 java -Djava.awt.headless=true -jar maelstrom.jar test --bin cent.py  -w txn-list-append --node-count 1
+
+java -Djava.awt.headless=true -jar maelstrom.jar test --bin cent.py  -w txn-list-append --node-count 5 --latency 100 --time-limit 10
+
+java -Djava.awt.headless=true -jar maelstrom.jar test --bin cent.py  -w txn-list-append --node-count 5 --latency 100 --time-limit 20 lin-ts --log-stderr
+
 java -Djava.awt.headless=true -jar maelstrom.jar serve
 ```
