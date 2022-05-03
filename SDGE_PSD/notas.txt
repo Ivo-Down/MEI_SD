@@ -1,0 +1,6 @@
+coletor tem ficheiro com todos os dispositivos
+
+um dispositivo conhece todos os coletores
+
+n temos de criar um dispositivo, criamos em vez disso um super cliente que faz:
+ - criar vários dispositivos, um por processo, e fazer pedidos
