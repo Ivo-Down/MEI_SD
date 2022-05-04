@@ -1,41 +1,34 @@
 -module(super_client).
--export([start/1]).
+-export([start/2]).
+-define(EventList, [alarm, error, accident]).
 
 % Este módulo tem como objetivo criar dispositivos IOT e enviar pedidos
 
 
 
-
-
-start(NumberOfDevices) ->
-  Collector = spawn(fun() -> collector() end),
-  create_devices(Collector, NumberOfDevices).
-
-
-collector() ->
-  receive
-    {hello, From} ->
-      io:fwrite("\nColetor recebeu hello de: ~p.\n", [From]),
-      collector()
-  end.
-  
+start(Port, NumberOfDevices) ->
+  %Collector = spawn(fun() -> collector() end),
+  create_devices(Port, NumberOfDevices).
 
 
 
-device(Collector) ->
-  io:fwrite("\nSou um device, vou mandar msg.\n"),
-  Collector ! hello,
+
+device(Port, Socket) ->
+  Event = lists:nth(rand:uniform(length(?EventList)), ?EventList),
+  io:fwrite("\nSou um device, vou mandar ~p.\n", [Event]),
+  ok = gen_tcp:send(Socket, atom_to_binary(Event)),  %envia o evento ao coletor
   timer:sleep(1000),
-  device(Collector).
+  device(Port, Socket).
 
 
 
 % Cria X dispositivos e mete-os a mandar eventos para o coletor
 create_devices(_,0) ->
   true;
-create_devices(Collector, NumberOfDevices) ->
-  spawn(fun() -> device(Collector) end),
-  create_devices(Collector, NumberOfDevices - 1).
+create_devices(Port, NumberOfDevices) ->
+  {ok,Socket} = gen_tcp:connect("localhost", Port, [binary,{packet,4}]),  %cria uma nova ligaçao tcp ao coletor
+  spawn(fun() -> device(Port, Socket) end),
+  create_devices(Port, NumberOfDevices - 1).
 
 
 
