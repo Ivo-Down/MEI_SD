@@ -18,11 +18,22 @@ acceptor(LSock) ->
 
 handle_device(Sock) ->
   receive
-    {tcp, _, Data} ->    % reencaminha a msg para ele próprio
+    {tcp, _, Data} ->
       inet:setopts(Sock, [{active, once}]),
-      Event = binary_to_atom(Data),
-      io:fwrite("\nColetor recebeu ~p .\n", [Event]),
-      handle_device(Sock);
+      Msg = binary_to_term(Data),
+      case maps:get(mode, Msg) of
+        auth -> 
+          io:fwrite("\nColetor recebeu auth info ~p .\n", [Msg]),
+          handle_device(Sock);
+
+        event -> 
+          Event = maps:get(event_type, Msg),
+          DeviceId = maps:get(dev_id, Msg),
+          io:fwrite("\nColetor recebeu evento: ~p do device ~p .\n", [Event, DeviceId]),
+          handle_device(Sock);
+
+        _ -> io:fwrite("\nMensagem inválida!\n")
+      end;
 
     {tcp_closed, _} ->
       io:fwrite("\nConnection closed.\n");

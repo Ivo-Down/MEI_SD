@@ -20,8 +20,9 @@ device(Socket) ->
   Password = "pw123",
   io:fwrite("\nSou um device, vou mandar auth info ~p.\n", [ID]),
   %Msg = messages:encode_msg(#{id=> ID, type=>Type, password=>Password}, "auth_info"),   TODO descobrir de onde vem este messages
-  Msg = lists:nth(rand:uniform(length(?EventList)), ?EventList),
-  ok = gen_tcp:send(Socket, atom_to_binary(Msg)),  %envia o evento ao coletor
+  %Msg = lists:nth(rand:uniform(length(?EventList)), ?EventList),
+  DeviceInfo = #{dev_id=>ID, dev_type=>Type, dev_password=>Password, mode=>auth},
+  ok = gen_tcp:send(Socket, term_to_binary(DeviceInfo)),  %envia o evento ao coletor
   %TODO esperar pela confirmaçao da auth e só depois começar a enviar eventos
   send_events(Socket).
 
@@ -40,8 +41,10 @@ create_devices(Port, NumberOfDevices) ->
 
 send_events(Socket) ->
   Event = lists:nth(rand:uniform(length(?EventList)), ?EventList),
-  io:fwrite("\nSou um device, vou mandar auth info ~p.\n", [Event]),
-  ok = gen_tcp:send(Socket, atom_to_binary(Event)),  %envia o evento ao coletor
+  io:fwrite("\nSou um device, vou mandar event info ~p.\n", [Event]),
+  %EventInfo = #{type=>Event , mode=>event},
+  EventInfo = #{dev_id=>1, event_type=>Event, mode=>event},
+  ok = gen_tcp:send(Socket, term_to_binary(EventInfo)),  %envia o evento ao coletor
   timer:sleep(1000),
   send_events(Socket).
 
