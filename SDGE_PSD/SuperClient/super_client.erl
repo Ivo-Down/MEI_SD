@@ -51,21 +51,3 @@ send_events(Socket) ->
 
 
 
-
-
-
-
-
-
-
-load_devices() ->
-  {ok, File} = file:read_file("Ficheiros/dispositivos.json"),
-  MyJSON = unicode:characters_to_list(File),
-  jsx:decode(MyJSON, [return_maps]).
-
-
-%rpc -> Remote Procedure Call
-rpc(Req) ->
-  ?MODULE ! {Req, self()}, 
-  receive {Res, ?MODULE} -> Res end.
-

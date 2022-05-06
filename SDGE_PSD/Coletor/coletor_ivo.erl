@@ -24,6 +24,7 @@ handle_device(Sock) ->
       case maps:get(mode, Msg) of
         auth -> 
           io:fwrite("\nColetor recebeu auth info ~p .\n", [Msg]),
+          %authenticator:login(maps:get(dev_id, Msg), maps:get(dev_password, Msg), ?MODULE), TODO ainda ta por testar
           handle_device(Sock);
 
         event -> 
@@ -39,5 +40,11 @@ handle_device(Sock) ->
       io:fwrite("\nConnection closed.\n");
 
     {tcp_error, _, _} ->
-      io:fwrite("\nConnection error.\n")
+      io:fwrite("\nConnection error.\n");
+
+    {auth_ok} ->
+      io:fwrite("\nAuthentication was successful.\n");
+
+    {auth_error} ->
+      io:fwrite("\nFailed to authenticate.\n")
   end.
