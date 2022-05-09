@@ -1,4 +1,4 @@
-leitor
+projeto
 =====
 
 An OTP application
