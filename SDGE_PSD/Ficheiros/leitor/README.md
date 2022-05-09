@@ -1,7 +1,6 @@
 leitor
 =====
 
-An OTP application
 Adicionar as dependências no rebar.config, neste momento so temos a de jsx
 
 Build
