@@ -1,20 +1,23 @@
 -module(super_client).
--export([start/2]).
+-export([start/1]).
 -define(EventList, [alarm, error, accident]).
+-define(DevicesFileName, "dispositivos.json").
+
 
 % Este módulo tem como objetivo criar dispositivos IOT e enviar eventos
 
 
 
-start(Port, NumberOfDevices) ->
-  %Collector = spawn(fun() -> collector() end),
-  create_devices(Port, NumberOfDevices).
 
+start(Port) ->
+  {ok, DevicesInfo} = json_interpreter:parse_file(?DevicesFileName),
+  create_devices(Port, maps:iterator(DevicesInfo)).
 
 
 
 device(Socket) ->
   %TODO importar auth info do json
+  {ok, DevicesInfo} = json_interpreter:parse_file(?DevicesFileName),
   ID = 69,
   Type = "fridge",
   Password = "pw123",
@@ -34,12 +37,13 @@ device(Socket) ->
 
 
 % Cria X dispositivos e mete-os a mandar eventos para o coletor
-create_devices(_,0) ->
-  true;
-create_devices(Port, NumberOfDevices) ->
+create_devices(_,none) ->
+  ok;
+create_devices(Port, DevicesInfoIterator) ->
+  {Key, Value, NextIterator} = maps:next(DevicesInfoIterator),  %TODO FIQUEI AQUI
   {ok,Socket} = gen_tcp:connect("localhost", Port, [binary,{packet,4}]),  %cria uma nova ligaçao tcp ao coletor
   spawn(fun() -> device(Socket) end),
-  create_devices(Port, NumberOfDevices - 1).
+  create_devices(Port, maps:next(NextIterator)).
 
 
 

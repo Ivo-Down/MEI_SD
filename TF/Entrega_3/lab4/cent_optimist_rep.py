@@ -9,9 +9,6 @@ from db import DB
 logging.getLogger().setLevel(logging.DEBUG)
 
 db = DB()
-requestQueue = []  # Stores messages as we wait for their timestamp to come
-processQueue = {}  # Stores messages to process sorted by their timestamp | key: timeStamp, value: clientMsg
-nextTimeStamp = 0  # Next message to process
 actual_rs = []
 actual_wv = []
 actual_res = []
@@ -84,7 +81,7 @@ async def handle(msg):
     global node_id, node_ids
     global db
     global requestQueue, processQueue, nextTimeStamp
-    global act
+    global actual_wv, actual_rs, actual_timestamp
 
     await checkIfMessageToProcess()
 
@@ -117,9 +114,7 @@ async def handle(msg):
             
 
     elif msg.body.type == 'ts_ok':
-        actual_timestamp = msg.body.ts
-        
-        msgToBroadcast = requestQueue.pop(0)
+        actual_timestamp = msg.body.ts        
         broadcast_transaction(msgToBroadcast, timeStamp)
 
 
