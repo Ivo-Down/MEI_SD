@@ -11,19 +11,13 @@
 
 start(Port) ->
   {ok, DevicesInfo} = json_interpreter:parse_file(?DevicesFileName),
-  create_devices(Port, maps:iterator(DevicesInfo)).
+  create_devices(Port, DevicesInfo).
 
 
-
-device(Socket) ->
-  %TODO importar auth info do json
-  {ok, DevicesInfo} = json_interpreter:parse_file(?DevicesFileName),
-  ID = 69,
-  Type = "fridge",
-  Password = "pw123",
-  io:fwrite("\nSou um device, vou mandar auth info ~p.\n", [ID]),
-  %Msg = messages:encode_msg(#{id=> ID, type=>Type, password=>Password}, "auth_info"),   TODO descobrir de onde vem este messages
-  DeviceInfo = #{dev_id=>ID, dev_type=>Type, dev_password=>Password, mode=>auth},
+%manda pedido de autenticação ao coletor
+device(Socket, DeviceInfo) ->  
+  io:fwrite("\nSou um device, vou mandar auth info ~p.\n", maps:get(id,DeviceInfo)),
+  maps:put(mode,auth,DeviceInfo),
   ok = gen_tcp:send(Socket, term_to_binary(DeviceInfo)),  %envia o evento ao coletor
   %TODO esperar pela confirmaçao da auth e só depois começar a enviar eventos
   receive
@@ -31,19 +25,18 @@ device(Socket) ->
       send_events(Socket);
 
     {auth_error} ->
-      io:fwrite("\nDevice ~p ailed authentication, shutting of.\n", [ID])
+      io:fwrite("\nDevice ~p failed authentication, shutting of.\n", maps:get(id,DeviceInfo))
   end.
 
 
 
 % Cria X dispositivos e mete-os a mandar eventos para o coletor
-create_devices(_,none) ->
+create_devices(_,[]) ->
   ok;
-create_devices(Port, DevicesInfoIterator) ->
-  {Key, Value, NextIterator} = maps:next(DevicesInfoIterator),  %TODO FIQUEI AQUI
+create_devices(Port, [H|T]) ->
   {ok,Socket} = gen_tcp:connect("localhost", Port, [binary,{packet,4}]),  %cria uma nova ligaçao tcp ao coletor
-  spawn(fun() -> device(Socket) end),
-  create_devices(Port, maps:next(NextIterator)).
+  spawn(fun() -> device(Socket, H) end),
+  create_devices(Port, T).
 
 
 

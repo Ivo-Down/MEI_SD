@@ -15,6 +15,7 @@ start(Port) ->
 acceptor(LSock, DevicesInfo) ->
   {ok, Sock} = gen_tcp:accept(LSock),
   io:fwrite("\nNew device connected to socket: ~p.\n", [Sock]),
+  % fica à espera de uma nova conexão
   spawn(fun() -> acceptor(LSock, DevicesInfo) end),
   gen_tcp:controlling_process(Sock, self()),
   timer:send_after(?CollectTime, aggregator),  % começa um timer para dps enviar o q tem para o agregador
@@ -70,7 +71,7 @@ handle_device(Sock, State, TRef, DevicesInfo) ->
 
     {aggregator} ->
       io:fwrite("\nSending info to aggregator.\n"),
-      % TODO ENVIAR PARA O AGREGADOR A INFO QUE TEM NO EVENTSLIST
+      % TODO ENVIAR PARA O AGREGADOR A INFO QUE TEM NO EVENTSLIST - CHUMAK
       timer:send_after(?CollectTime, aggregator),
       maps:update(eventsList, [], State),
       handle_device(Sock, State, TRef, DevicesInfo)
