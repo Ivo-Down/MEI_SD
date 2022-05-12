@@ -1,13 +1,17 @@
--module(jsoninterpreter).
+-module(json_interpreter).
 
 -export([parse_file/1]).
 
 -export([init/1, handle_event/2]).
 
 parse_file(FN) ->
-    {ok, File} = file:open(FN, [read, raw, binary]),
-    read(File, jsx:decoder(?MODULE, [], [stream, return_tail])),
-    file:close(File).
+    %{ok, File} = file:open(FN, [read, raw, binary]),
+    %Data = read(File, jsx:decoder(?MODULE, [], [stream, return_tail])),
+    %file:close(File),
+    %Data.
+    {ok, File} = file:read_file(FN),
+    Term = jsx:decode(File),
+    Term.
 
 read(File, JSX) ->
     {ok, Data} = file:read(File, 8), %% eof should raise error
@@ -16,7 +20,8 @@ read(File, JSX) ->
             read(File, F);
         {with_tail, _, Tail} ->
             Tail =/= <<>> andalso io:format("Surplus content: ~s~n", [Tail])
-    end.
+    end,
+    JSX(Data).
 
 init(_) ->
     start.

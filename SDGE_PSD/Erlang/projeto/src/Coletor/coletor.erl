@@ -7,7 +7,7 @@
 
 start(Port) ->
   {ok, LSock} = gen_tcp:listen(Port, [binary, {active, once}, {packet, 4}, {reuseaddr, true}]),
-  {ok, DevicesInfo} = json_interpreter:parse_file(?DevicesFileName),  % carrega os dados dos dispositivos para memória
+  DevicesInfo = json_interpreter:parse_file(?DevicesFileName),  % carrega os dados dos dispositivos para memória
   spawn(fun() -> acceptor(LSock, DevicesInfo) end),
   ok.
 
@@ -31,16 +31,16 @@ handle_device(Sock, State, TRef, DevicesInfo) ->
       case maps:get(mode, Msg) of
         auth -> 
           io:fwrite("\nColetor recebeu auth info ~p .\n", [Msg]),
-          login(maps:get(dev_id, Msg), maps:get(dev_password, Msg), DevicesInfo),
+          login(maps:get(id, Msg), maps:get(password, Msg), DevicesInfo),
           handle_device(Sock, State, TRef, DevicesInfo);
 
         event -> 
           Event = maps:get(event_type, Msg),
-          DeviceId = maps:get(dev_id, Msg),
+          DeviceId = maps:get(id, Msg),
           io:fwrite("\nColetor recebeu evento: ~p do device ~p .\n", [Event, DeviceId]),
           time:cancel(TRef),  % vai criar um novo timer para a questao da atividade
           {ok, TRef} = timer:send_after(?AliveTime, alive_timeout),   %TODO confirmar q posso alterar TRef
-          maps:update(online, false, State),
+          maps:update(online, true, State),
           maps:update(eventsList, maps:get(eventsList, State) ++ Event, State),
           handle_device(Sock, State, TRef, DevicesInfo);
 
