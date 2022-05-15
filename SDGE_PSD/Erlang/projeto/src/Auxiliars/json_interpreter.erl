@@ -10,7 +10,7 @@ parse_file(FN) ->
     %file:close(File),
     %Data.
     {ok, File} = file:read_file(FN),
-    Term = jsx:decode(File),
+    Term = jsx:decode(File, [{labels, atom}]),
     Term.
 
 read(File, JSX) ->

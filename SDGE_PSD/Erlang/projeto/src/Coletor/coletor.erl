@@ -83,10 +83,20 @@ handle_device(Sock, State, TRef, DevicesInfo) ->
 
 
 login(DeviceId, DevicePw, DevicesInfo) ->
-  case maps:find(DeviceId, DevicesInfo) of
-    {ok, {_, DevicePw}} ->
-      ?MODULE ! auth_ok;
+  DeviceDictionary = lists:nth(DeviceId, DevicesInfo),
+  case maps:find(id, DeviceDictionary) of
 
-    {ok,_} ->
-      ?MODULE ! auth_error     %TODO pensar o que enviar de volta com o erro para identificar o device
+    {ok, DeviceId} ->
+      case maps:find(password, DeviceDictionary) of
+        {ok, DevicePw} ->
+          io:fwrite("\nAuth successful.\n"),
+          self() ! auth_ok;
+        {ok, _} ->
+          io:fwrite("\nAuth failed.\n"),
+          self() ! auth_error      %TODO FIQUEI AQUIIII
+      end;
+      
+    {ok, _} ->
+      io:fwrite("\nAuth failed.\n"),
+      self() ! auth_error  
   end.

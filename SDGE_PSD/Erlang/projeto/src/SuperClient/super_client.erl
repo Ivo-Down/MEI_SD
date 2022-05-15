@@ -1,7 +1,7 @@
 -module(super_client).
 -export([start/1]).
 -define(EventList, [alarm, error, accident]).
--define(DevicesFileName, "dispositivos.json").
+-define(DevicesFileName, "dispositivos1.json").
 
 
 % Este módulo tem como objetivo criar dispositivos IOT e enviar eventos
@@ -16,16 +16,31 @@ start(Port) ->
 
 %manda pedido de autenticação ao coletor
 device(Socket, DeviceInfo) ->  
-  io:fwrite("\nSou um device, vou mandar auth info ~p.\n", maps:get(atom_to_binary(id),DeviceInfo)),
-  maps:put(mode,auth,DeviceInfo),
-  ok = gen_tcp:send(Socket, term_to_binary(DeviceInfo)),  %envia o evento ao coletor
-  %TODO esperar pela confirmaçao da auth e só depois começar a enviar eventos
+  DeviceId = maps:get(id,DeviceInfo),
+  io:fwrite("\nSou o device ~p, vou mandar auth info.\n", [DeviceId]),
+  AuthDeviceInfo = maps:put(mode, auth, DeviceInfo),
+  ok = gen_tcp:send(Socket, term_to_binary(AuthDeviceInfo)),  %envia pedido de autenticação ao coletor
   receive
-    {auth_ok} ->
-      send_events(Socket, DeviceInfo);
+    {tcp, _, Data} ->
+      inet:setopts(Socket, [{active, once}]),
+      Msg = binary_to_atom(Data),
+      case Msg of
+            
+        {auth_ok} ->
+          io:fwrite("\nDevice ~p authenticated!\n", maps:get(id,AuthDeviceInfo)),
+          EventDeviceInfo = maps:put(mode, event, DeviceInfo),
+          send_events(Socket, EventDeviceInfo);
 
-    {auth_error} ->
-      io:fwrite("\nDevice ~p failed authentication, shutting of.\n", maps:get(id,DeviceInfo))
+        {auth_error} ->
+          io:fwrite("\nDevice ~p failed authentication, shutting of.\n", maps:get(id,AuthDeviceInfo))
+      end;
+
+    {tcp_closed, _} ->
+      io:fwrite("\nConnection closed.\n");
+
+    {tcp_error, _, _} ->
+      io:fwrite("\nConnection error.\n")
+
   end.
 
 
