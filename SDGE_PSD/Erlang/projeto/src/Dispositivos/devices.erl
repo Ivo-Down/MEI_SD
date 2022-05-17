@@ -1,12 +1,10 @@
 -module(devices).
 -export([start/1]).
 -define(EventList, [alarm, error, accident]).
--define(DevicesFileName, "dispositivos1.json").
+-define(DevicesFileName, "dispositivos.json").
 
 
 % Este módulo tem como objetivo criar dispositivos IOT e enviar eventos
-
-
 
 
 start(Port) ->
@@ -49,7 +47,6 @@ create_devices(Port, [H|T]) ->
   {ok,Socket} = gen_tcp:connect("localhost", Port, [binary,{packet,4}, {active, false}]),  %cria uma nova ligaçao tcp ao coletor
   spawn(fun() -> device(Socket, H) end),
   create_devices(Port, T).
-
 
 
 

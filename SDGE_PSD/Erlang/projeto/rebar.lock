@@ -1,8 +1,11 @@
 {"1.2.0",
-[{<<"jsx">>,{pkg,<<"jsx">>,<<"3.1.0">>},0}]}.
+[{<<"chumak">>,{pkg,<<"chumak">>,<<"1.3.0">>},0},
+ {<<"jsx">>,{pkg,<<"jsx">>,<<"3.1.0">>},0}]}.
 [
 {pkg_hash,[
+ {<<"chumak">>, <<"425E64819F64149122A43090E2C6C4732E042D7DEB1D416BC9F29F4926779768">>},
  {<<"jsx">>, <<"D12516BAA0BB23A59BB35DCCAF02A1BD08243FCBB9EFE24F2D9D056CCFF71268">>}]},
 {pkg_hash_ext,[
+ {<<"chumak">>, <<"0627E692DF7C36B03D4B66949C2B0E83AE51C36D0E2322E7667BED45B2E599F2">>},
  {<<"jsx">>, <<"0C5CC8FDC11B53CC25CF65AC6705AD39E54ECC56D1C22E4ADB8F5A53FB9427F3">>}]}
 ].
