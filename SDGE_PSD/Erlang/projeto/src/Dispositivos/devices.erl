@@ -1,4 +1,4 @@
--module(super_client).
+-module(devices).
 -export([start/1]).
 -define(EventList, [alarm, error, accident]).
 -define(DevicesFileName, "dispositivos1.json").
@@ -20,28 +20,25 @@ device(Socket, DeviceInfo) ->
   io:fwrite("\nSou o device ~p, vou mandar auth info.\n", [DeviceId]),
   AuthDeviceInfo = maps:put(mode, auth, DeviceInfo),
   ok = gen_tcp:send(Socket, term_to_binary(AuthDeviceInfo)),  %envia pedido de autenticação ao coletor
-  receive
-    {tcp, _, Data} ->
-      inet:setopts(Socket, [{active, once}]),
-      Msg = binary_to_atom(Data),
+  % Espera pela resposta da autenticação, é uma espera bloqueante
+  case gen_tcp:recv(Socket, 0) of
+    {ok, Binary}->% Send basic message.
+      Msg = binary_to_atom(Binary),
       case Msg of
             
-        {auth_ok} ->
-          io:fwrite("\nDevice ~p authenticated!\n", maps:get(id,AuthDeviceInfo)),
+        auth_ok ->   
+          io:fwrite("\nDevice ~p authenticated!\n", [maps:get(id,AuthDeviceInfo)]),
           EventDeviceInfo = maps:put(mode, event, DeviceInfo),
           send_events(Socket, EventDeviceInfo);
 
-        {auth_error} ->
+        auth_error ->
           io:fwrite("\nDevice ~p failed authentication, shutting of.\n", maps:get(id,AuthDeviceInfo))
       end;
 
-    {tcp_closed, _} ->
-      io:fwrite("\nConnection closed.\n");
-
-    {tcp_error, _, _} ->
-      io:fwrite("\nConnection error.\n")
-
+    {error, Reason}->
+      io:fwrite("\nAn error has occurred:  ~p.\n", [Reason])
   end.
+
 
 
 
@@ -49,7 +46,7 @@ device(Socket, DeviceInfo) ->
 create_devices(_,[]) ->
   ok;
 create_devices(Port, [H|T]) ->
-  {ok,Socket} = gen_tcp:connect("localhost", Port, [binary,{packet,4}]),  %cria uma nova ligaçao tcp ao coletor
+  {ok,Socket} = gen_tcp:connect("localhost", Port, [binary,{packet,4}, {active, false}]),  %cria uma nova ligaçao tcp ao coletor
   spawn(fun() -> device(Socket, H) end),
   create_devices(Port, T).
 
@@ -59,7 +56,7 @@ create_devices(Port, [H|T]) ->
 send_events(Socket, DeviceInfo) ->
   Event = lists:nth(rand:uniform(length(?EventList)), ?EventList),
   io:fwrite("\nSou um device, vou mandar event info ~p.\n", [Event]),
-  EventInfo = #{dev_id=>maps:get(id,DeviceInfo), event_type=>Event, mode=>event},
+  EventInfo = #{id=>maps:get(id,DeviceInfo), event_type=>Event, mode=>event},
   ok = gen_tcp:send(Socket, term_to_binary(EventInfo)),  %envia o evento ao coletor
   timer:sleep(1000),
   send_events(Socket, DeviceInfo).
