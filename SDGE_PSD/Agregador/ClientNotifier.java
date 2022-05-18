@@ -10,9 +10,11 @@ public class ClientNotifier implements Runnable{
     }
 
     public void run() {
-        while(true) {
+        String res;
+        while(!Thread.currentThread().isInterrupted()) {
             //System.out.println("arroz");
-            System.out.println(new String(sub.recv()));
+            System.out.println("Topic:\t" + new String(sub.recv(),ZMQ.CHARSET)); // TOPIC
+            System.out.println("Data:\t" + new String(sub.recv(),ZMQ.CHARSET)); // DATA
         }
     }
 }

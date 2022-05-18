@@ -8,12 +8,13 @@ public class Client {
         ZMQ.Context context = ZMQ.context(1);
         ZMQ.Socket sub = context.socket(SocketType.SUB);
         sub.connect("tcp://localhost:" + args[0]);
+        sub.subscribe("TOPIC_1");   // IMPORTANT (TOPIC)
 
         // ZeroMQ Socket para REQUEST
 
 
         ClientNotifier cr = new ClientNotifier(sub);
-        System.out.println("A ouvir na porta " + args[0]);
+        System.out.println("Listening on port:\t" + args[0]);
         new Thread(cr).start();
     }
 }

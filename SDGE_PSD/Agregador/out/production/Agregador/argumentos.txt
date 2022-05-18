@@ -1,5 +1,5 @@
 
-//Para o AggregatorServer:
+//Para o AgregatorServer:
 
 8001 A
 

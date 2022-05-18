@@ -1,12 +1,10 @@
 import org.zeromq.SocketType;
 import org.zeromq.ZMQ;
 
-import java.net.ServerSocket;
-import java.net.Socket;
 import java.util.HashMap;
 
 
-public class AgregatorServer {
+public class AggregatorServer {
     private static final HashMap<String,Integer> zoneToId = new HashMap<>();
 
     /**
@@ -20,12 +18,12 @@ public class AgregatorServer {
         ZMQ.Context context = ZMQ.context(1);
         ZMQ.Socket pubPublic = context.socket(SocketType.PUB);
         pubPublic.connect("tcp://localhost:" + args[0]); // connect to broker
-        System.out.println("*** Agregador da ZONA " + args[1] + " está ativo ***");
+        System.out.println("*** Zone " + args[1] + " Aggregator is active ***");
 
-        System.out.println("A conectar à porta..." + args[0]);
+        System.out.println("Posting on Port:\t" + args[0]);
 
-        Agregator d = new Agregator(args[1],zoneToId.get(args[1]));
-        AgregNotifier notif = new AgregNotifier(pubPublic,d);
+        Aggregator d = new Aggregator(args[1],zoneToId.get(args[1]));
+        AggregatorNotifier notif = new AggregatorNotifier(pubPublic,d);
         new Thread(notif).start();
 
 
