@@ -8,71 +8,68 @@ from db import DB
 
 logging.getLogger().setLevel(logging.DEBUG)
 
-db = DB()
-actual_rs = []
-actual_wv = []
-actual_res = []
-actual_timestamp = None
-# 3 valores; timestamp
+logging.getLogger().setLevel(logging.DEBUG)
 
-def broadcast_transaction(msg, timeStamp):
+db = DB()
+requestQueue = []  # Stores (execution info + client message) as we wait for their timestamp to come
+updateQueue = {}  # Stores updates to process sorted by their timestamp | key: timeStamp, value: clientMsg
+nextTimeStamp = 0  # Next update to process
+
+
+
+def broadcast_transaction(update, timeStamp):
     global node_id, node_ids
     for n in node_ids:
-        send(node_id, n, type='txn_broadcast', ts=timeStamp, payload=msg)
+        send(node_id, n, type='txn_broadcast', ts=timeStamp, payload=update)
 
 
-# Checks if there is a new message to process and processes it if there is
-async def checkIfMessageToProcess():
-    global nextTimeStamp, processQueue
-    if nextTimeStamp in processQueue.keys():
-        clientMsg = processQueue[nextTimeStamp]
-        await processClientRequest(clientMsg)
-        # delete message from queue
-        del processQueue[nextTimeStamp]
+# Checks if there is a new update to process and processes it if there is
+async def checkIfUpdateToProcess():
+    global nextTimeStamp, updateQueue
+    if nextTimeStamp in updateQueue.keys():
+        nextUpdate = updateQueue[nextTimeStamp]
+        await commit(nextUpdate)
+        del updateQueue[nextTimeStamp]
         nextTimeStamp += 1
 
 
 
 async def execute(clientMsg):
-    global node_id, db, actual_rs, actual_wv, actual_res
+    global node_id, db, requestQueue
 
-    ctx = await db.begin([k for op,k,v in clientMsg.body.txn], clientMsg.dest+'-'+str(clientMsg.body.msg_id))
-    actual_rs, actual_wv, actual_res = await db.execute(ctx,clientMsg.body.txn)
-
-    if not actual_res:
-        reply(clientMsg, type='error', code=14, text='transaction aborted')
-        return False
-
+    ctx = await db.begin([k for op,k,v in clientMsg.body.txn], clientMsg.src+'-'+str(clientMsg.body.msg_id))
+    rs, wv, res = await db.execute(ctx,clientMsg.body.txn)
+    
+    if res:
+        requestQueue.append((rs, wv, res, clientMsg))
+        send(node_id, 'lin-tso', type='ts')  # Gets the order for the next message
+    else:
+        reply(clientMsg, type='error', code=14, text='transaction aborted on execute')
 
     db.cleanup(ctx)
 
-    return True
     
  
 
-async def processClientRequest(clientMsg):
+async def commit(nextUpdate):
     global node_id, db
 
-    # If the node is the one who was contacted by the client, reply to client
-    if clientMsg.dest == node_id:
-        ctx = await db.begin([k for op,k,v in clientMsg.body.txn], clientMsg.dest+'-'+str(clientMsg.body.msg_id))
-        rs,wv,res = await db.execute(ctx,clientMsg.body.txn)
-        if res:
-            await db.commit(ctx, wv)
-            reply(clientMsg, type='txn_ok', txn=res)
-        else:
-            reply(clientMsg, type='error', code=14, text='transaction aborted')
-        db.cleanup(ctx)
+    ctx = await db.begin([k for op,k,v in nextUpdate[3].body.txn], nextUpdate[3].src+'-'+str(nextUpdate[3].body.msg_id))
+    rs = nextUpdate[0]
+    wv = nextUpdate[1]
+    res = nextUpdate[2]
 
+    if res:
+        await db.commit(ctx, wv)
+        if nextUpdate[3].dest == node_id:
+         reply(nextUpdate[3], type='txn_ok', txn=res)
     else:
-        ctx = await db.begin([k for op,k,v in clientMsg.body.txn], clientMsg.dest+'-'+str(clientMsg.body.msg_id))
-        rs,wv,res = await db.execute(ctx, clientMsg.body.txn)
-        if res:
-            await db.commit(ctx, wv)
-            send(node_id, clientMsg.dest, type='txn_broadcast_ok')
-        else:
-            send(node_id, clientMsg.dest, type='txn_broadcast_false')
-        db.cleanup(ctx)
+        if nextUpdate[3].dest == node_id:
+            reply(nextUpdate[3], type='error', code=14, text='transaction aborted on commit')
+
+    db.cleanup(ctx)
+
+    
 
 
 
@@ -80,10 +77,9 @@ async def handle(msg):
     # State
     global node_id, node_ids
     global db
-    global requestQueue, processQueue, nextTimeStamp
-    global actual_wv, actual_rs, actual_timestamp
+    global requestQueue, updateQueue, nextTimeStamp
 
-    await checkIfMessageToProcess()
+    await checkIfUpdateToProcess()
 
     # Message handlers
     if msg.body.type == 'init':
@@ -96,27 +92,24 @@ async def handle(msg):
     
     elif msg.body.type == 'txn':
         logging.info('executing txn')
-        # Execute the operation
-        exec_res = execute(msg)
-
-        if exec_res:
-            send(node_id, 'lin-tso', type='ts')
-
+        # Execute the operation and gets its timestamp
+        await execute(msg)
+        await checkIfUpdateToProcess()
 
 
     elif msg.body.type == 'txn_broadcast':
         logging.info('received broadcast')
-        # Add new msg to processQueue
-        processQueue[msg.body.ts] = msg.body.payload
-        # If it contains the next message, processes it
-        #checkIfMessageToProcess()
+        # Add new update to updateQueue
+        updateQueue[msg.body.ts] = msg.body.payload
+        # Processes the next update if it already has arrived
+        await checkIfUpdateToProcess()
 
             
-
     elif msg.body.type == 'ts_ok':
-        actual_timestamp = msg.body.ts        
-        broadcast_transaction(msgToBroadcast, timeStamp)
-
+        # When timestamp arrives, sends the first available update with that timestamp to all nodes
+        timeStamp = msg.body.ts
+        updateToBroadcast = requestQueue.pop(0)
+        broadcast_transaction(updateToBroadcast, timeStamp)
 
 
     else:

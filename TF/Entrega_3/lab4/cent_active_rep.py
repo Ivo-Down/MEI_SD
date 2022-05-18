@@ -37,7 +37,7 @@ async def processClientRequest(clientMsg):
 
     # If the node is the one who was contacted by the client, reply to client
     if clientMsg.dest == node_id:
-        ctx = await db.begin([k for op,k,v in clientMsg.body.txn], clientMsg.dest+'-'+str(clientMsg.body.msg_id))
+        ctx = await db.begin([k for op,k,v in clientMsg.body.txn], clientMsg.src+'-'+str(clientMsg.body.msg_id))
         rs,wv,res = await db.execute(ctx,clientMsg.body.txn)
         if res:
             await db.commit(ctx, wv)
