@@ -3,35 +3,39 @@ import org.zeromq.ZMQ;
 
 import java.util.HashMap;
 
-
+//Args: portaPub portaRep zona
 public class AggregatorServer {
     private static final HashMap<String,Integer> zoneToId = new HashMap<>();
 
-    /**
-     * District.DistrictServer class for the district server
-     * @param args arg0 -> privateNotifications, arg1 -> broker, arg2 -> GetFrontendPings, arg3 -> atomName, arg4 -> directory port
-     * Example: 12347 8001 8102 braga 8080
-     */
     public static void main(String[] args) throws Exception{
         initMap();
-
         ZMQ.Context context = ZMQ.context(1);
+        Aggregator ag = new Aggregator(args[2],zoneToId.get(args[2]));
+
+        // ZeroMQ para PUBLISHER
         ZMQ.Socket pubPublic = context.socket(SocketType.PUB);
         pubPublic.connect("tcp://localhost:" + args[0]); // connect to broker
-        System.out.println("*** Zone " + args[1] + " Aggregator is active ***");
 
-        System.out.println("Posting on Port:\t" + args[0]);
+        // ZeroMQ para REPLY
+        ZMQ.Socket rep = context.socket(SocketType.REP);
+        rep.bind("tcp://localhost:" + args[1]);
 
-        Aggregator d = new Aggregator(args[1],zoneToId.get(args[1]));
-        AggregatorNotifier notif = new AggregatorNotifier(pubPublic,d);
+
+        AggregatorNotifier notif = new AggregatorNotifier(pubPublic,ag);
+        AggregatorQueries quer = new AggregatorQueries(rep,ag);
+
+        System.out.println("A publicar na porta:\t" + args[0]);
+        System.out.println("A responder a queries porta:\t" + args[1]);
+
+
         new Thread(notif).start();
-
+        new Thread(quer).start();
 
         //Aqui entra a parte do PUSH
 
 
 
-        //Aqui entra a parte do REPLY
+
     }
 
     private static void initMap(){
