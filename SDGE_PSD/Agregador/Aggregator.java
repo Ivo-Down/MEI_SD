@@ -1,9 +1,9 @@
 
-public class Agregator {
+public class Aggregator {
     private final String zoneName;
-    private int id;
+    private final int id;
 
-    public Agregator(String zoneName, int id){
+    public Aggregator(String zoneName, int id){
         this.zoneName = zoneName;
         this.id = id;
     }
