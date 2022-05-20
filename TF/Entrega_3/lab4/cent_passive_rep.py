@@ -11,33 +11,26 @@ logging.getLogger().setLevel(logging.DEBUG)
 logging.getLogger().setLevel(logging.DEBUG)
 
 db = DB()
-requestQueue = []
-ct = 0  # Timestamp of the last processed/commited message
-st = 0
-writeValues = [] # pairs (wv, commit timestamp)
+requestQueue = []  # Stores (execution info + client message) as we wait for their timestamp to come
+updateQueue = {}  # Stores updates to process sorted by their timestamp | key: timeStamp, value: clientMsg
+nextTimeStamp = 0  # Next update to process
 
-def broadcast_transaction(update):
-    global node_id, node_ids, ct, st
+
+
+def broadcast_transaction(update, timeStamp):
+    global node_id, node_ids
     for n in node_ids:
-        send(node_id, n, type='txn_broadcast', payload=update, ct=ct, st=st)
+        send(node_id, n, type='txn_broadcast', ts=timeStamp, payload=update)
 
 
-# Checks if there is an intersection between ct and st
-def checkIntersection(txn_rs, txn_ct, txn_st):
-    global writeValues
-    writeValuesToCompare = []
-
-    for x in writeValues:
-        if x[1] > txn_st and x[1] < txn_ct:
-            writeValuesToCompare.append(x[0])
-
-    for r in txn_rs:
-        if r in writeValuesToCompare:
-            return True
-
-    return False
-
-
+# Checks if there is a new update to process and processes it if there is
+async def checkIfUpdateToProcess():
+    global nextTimeStamp, updateQueue
+    if nextTimeStamp in updateQueue.keys():
+        nextUpdate = updateQueue[nextTimeStamp]
+        await commit(nextUpdate)
+        del updateQueue[nextTimeStamp]
+        nextTimeStamp += 1
 
 
 
@@ -59,7 +52,7 @@ async def execute(clientMsg):
  
 
 async def commit(nextUpdate):
-    global node_id, db, writeValues, ct
+    global node_id, db
 
     ctx = await db.begin([k for op,k,v in nextUpdate[3].body.txn], nextUpdate[3].src+'-'+str(nextUpdate[3].body.msg_id))
     rs = nextUpdate[0]
@@ -69,10 +62,7 @@ async def commit(nextUpdate):
     if res:
         await db.commit(ctx, wv)
         if nextUpdate[3].dest == node_id:
-            reply(nextUpdate[3], type='txn_ok', txn=res)
-            # Saves the new commit
-            writeValues.append((wv, ct))
-            ct += 1
+         reply(nextUpdate[3], type='txn_ok', txn=res)
     else:
         if nextUpdate[3].dest == node_id:
             reply(nextUpdate[3], type='error', code=14, text='transaction aborted on commit')
@@ -87,13 +77,16 @@ async def handle(msg):
     # State
     global node_id, node_ids
     global db
-    global st
+    global requestQueue, updateQueue, nextTimeStamp
+
+    await checkIfUpdateToProcess()
 
     # Message handlers
     if msg.body.type == 'init':
         node_id = msg.body.node_id
         node_ids = msg.body.node_ids
         logging.info('node %s initialized', node_id)
+
         reply(msg, type='init_ok')
 
     
@@ -101,27 +94,22 @@ async def handle(msg):
         logging.info('executing txn')
         # Execute the operation and gets its timestamp
         await execute(msg)
+        await checkIfUpdateToProcess()
 
 
     elif msg.body.type == 'txn_broadcast':
-        # Validar txn para decidir se faz commit ou descarta 
-            # comparar read-set da txn T com os write-sets todos de todos os commits
-            # feitos desde que T começou a executar -> faz commit se n houver interseção
-
-        txn_rs = msg.body.payload[0]
-        txn_st = msg.body.st
-        txn_ct = msg.body.ct
-
-        #Para os writeValues entre txn_ct e txn_st quero ver se ha alguma interseçao com txn_rs
-        if not checkIntersection(txn_rs, txn_ct, txn_st):
-            await commit(msg.body.payload)
+        logging.info('received broadcast')
+        # Add new update to updateQueue
+        updateQueue[msg.body.ts] = msg.body.payload
+        # Processes the next update if it already has arrived
+        await checkIfUpdateToProcess()
 
             
     elif msg.body.type == 'ts_ok':
         # When timestamp arrives, sends the first available update with that timestamp to all nodes
-        st = msg.body.ts
+        timeStamp = msg.body.ts
         updateToBroadcast = requestQueue.pop(0)
-        broadcast_transaction(updateToBroadcast)
+        broadcast_transaction(updateToBroadcast, timeStamp)
 
 
     else:
