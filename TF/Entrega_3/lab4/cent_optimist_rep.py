@@ -1,7 +1,9 @@
 #!/usr/bin/env python3.9
 
+from asyncore import write
 import logging
 from asyncio import run, create_task, sleep
+from os import writev
 
 from ams import send, receiveAll, reply
 from db import DB
@@ -28,7 +30,7 @@ def checkIntersection(txn_rs, txn_ct, txn_st):
     writeValuesToCompare = []
 
     for x in writeValues:
-        if x[1] > txn_st and x[1] < ct: #DÚVIDA: ct do nodo, ou txn_ct?
+        if x[1] > txn_st and x[1] < txn_ct:
             writeValuesToCompare.append(x[0])
 
     for r in txn_rs:
@@ -40,13 +42,17 @@ def checkIntersection(txn_rs, txn_ct, txn_st):
 
 
 async def execute(clientMsg):
-    global node_id, db, requestQueue
+    global node_id, db, requestQueue, st, ct
 
     ctx = await db.begin([k for op,k,v in clientMsg.body.txn], clientMsg.src+'-'+str(clientMsg.body.msg_id))
+
+    st = ct
+    
     rs, wv, res = await db.execute(ctx,clientMsg.body.txn)
     
     if res:
         requestQueue.append((rs, wv, res, clientMsg))
+        
         send(node_id, 'lin-tso', type='ts')  # Gets the order for the next message
     else:
         reply(clientMsg, type='error', code=14, text='transaction aborted on execute')
@@ -70,7 +76,6 @@ async def commit(nextUpdate):
             reply(nextUpdate[3], type='txn_ok', txn=res)
             # Saves the new commit
             writeValues.append((wv, ct))
-            ct += 1
             
     else:
         if nextUpdate[3].dest == node_id:
@@ -86,7 +91,8 @@ async def handle(msg):
     # State
     global node_id, node_ids
     global db
-    global st
+    global ct, st
+    global writeValues
 
     # Message handlers
     if msg.body.type == 'init':
@@ -107,21 +113,25 @@ async def handle(msg):
             # comparar read-set da txn T com os write-values de todos os commits
             # feitos desde que T começou a executar -> faz commit se n houver interseção
 
+
         txn_rs = msg.body.payload[0]
         txn_st = msg.body.st
         txn_ct = msg.body.ct
 
+        ct = txn_ct
+
         #Para os writeValues entre txn_ct e txn_st quero ver se ha alguma interseçao com txn_rs
         if not checkIntersection(txn_rs, txn_ct, txn_st):
             await commit(msg.body.payload)
+        # else:
+        #     writeValues.append(None)
 
             
     elif msg.body.type == 'ts_ok':
         # When timestamp arrives, sends the first available update with that timestamp to all nodes
-        st = msg.body.ts
+        ct = msg.body.ts
         updateToBroadcast = requestQueue.pop(0)
         broadcast_transaction(updateToBroadcast)
-
 
     else:
         logging.warning('unknown message type %s', msg.body.type)
