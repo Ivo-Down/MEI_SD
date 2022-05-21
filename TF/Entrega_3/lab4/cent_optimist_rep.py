@@ -24,11 +24,11 @@ def broadcast_transaction(update):
 
 # Checks if there is an intersection between ct and st
 def checkIntersection(txn_rs, txn_ct, txn_st):
-    global writeValues
+    global writeValues, ct
     writeValuesToCompare = []
 
     for x in writeValues:
-        if x[1] > txn_st and x[1] < txn_ct:
+        if x[1] > txn_st and x[1] < ct: #DÚVIDA: ct do nodo, ou txn_ct?
             writeValuesToCompare.append(x[0])
 
     for r in txn_rs:
@@ -36,8 +36,6 @@ def checkIntersection(txn_rs, txn_ct, txn_st):
             return True
 
     return False
-
-
 
 
 
@@ -73,6 +71,7 @@ async def commit(nextUpdate):
             # Saves the new commit
             writeValues.append((wv, ct))
             ct += 1
+            
     else:
         if nextUpdate[3].dest == node_id:
             reply(nextUpdate[3], type='error', code=14, text='transaction aborted on commit')
@@ -105,7 +104,7 @@ async def handle(msg):
 
     elif msg.body.type == 'txn_broadcast':
         # Validar txn para decidir se faz commit ou descarta 
-            # comparar read-set da txn T com os write-sets todos de todos os commits
+            # comparar read-set da txn T com os write-values de todos os commits
             # feitos desde que T começou a executar -> faz commit se n houver interseção
 
         txn_rs = msg.body.payload[0]
