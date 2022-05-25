@@ -15,13 +15,12 @@ logging.getLogger().setLevel(logging.DEBUG)
 db = DB()
 requestQueue = []
 ct = 0  # Timestamp of the last processed/commited message
-st = 0
 writeValues = [] # pairs (wv, commit timestamp)
 
 def broadcast_transaction(update):
-    global node_id, node_ids, ct, st
+    global node_id, node_ids, ct
     for n in node_ids:
-        send(node_id, n, type='txn_broadcast', payload=update, ct=ct, st=st)
+        send(node_id, n, type='txn_broadcast', payload=update, ct=ct, st=update[4])
 
 
 # Checks if there is an intersection between ct and st
@@ -42,7 +41,7 @@ def checkIntersection(txn_rs, txn_ct, txn_st):
 
 
 async def execute(clientMsg):
-    global node_id, db, requestQueue, st, ct
+    global node_id, db, requestQueue, ct
 
     ctx = await db.begin([k for op,k,v in clientMsg.body.txn], clientMsg.src+'-'+str(clientMsg.body.msg_id))
 
@@ -51,7 +50,7 @@ async def execute(clientMsg):
     rs, wv, res = await db.execute(ctx,clientMsg.body.txn)
     
     if res:
-        requestQueue.append((rs, wv, res, clientMsg))
+        requestQueue.append((rs, wv, res, clientMsg, st))
         
         send(node_id, 'lin-tso', type='ts')  # Gets the order for the next message
     else:
