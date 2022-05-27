@@ -78,6 +78,15 @@ public class ZoneInformation {
         return p.getFst() - p.getSnd();
     }
 
+    public Integer getOnlineCounter(){
+        int total = 0;
+        for(Map.Entry<String, Pair> aux : onlineCounter.entrySet()) {
+            Pair p = aux.getValue();
+            total += p.getFst() - p.getSnd();
+        }
+        return total;
+    }
+
     public Boolean checkDeviceOnline(Integer deviceID){
         Pair p = this.onlineDevices.get(deviceID);
         return p.getFst() > p.getSnd();

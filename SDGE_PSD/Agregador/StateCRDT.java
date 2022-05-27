@@ -1,3 +1,4 @@
+import DataStructs.DeviceTypeInformation;
 import DataStructs.ZoneInformation;
 
 import java.util.HashMap;
@@ -23,5 +24,41 @@ public class StateCRDT {
                 this.zoneInfo.put(aux.getKey(), aux.getValue());
             }
         }
+    }
+
+
+    public int getNumberEvents(String eventType){
+        int eventsNumber = 0;
+        for(Map.Entry<Integer, ZoneInformation> aux : zoneInfo.entrySet())
+            eventsNumber += aux.getValue().getEventCounter(eventType);
+
+        return eventsNumber;
+    }
+
+
+    public int getDevicesOnlineOfType(String deviceType){
+        int devicesNumber = 0;
+        for(Map.Entry<Integer, ZoneInformation> aux : zoneInfo.entrySet())
+            devicesNumber += aux.getValue().getOnlineCounterDeviceType(deviceType);
+
+        return devicesNumber;
+    }
+
+
+    public boolean getIsDeviceOnline(int deviceId){
+        for(Map.Entry<Integer, ZoneInformation> aux : zoneInfo.entrySet())
+            if (aux.getValue().checkDeviceOnline(deviceId))
+                return true;
+
+        return false;
+    }
+
+
+    public int getDevicesOnline(){
+        int devicesNumber = 0;
+        for(Map.Entry<Integer, ZoneInformation> aux : zoneInfo.entrySet())
+            devicesNumber += aux.getValue().getOnlineCounter();
+
+        return devicesNumber;
     }
 }
