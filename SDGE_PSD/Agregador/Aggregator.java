@@ -9,11 +9,11 @@ public class Aggregator {
     private final int id;
 
     // Key -> AggregatorID. Value -> Information of the devices of that aggregator.
-    private Map<Integer, Map<String, DeviceTypeInformation>> struct;
+    //private Map<Integer, Map<String, DeviceTypeInformation>> struct;
 
     // Map that saves the nr of events of each type. Key -> Type;
-    private Map<String, Integer> eventsCounter;
-    private StateCRDT stateInfo;
+    //private Map<String, Integer> eventsCounter;
+    private final StateCRDT stateInfo;
 
 
     public Aggregator(String zoneName, int id){
@@ -30,27 +30,39 @@ public class Aggregator {
     }
 
     public boolean getIsDeviceOnline(int deviceId){
+        return stateInfo.getIsDeviceOnline(deviceId);
+        /* OLD VERSION
         return struct != null &&
                 struct.values().stream()
                     .anyMatch(a -> a != null &&
                             a.values().stream()
                                     .anyMatch(b -> b.isDeviceOnline(deviceId)));
+        */
     }
     public long getDevicesOnline(){
+        return stateInfo.getDevicesOnline();
+        /* OLD VERSION
         return struct != null ?
                 struct.values().stream()
                         .mapToLong(a -> a != null ? a.values().stream().mapToLong(DeviceTypeInformation::getOnline).sum() : 0)
                         .sum() :
                 0;
+        */
     }
     public long getDevicesOnlineOfType(String type){
+        return stateInfo.getDevicesOnlineOfType(type);
+        /* OLD VERSION
         return struct != null ?
                 struct.values().stream()
                         .mapToLong(a -> a != null ? a.get(type).getOnline() : 0)
                         .sum() :
                 0;
+        */
     }
     public int getNumberEvents(String eventType){
+        return stateInfo.getNumberEvents(eventType);
+        /* OLD VERSION
         return eventsCounter != null ? eventsCounter.getOrDefault(eventType, 0) : 0;
+        */
     }
 }
