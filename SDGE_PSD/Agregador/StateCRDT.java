@@ -10,6 +10,8 @@ public class StateCRDT {
     // Key -> AggregatorID. Value -> Information of the devices of that aggreaator.
     private Map<Integer, ZoneInformation> zoneInfo;
 
+    // TODO: Implementar locks nisto!
+
 
     public StateCRDT() {
         this.zoneInfo = new HashMap<>();
