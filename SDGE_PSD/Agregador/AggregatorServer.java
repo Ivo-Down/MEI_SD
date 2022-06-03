@@ -20,22 +20,30 @@ public class AggregatorServer {
         ZMQ.Socket rep = context.socket(SocketType.REP);
         rep.bind("tcp://localhost:" + args[1]);
 
+        // ZeroMQ para PUSH
+        ZMQ.Socket pll = context.socket(SocketType.PULL);
+        pll.connect("tcp://localhost:" + args[3]);
 
-        AggregatorNotifier notif = new AggregatorNotifier(pubPublic,ag);
-        AggregatorQueries quer = new AggregatorQueries(rep,ag);
-
-        System.out.println("A publicar na porta:\t" + args[0]);
-        System.out.println("A responder a queries porta:\t" + args[1]);
-
-
-        new Thread(notif).start();
-        new Thread(quer).start();
-
-        //Aqui entra a parte do PUSH
+        // ZeroMQ para PULL
+        ZMQ.Socket psh = context.socket(SocketType.PUSH);
+        psh.bind("tcp://localhost:" + args[4]);
 
 
+        AggregatorNotifier notif = new AggregatorNotifier(pubPublic, ag);
+        AggregatorQueries quer = new AggregatorQueries(rep, ag);
+        AggregatorPull puller = new AggregatorPull(pll, ag);
+        AggregatorPush pusher = new AggregatorPush(psh, ag);
+
+        System.out.println("Publishing Port:\t" + args[0]);
+        System.out.println("Reply Port:\t\t\t" + args[1]);
+        System.out.println("Pull Port:\t\t\t" + args[3]);
+        System.out.println("Push Port:\t\t\t" + args[4]);
 
 
+        //new Thread(notif).start();
+        //new Thread(quer).start();
+        new Thread(puller).start();
+        new Thread(pusher).start();
     }
 
     private static void initMap(){
