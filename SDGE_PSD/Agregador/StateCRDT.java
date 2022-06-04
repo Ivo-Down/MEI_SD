@@ -23,6 +23,10 @@ public class StateCRDT  implements Serializable {
     }
 
 
+    public String toString(){
+        return "olá";
+    }
+
 
     public byte[] serialize() {
         ByteArrayOutputStream boas = new ByteArrayOutputStream();

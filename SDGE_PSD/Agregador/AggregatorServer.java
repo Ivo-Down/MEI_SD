@@ -1,5 +1,7 @@
 import org.zeromq.SocketType;
 import org.zeromq.ZMQ;
+import org.zeromq.ZMsg;
+import zmq.Msg;
 
 import java.util.HashMap;
 import java.util.concurrent.Executors;
@@ -13,8 +15,9 @@ public class AggregatorServer {
     public static void main(String[] args) throws Exception{
         initMap();
         ZMQ.Context context = ZMQ.context(1);
-        Aggregator ag = new Aggregator(args[2],zoneToId.get(args[2]));
+        Aggregator ag = new Aggregator(args[1],zoneToId.get(args[1]));
 
+        /*
         // ZeroMQ para PUBLISHER
         ZMQ.Socket pubPublic = context.socket(SocketType.PUB);
         pubPublic.connect("tcp://localhost:" + args[0]); // connect to broker
@@ -23,15 +26,31 @@ public class AggregatorServer {
         ZMQ.Socket rep = context.socket(SocketType.REP);
         rep.bind("tcp://localhost:" + args[1]);
 
+         */
 
-        AggregatorNetwork network = new AggregatorNetwork(pubPublic,ag);
-        AggregatorQueries quer = new AggregatorQueries(rep,ag);
+        // ZeroMQ para PUSH
+        ZMQ.Socket pll = context.socket(SocketType.PULL);
+        pll.bind("tcp://localhost:8888");
 
-        System.out.println("A publicar na porta:\t" + args[0]);
-        System.out.println("A responder a queries porta:\t" + args[1]);
+        // ZeroMQ para PULL
+        ZMQ.Socket psh = context.socket(SocketType.PUSH);
+        psh.connect("tcp://localhost:8888");
+
+        AggregatorNetwork network = new AggregatorNetwork(pll,ag);
+        //AggregatorQueries quer = new AggregatorQueries(rep,ag);
+
+        //System.out.println("A publicar na porta:\t" + args[0]);
+        //System.out.println("A responder a queries porta:\t" + args[1]);
 
 
-        new Thread(quer).start();
+
+        ZMsg msg = new ZMsg();
+        msg.add("A");
+        msg.add(new byte[100000]);
+        msg.send(psh);
+        //psh.send(pushMessage.getBytes(ZMQ.CHARSET));    // IMPORTANT (CONTENT)
+
+        new Thread(network).start();
 
         new Thread(() -> {
             while(true){
@@ -44,7 +63,7 @@ public class AggregatorServer {
             }
         }).start();
 
-        new Thread(network).start();
+
 
         //Aqui entra a parte do PUSH
 
