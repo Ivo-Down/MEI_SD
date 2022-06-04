@@ -2,6 +2,9 @@ import org.zeromq.SocketType;
 import org.zeromq.ZMQ;
 
 import java.util.HashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 //Args: portaPub portaRep zona
 public class AggregatorServer {
@@ -21,15 +24,27 @@ public class AggregatorServer {
         rep.bind("tcp://localhost:" + args[1]);
 
 
-        AggregatorNotifier notif = new AggregatorNotifier(pubPublic,ag);
+        AggregatorNetwork network = new AggregatorNetwork(pubPublic,ag);
         AggregatorQueries quer = new AggregatorQueries(rep,ag);
 
         System.out.println("A publicar na porta:\t" + args[0]);
         System.out.println("A responder a queries porta:\t" + args[1]);
 
 
-        new Thread(notif).start();
         new Thread(quer).start();
+
+        new Thread(() -> {
+            while(true){
+                ag.propagateState();
+                try {
+                    Thread.sleep(10000);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }).start();
+
+        new Thread(network).start();
 
         //Aqui entra a parte do PUSH
 

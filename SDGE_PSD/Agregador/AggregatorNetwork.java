@@ -1,14 +1,14 @@
 import org.zeromq.ZMQ;
 
 // This module will receive updates from other aggregators, connecting to its neighbours, as well as collectors
-public class AggregatorPull implements Runnable{
+public class AggregatorNetwork implements Runnable{
     private final ZMQ.Socket pub;
     private final Aggregator district;
 
     //TODO: pensar em estruturas para guardar informações sobre notis. (Um id por tipo - 4 tipos diferentes (?))
     // Mudar os nomes destas cenas.
 
-    public AggregatorPull(ZMQ.Socket pub, Aggregator district) throws Exception {
+    public AggregatorNetwork(ZMQ.Socket pub, Aggregator district) throws Exception {
         this.pub = pub;
         this.district = district;
     }
@@ -18,6 +18,7 @@ public class AggregatorPull implements Runnable{
            //Aqui uma função de receber e dar parse da mensagem
             try{
                 String response = new String(pub.recv(),ZMQ.CHARSET);    // IMPORTANT (CONTENT)
+
 
 
                 /*
@@ -34,13 +35,11 @@ public class AggregatorPull implements Runnable{
                                     - Se for eventos, não se dá logo broadcast;
                                     - Se for sobre dispositivos, dá-se broadcast.
 
-                    - - - - - - - - -
-
-                        A SEGUNDA  Thread, faz SÓ a disseminação "epidémica" do estado para os vizinhos (caso estes se tenham desligado).
-
-                    - - - - - - - - -
 
                  */
+
+
+
 
                 System.out.println("Received an update: " + response);
                 Thread.sleep(2000);
