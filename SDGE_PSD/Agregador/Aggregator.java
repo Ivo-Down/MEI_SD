@@ -1,4 +1,4 @@
-import DataStructs.ZoneInformation;
+import DataStructs.Table;
 import org.zeromq.ZMQ;
 import org.zeromq.ZMsg;
 
@@ -7,8 +7,9 @@ import java.util.List;
 import java.util.Map;
 
 public class Aggregator {
-    private final String zoneName;
     private final int id;
+
+    private final Table neighbors;
 
     // Key -> AggregatorID. Value -> Information of the devices of that aggregator.
     //private Map<Integer, Map<String, DeviceTypeInformation>> struct;
@@ -20,20 +21,16 @@ public class Aggregator {
     private HashMap<Integer, ZMQ.Socket> vizinhos; // id -> socketPush
 
 
-    public Aggregator(String zoneName, int id){
-        this.zoneName = zoneName;
+    public Aggregator(int id, Table neighbors){
         this.id = id;
+        this.neighbors = neighbors;
         this.stateInfo = new StateCRDT();
         this.vizinhos = new HashMap<>();
     }
 
 
-    public String getzoneName(){
-        return zoneName;
-    }
-
     public int getId(){
-        return id;
+        return this.id;
     }
 
 
@@ -80,5 +77,11 @@ public class Aggregator {
 
     public void updateDeviceState(Integer deviceId, String deviceState, String deviceType){
         this.stateInfo.updateDeviceState(deviceId, deviceState, deviceType, this.id);
+    }
+    public String toString() {
+        return "Agregator{" +
+                "id=" + id +
+                ", neighbors=" + neighbors.toString() +
+                '}';
     }
 }

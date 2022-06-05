@@ -14,7 +14,7 @@ public class AggregatorNotifier implements Runnable{
            //Aqui uma função de receber e dar parse da mensagem
             try{
                 System.out.println("Notifying connected clients...");
-                String response = "[Recebi esta mensagem da zona: " + district.getzoneName() + "]";
+                String response = "[Recebi esta mensagem da zona: " + district.getId() + "]";
                 pub.sendMore("TOPIC_1");                // IMPORTANT (TOPIC)
                 pub.send(response.getBytes(ZMQ.CHARSET));    // IMPORTANT (CONTENT)
                 Thread.sleep(2000);

@@ -2,28 +2,32 @@ import org.zeromq.SocketType;
 import org.zeromq.ZMQ;
 import org.zeromq.ZMsg;
 import zmq.Msg;
+import DataStructs.Table;
 
 import java.util.HashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-// Args [PUB-PORT] [REP-PORT] [ZONE] [PULL-PORT] [PUSH-PORT]
+// Args [ID-AGG] [PUB-PORT] [REP-PORT] [ZONE] [PULL-PORT] [PUSH-PORT]
 public class AggregatorServer {
-    private static final HashMap<String,Integer> zoneToId = new HashMap<>();
+    private static final ZMQ.Context context = ZMQ.context(1);
+    public static final int bootstrapper_port = 8888;
+
 
     public static void main(String[] args) throws Exception{
-        initMap();
-        ZMQ.Context context = ZMQ.context(1);
-        Aggregator ag = new Aggregator(args[1],zoneToId.get(args[2]));
+
+        //ID
+        Aggregator ag = handleNeighbors(Integer.parseInt(args[0]));
+        System.out.println(ag);
 
         // ZeroMQ para PUBLISHER
         ZMQ.Socket pubPublic = context.socket(SocketType.PUB);
-        pubPublic.connect("tcp://localhost:" + args[0]); // connect to broker
+        pubPublic.connect("tcp://localhost:" + args[1]); // connect to broker
 
         // ZeroMQ para REPLY
         ZMQ.Socket rep = context.socket(SocketType.REP);
-        rep.bind("tcp://localhost:" + args[1]);
+        rep.bind("tcp://localhost:" + args[2]);
 
         // ZeroMQ para PUSH
         ZMQ.Socket pll = context.socket(SocketType.PULL);
@@ -63,11 +67,24 @@ public class AggregatorServer {
         }).start();
     }
 
-    private static void initMap(){
-        zoneToId.put("A",1);
-        zoneToId.put("B",2);
-        zoneToId.put("C",3);
-        zoneToId.put("D",4);
-        zoneToId.put("E",5);
+    private static Aggregator handleNeighbors(Integer id) {
+        /* ------------ Inicialization ------------ */
+        ZMQ.Socket reqneighbours = context.socket(SocketType.REQ);
+        reqneighbours.connect("tcp://localhost:" + bootstrapper_port);
+
+        // Envia o Pedido de vizinhos
+        String s = Integer.toString(id);
+        reqneighbours.sendMore("Quero os meus vizinhos...".getBytes(ZMQ.CHARSET));
+        reqneighbours.send(s.getBytes(ZMQ.CHARSET)); //manda ID
+
+        // Recebe a resposta do Bootstrapper
+        String resposta = new String(reqneighbours.recv(),ZMQ.CHARSET); // Vem a mensagem introdutória
+        byte[] data = reqneighbours.recv(); //Vem a tabela
+        System.out.println("->Received neighbors information from bootstrapper.\n");
+        Table neighbors = (Table) StaticMethods.deserialize(data);
+
+        return new Aggregator(id, neighbors);
+
     }
-}
+
+    }

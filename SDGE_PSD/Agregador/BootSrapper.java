@@ -12,8 +12,10 @@ import java.util.ArrayList;
 
 // Args [BOOT_PORT]
 public class BootSrapper {
-    private static Table table;
     private static ZMQ.Socket rep;
+    private static Table overlayNodes;
+
+    public static final int bootstrapper_port = 8888;
 
     // Ler os dados do json
     // Fazer pre processamento
@@ -24,13 +26,13 @@ public class BootSrapper {
     // Processo de serializar a table
     // Enviar pelo socket rep
     public static void main(String[] args) {
-        //table = processJsonData();
+        overlayNodes = processJsonData();
 
         ZMQ.Context context = ZMQ.context(1);
 
         // ZeroMQ para REPLY
         rep = context.socket(SocketType.REP);
-        rep.bind("tcp://localhost:" + args[0]);
+        rep.bind("tcp://localhost:" + bootstrapper_port);
         while(true){
             handleRequest();
         }
@@ -38,20 +40,20 @@ public class BootSrapper {
 
     private static void handleRequest() {
         int nodeId = -1;
-        //Table nInfo = getNeighbors(nodeId);
-        String id = new String(rep.recv(),ZMQ.CHARSET);
-        String content = new String(rep.recv(),ZMQ.CHARSET);
-        System.out.println("Id: \t" + id);
-        System.out.println("Content: \t" + content);
-
         //Partir a request para buscar id
+        String intro = new String(rep.recv(),ZMQ.CHARSET); //"Quero os meus vizinhos..."
+        String id = new String(rep.recv(),ZMQ.CHARSET); //"Id"
+        System.out.println("Intro: \t" + intro);
+        System.out.println("ID: \t" + id);
+
 
         //Calcular vizinhos
-
+        Table requestedNeighbors = getNeighbors(Integer.parseInt(id));
+        byte[] data = StaticMethods.serialize(requestedNeighbors);
 
         //serializar info
-        rep.sendMore("Neighbour".getBytes(ZMQ.CHARSET));
-        rep.send("Port".getBytes(ZMQ.CHARSET));
+        rep.sendMore("Aqui vão os vizinhos...".getBytes(ZMQ.CHARSET));
+        rep.send(data);
     }
 
     private static Table processJsonData(){
@@ -96,7 +98,7 @@ public class BootSrapper {
                 }
             }
             for (Integer i : neighbours) {
-                int pullport = table.getNodePort(i);
+                int pullport = overlayNodes.getNodePort(i);
                 res.addNode(i, pullport);
             }
 
