@@ -8,14 +8,14 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-// Args [PUB-PORT] [REP-PORT] [ZONE] [PULL-PORT] [PUSH-PORT] [BOOT-PORT]
+// Args [PUB-PORT] [REP-PORT] [ZONE] [PULL-PORT] [PUSH-PORT]
 public class AggregatorServer {
     private static final HashMap<String,Integer> zoneToId = new HashMap<>();
 
     public static void main(String[] args) throws Exception{
         initMap();
         ZMQ.Context context = ZMQ.context(1);
-        Aggregator ag = new Aggregator(args[1],zoneToId.get(args[1]));
+        Aggregator ag = new Aggregator(args[1],zoneToId.get(args[2]));
 
         // ZeroMQ para PUBLISHER
         ZMQ.Socket pubPublic = context.socket(SocketType.PUB);
@@ -33,13 +33,12 @@ public class AggregatorServer {
         ZMQ.Socket psh = context.socket(SocketType.PUSH);
         psh.connect("tcp://localhost:8888");
 
+        // Receives and sends requests from collectors and other aggregators
         AggregatorNetwork network = new AggregatorNetwork(pll,psh,ag);
-        //AggregatorQueries quer = new AggregatorQueries(rep,ag);
-
-        //System.out.println("A publicar na porta:\t" + args[0]);
-        //System.out.println("A responder a queries porta:\t" + args[1]);
-
-
+        // Notifies users about specific state changes
+        AggregatorNotifier notif = new AggregatorNotifier(pubPublic, ag);
+        // Allows users to query the state
+        //AggregatorQueries quer = new AggregatorQueries(rep, ag);
 
         ZMsg msg = new ZMsg();
         msg.add("A");
@@ -48,9 +47,12 @@ public class AggregatorServer {
         //psh.send(pushMessage.getBytes(ZMQ.CHARSET));    // IMPORTANT (CONTENT)
 
         new Thread(network).start();
+        new Thread(notif).start();
+        //new Thread(quer).start();
 
+        // Propagate state, TODO: maybe try with new class
         new Thread(() -> {
-            while(true){
+            while(!Thread.currentThread().isInterrupted()){
                 ag.propagateState();
                 try {
                     Thread.sleep(10000);
@@ -59,18 +61,6 @@ public class AggregatorServer {
                 }
             }
         }).start();
-
-        AggregatorNotifier notif = new AggregatorNotifier(pubPublic, ag);
-        AggregatorQueries quer = new AggregatorQueries(rep, ag);
-
-        System.out.println("Publishing Port:\t" + args[0]);
-        System.out.println("Reply Port:\t\t\t" + args[1]);
-        System.out.println("Pull Port:\t\t\t" + args[3]);
-        System.out.println("Push Port:\t\t\t" + args[4]);
-
-
-        //new Thread(notif).start();
-        //new Thread(quer).start();
     }
 
     private static void initMap(){

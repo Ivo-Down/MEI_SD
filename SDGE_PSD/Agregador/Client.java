@@ -16,12 +16,9 @@ public class Client {
         req.connect("tcp://localhost:" + args[1]);
 
         ClientNotifier cr = new ClientNotifier(sub);
-        ClientQueries cq = new ClientQueries(req);
-
-        System.out.println("A subscrever na porta:\t" + args[0]);
-        System.out.println("A receber queries na porta:\t" + args[1]);
+        //ClientQueries cq = new ClientQueries(req);
 
         new Thread(cr).start();
-        new Thread(cq).start();
+        //new Thread(cq).start();
     }
 }

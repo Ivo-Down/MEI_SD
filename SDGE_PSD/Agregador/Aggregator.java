@@ -1,4 +1,3 @@
-import DataStructs.DeviceTypeInformation;
 import DataStructs.ZoneInformation;
 import org.zeromq.ZMQ;
 import org.zeromq.ZMsg;

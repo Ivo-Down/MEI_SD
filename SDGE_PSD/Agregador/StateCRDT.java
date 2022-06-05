@@ -78,43 +78,42 @@ public class StateCRDT  implements Serializable {
     }
 
 
-    public int getNumberEvents(String eventType){
+    public int getNumberEvents(String eventType) {
         try {
             this.l.lock();
-            int eventsNumber = 0;
-            for(Map.Entry<Integer, ZoneInformation> aux : zoneInfo.entrySet())
-                eventsNumber += aux.getValue().getEventCounter(eventType);
-            return eventsNumber;
+            return zoneInfo != null ?
+                    zoneInfo.values().stream()
+                            .mapToInt(a -> a != null ? a.getEventCounter(eventType) : 0)
+                            .sum() :
+                    0;
         } finally {
             this.l.unlock();
         }
     }
 
 
-    public int getDevicesOnlineOfType(String deviceType){
+    public int getDevicesOnlineOfType(String deviceType) {
         try {
             this.l.lock();
-            int devicesNumber = 0;
-            for(Map.Entry<Integer, ZoneInformation> aux : zoneInfo.entrySet())
-                devicesNumber += aux.getValue().getOnlineCounterDeviceType(deviceType);
-
-            return devicesNumber;
+            return zoneInfo != null ?
+                    zoneInfo.values().stream()
+                            .mapToInt(a -> a != null ? a.getOnlineCounterDeviceType(deviceType) : 0)
+                            .sum() :
+                    0;
         } finally {
             this.l.unlock();
         }
     }
 
 
-    public boolean getIsDeviceOnline(int deviceId){
+    public boolean getIsDeviceOnline(int deviceId) {
         try {
-                this.l.lock();
-                for(Map.Entry<Integer, ZoneInformation> aux : zoneInfo.entrySet())
-                    if (aux.getValue().checkDeviceOnline(deviceId))
-                        return true;
-
-                return false;
-            } finally {
-                this.l.unlock();
+            this.l.lock();
+            return zoneInfo != null &&
+                    zoneInfo.values().stream()
+                            .anyMatch(a -> a != null && a.checkDeviceOnline(deviceId));
+        } finally {
+            this.l.unlock();
         }
     }
 
@@ -122,11 +121,11 @@ public class StateCRDT  implements Serializable {
     public int getDevicesOnline(){
         try {
             this.l.lock();
-            int devicesNumber = 0;
-            for(Map.Entry<Integer, ZoneInformation> aux : zoneInfo.entrySet())
-                devicesNumber += aux.getValue().getOnlineCounter();
-
-            return devicesNumber;
+            return zoneInfo != null ?
+                    zoneInfo.values().stream()
+                            .mapToInt(a -> a != null ? a.getOnlineCounter() : 0)
+                            .sum() :
+                    0;
         } finally {
             this.l.unlock();
         }
@@ -150,32 +149,5 @@ public class StateCRDT  implements Serializable {
         } finally {
             this.l.unlock();
         }
-    }
-
-    public boolean getIsDeviceOnline(int deviceId){
-        return zoneInfo != null &&
-                zoneInfo.values().stream()
-                        .anyMatch(a -> a != null && a.checkDeviceOnline(deviceId));
-    }
-    public long getDevicesOnline(){
-        return zoneInfo != null ?
-                zoneInfo.values().stream()
-                        .mapToLong(a -> a != null ? a.getOnlineDevices() : 0)
-                        .sum() :
-                0;
-    }
-    public long getDevicesOnlineOfType(String type){
-        return zoneInfo != null ?
-                zoneInfo.values().stream()
-                        .mapToLong(a -> a != null ? a.getOnlineCounterDeviceType(type) : 0)
-                        .sum() :
-                0;
-    }
-    public int getNumberEvents(String eventType){
-        return zoneInfo != null ?
-                zoneInfo.values().stream()
-                        .mapToInt(a -> a != null ? a.getEventCounter(eventType) : 0)
-                        .sum() :
-                0;
     }
 }
