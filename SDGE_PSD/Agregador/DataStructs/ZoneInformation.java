@@ -2,6 +2,7 @@ package DataStructs;
 
 import java.io.Serializable;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 
@@ -123,6 +124,38 @@ public class ZoneInformation implements Serializable {
         //this.eventCounter.put(eventType, this.eventCounter.get(eventType)+1);
 
         this.eventCounter.merge(eventType, 1, Integer::sum); // TODO: Testar se funfa lmao. Se nao funfar, usar as 2 de cima.
+    }
+
+    // TODO: verificar se é preciso lançar alguma notificaçao
+    public void addEvents(List<String> eventsList){
+        for(String e: eventsList){
+            if (this.eventCounter.containsKey(e))
+                this.eventCounter.put(e, this.eventCounter.get(e) + 1);
+            else
+                this.eventCounter.put(e, 1);
+        }
+    }
+
+    // TODO: verificar se é preciso lançar alguma notificaçao
+    public void updateDeviceState(Integer deviceId, String deviceState, String deviceType){
+        Pair pOnline = this.onlineDevices.get(deviceId);
+        Pair pCounter = this.onlineCounter.get(deviceType);
+
+        if (deviceState.equals("on")) {
+            pOnline.addToFst(1);
+            pCounter.addToFst(1);
+            int pCounterValue = pCounter.getPairValue();
+
+            if ( pCounterValue > this.onlineRecord.get(deviceType))
+                this.onlineRecord.put(deviceType, pCounterValue);
+        }
+        else {
+            pOnline.addToSnd(1);
+            pCounter.addToSnd(1);
+        }
+
+        this.onlineDevices.put(deviceId, pOnline);
+        this.onlineCounter.put(deviceType, pCounter);
     }
 
 }

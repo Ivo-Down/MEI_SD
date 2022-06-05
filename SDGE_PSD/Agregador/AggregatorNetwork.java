@@ -1,6 +1,8 @@
 import org.zeromq.ZMQ;
 import org.zeromq.ZMsg;
 
+import java.util.ArrayList;
+
 // This module will receive updates from other aggregators, connecting to its neighbours, as well as collectors
 public class AggregatorNetwork implements Runnable{
     private final ZMQ.Socket pub;
@@ -46,30 +48,19 @@ public class AggregatorNetwork implements Runnable{
                     String notificationType = new String(msg.pop().getData(),ZMQ.CHARSET);
 
                     if (notificationType.equals("D")){
-                        // TODO: Adicionar informação do dispositivo (Fazer métodos);
+                        // TODO: Testar se o deserialize abaixo funciona
+                        Integer deviceId = (Integer) StateCRDT.deserialize(msg.pop().getData());
+                        String deviceState = (String) StateCRDT.deserialize(msg.pop().getData());
+                        String deviceType = (String) StateCRDT.deserialize(msg.pop().getData());
+                        this.aggregator.updateDeviceState(deviceId, deviceState, deviceType);
                         this.aggregator.propagateState();
 
                     } else if (notificationType.equals("E")) {
-                        // TODO: Adicionar informação de eventos.
+                        // TODO: Testar se o deserialize abaixo funciona
+                        ArrayList<String> eventsList = (ArrayList<String>) StateCRDT.deserialize(msg.pop().getData());
+                        this.aggregator.addEvents(eventsList);
                     }
                 }
-
-                /*
-                    // Receber de um Agregador Ou Coletor.
-                    // Agregador são estados;
-                    // Coletor é tipo info.
-
-                    - - - - - - UMA THREAD PARA ISTO:  - - - - - -
-
-                     - - De agregadores só se recebe estados; Faz-se merge e SE ATUALIZAR, enviamos aos vizinhos (push para cada 1 dos sockets);
-
-                    De coletores recebemos info sobre dispositivos ou eventos;
-                            Atualizamos o nosso estado e enviamos a informação aos vizinhos (push para cada 1 dos sockets);
-                                    - Se for eventos, não se dá logo broadcast;
-                                    - Se for sobre dispositivos, dá-se broadcast.
-                 */
-
-
 
 
                 //System.out.println("Received an update: " + response);

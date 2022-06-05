@@ -3,6 +3,7 @@ import DataStructs.ZoneInformation;
 
 import java.io.*;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -102,7 +103,6 @@ public class StateCRDT  implements Serializable {
         } finally {
             this.l.unlock();
         }
-
     }
 
 
@@ -117,8 +117,6 @@ public class StateCRDT  implements Serializable {
             } finally {
                 this.l.unlock();
         }
-
-
     }
 
 
@@ -133,6 +131,25 @@ public class StateCRDT  implements Serializable {
         } finally {
             this.l.unlock();
         }
+    }
 
+
+    public void addEvents(List<String> eventsList, Integer zoneId){
+        try {
+            this.l.lock();
+            this.zoneInfo.get(zoneId).addEvents(eventsList);
+        } finally {
+            this.l.unlock();
+        }
+    }
+
+
+    public void updateDeviceState(Integer deviceId, String deviceState, String deviceType, Integer zoneId){
+        try {
+            this.l.lock();
+            this.zoneInfo.get(zoneId).updateDeviceState(deviceId, deviceState, deviceType);
+        } finally {
+            this.l.unlock();
+        }
     }
 }

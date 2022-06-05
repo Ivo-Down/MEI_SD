@@ -21,4 +21,11 @@ public class Pair {
     public Integer getSnd(){
         return this.p2;
     }
+
+    public Integer getPairValue() {return this.p1 - this.p2;}
+
+    public void addToFst(Integer v){ this.p1 += v; }
+
+    public void addToSnd(Integer v){ this.p2 += v; }
+
 }

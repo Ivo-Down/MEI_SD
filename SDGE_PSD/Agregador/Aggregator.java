@@ -4,6 +4,7 @@ import org.zeromq.ZMQ;
 import org.zeromq.ZMsg;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class Aggregator {
@@ -23,9 +24,6 @@ public class Aggregator {
     }
 
 
-    public boolean merge(StateCRDT newState){
-        return this.stateInfo.merge(newState);
-    }
     public String getzoneName(){
         return zoneName;
     }
@@ -33,6 +31,10 @@ public class Aggregator {
     public int getId(){
         return id;
     }
+
+
+    /* - - - - - - - FUNÇÕES AUXILIARES - - - - - - - - */
+
 
     // Função que envia o estado aos vizinhos TODO: Confirmar este send, por causa da identificação do envio do estado.
     public void propagateState(){
@@ -50,8 +52,10 @@ public class Aggregator {
     }
 
 
+    public boolean merge(StateCRDT newState){
+        return this.stateInfo.merge(newState);
+    }
 
-    /* - - - - - - - FUNÇÕES AUXILIARES - - - - - - - - */
 
     public boolean getIsDeviceOnline(int deviceId){
         return this.stateInfo.getIsDeviceOnline(deviceId);
@@ -64,5 +68,13 @@ public class Aggregator {
     }
     public int getNumberEvents(String eventType){
         return this.stateInfo.getNumberEvents(eventType);
+    }
+
+    public void addEvents(List<String> eventsList){
+        this.stateInfo.addEvents(eventsList, this.id);
+    }
+
+    public void updateDeviceState(Integer deviceId, String deviceState, String deviceType){
+        this.stateInfo.updateDeviceState(deviceId, deviceState, deviceType, this.id);
     }
 }
