@@ -3,6 +3,7 @@ package DataStructs;
 import java.util.HashMap;
 import java.util.Map;
 
+@Deprecated
 public class DeviceTypeInformation {
 
     private Integer onlineRecord;

@@ -104,13 +104,10 @@ public class ZoneInformation implements Serializable {
         return p.getFst() - p.getSnd();
     }
 
-    public Integer getOnlineCounter(){
-        int total = 0;
-        for(Map.Entry<String, Pair> aux : onlineCounter.entrySet()) {
-            Pair p = aux.getValue();
-            total += p.getFst() - p.getSnd();
-        }
-        return total;
+    public Integer getOnlineCounter() {
+        return this.onlineCounter.values().stream()
+                .mapToInt(a -> a.getFst() - a.getSnd())
+                .sum();
     }
 
     public Boolean checkDeviceOnline(Integer deviceID){

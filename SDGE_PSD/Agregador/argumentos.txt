@@ -1,7 +1,7 @@
 
 //Para o AggregatorServer:
 
-8001 A
+8001 8002 A PULL(8003) PUSH(?)
 
 
 //Para o Broker:
