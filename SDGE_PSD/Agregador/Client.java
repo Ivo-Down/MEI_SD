@@ -1,7 +1,7 @@
 import org.zeromq.SocketType;
 import org.zeromq.ZMQ;
 
-//Args: portaSub portaReq
+//Args: [SUB-PORT] [REQ-PORT]
 public class Client {
     public static void main(String[] args) throws Exception{
         ZMQ.Context context = ZMQ.context(1);

@@ -48,7 +48,7 @@ public class AggregatorServer {
         ZMQ.Socket psh = context.socket(SocketType.PUSH);
         psh.connect("tcp://localhost:8888");
 
-        AggregatorNetwork network = new AggregatorNetwork(pll,ag);
+        AggregatorNetwork network = new AggregatorNetwork(pll,psh,ag);
         //AggregatorQueries quer = new AggregatorQueries(rep,ag);
 
         //System.out.println("A publicar na porta:\t" + args[0]);
@@ -77,7 +77,6 @@ public class AggregatorServer {
 
         AggregatorNotifier notif = new AggregatorNotifier(pubPublic, ag);
         AggregatorQueries quer = new AggregatorQueries(rep, ag);
-        AggregatorReceiver pusher = new AggregatorReceiver(psh, pll, ag);
 
         System.out.println("Publishing Port:\t" + args[0]);
         System.out.println("Reply Port:\t\t\t" + args[1]);
@@ -87,7 +86,6 @@ public class AggregatorServer {
 
         //new Thread(notif).start();
         //new Thread(quer).start();
-        new Thread(pusher).start();
     }
 
     private static void initMap(){
