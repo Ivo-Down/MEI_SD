@@ -17,21 +17,6 @@ public class AggregatorServer {
         ZMQ.Context context = ZMQ.context(1);
         Aggregator ag = new Aggregator(args[1],zoneToId.get(args[1]));
 
-        /*
-        /* ------------ Inicialization ------------ */
-        ZMQ.Socket bs = context.socket(SocketType.REQ);
-        bs.connect("tcp://localhost:" + args[5]);
-
-        bs.sendMore("NODE_ID".getBytes(ZMQ.CHARSET));
-        bs.send("NODE_ID".getBytes(ZMQ.CHARSET));
-
-        // Pode ser colocado num while com bs.hasReceiveMore()
-        String neighbour = new String(bs.recv(),ZMQ.CHARSET);
-        String port = new String(bs.recv(),ZMQ.CHARSET);
-        System.out.println("Connection id -> \t" + neighbour + ":" + port);
-
-        /* ---------------------------------------- */
-
         // ZeroMQ para PUBLISHER
         ZMQ.Socket pubPublic = context.socket(SocketType.PUB);
         pubPublic.connect("tcp://localhost:" + args[0]); // connect to broker
