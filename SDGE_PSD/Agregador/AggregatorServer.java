@@ -45,8 +45,7 @@ public class AggregatorServer {
 
         AggregatorNotifier notif = new AggregatorNotifier(pubPublic, ag);
         AggregatorQueries quer = new AggregatorQueries(rep, ag);
-        AggregatorPull puller = new AggregatorPull(pll, ag);
-        AggregatorPush pusher = new AggregatorPush(psh, ag);
+        AggregatorReceiver pusher = new AggregatorReceiver(psh, pll, ag);
 
         System.out.println("Publishing Port:\t" + args[0]);
         System.out.println("Reply Port:\t\t\t" + args[1]);
@@ -56,7 +55,6 @@ public class AggregatorServer {
 
         //new Thread(notif).start();
         //new Thread(quer).start();
-        new Thread(puller).start();
         new Thread(pusher).start();
     }
 
