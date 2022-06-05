@@ -15,8 +15,6 @@ public class BootSrapper {
     private static Table table;
     private static ZMQ.Socket rep;
 
-    public static void Initialize(String[] args){
-    }
     // Ler os dados do json
     // Fazer pre processamento
     // Criar socket tipo rep
@@ -26,7 +24,7 @@ public class BootSrapper {
     // Processo de serializar a table
     // Enviar pelo socket rep
     public static void main(String[] args) {
-        table = processJsonData();
+        //table = processJsonData();
 
         ZMQ.Context context = ZMQ.context(1);
 
@@ -40,8 +38,11 @@ public class BootSrapper {
 
     private static void handleRequest() {
         int nodeId = -1;
-        Table nInfo = getNeighbors(nodeId);
-        "asd".split(" ");
+        //Table nInfo = getNeighbors(nodeId);
+        String id = new String(rep.recv(),ZMQ.CHARSET);
+        String content = new String(rep.recv(),ZMQ.CHARSET);
+        System.out.println("Id: \t" + id);
+        System.out.println("Content: \t" + content);
 
         //Partir a request para buscar id
 
@@ -49,8 +50,8 @@ public class BootSrapper {
 
 
         //serializar info
-        String res = "...";
-        rep.send(res.getBytes(ZMQ.CHARSET));
+        rep.sendMore("Neighbour".getBytes(ZMQ.CHARSET));
+        rep.send("Port".getBytes(ZMQ.CHARSET));
     }
 
     private static Table processJsonData(){

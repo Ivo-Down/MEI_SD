@@ -3,7 +3,7 @@ import org.zeromq.ZMQ;
 
 import java.util.HashMap;
 
-//Args: portaPub portaRep zona
+// Args [PUB-PORT] [REP-PORT] [ZONE] [PULL-PORT] [PUSH-PORT] [BOOT-PORT]
 public class AggregatorServer {
     private static final HashMap<String,Integer> zoneToId = new HashMap<>();
 
@@ -11,6 +11,20 @@ public class AggregatorServer {
         initMap();
         ZMQ.Context context = ZMQ.context(1);
         Aggregator ag = new Aggregator(args[2],zoneToId.get(args[2]));
+
+        /* ------------ Inicialization ------------ */
+        ZMQ.Socket bs = context.socket(SocketType.REQ);
+        bs.connect("tcp://localhost:" + args[5]);
+
+        bs.sendMore("NODE_ID".getBytes(ZMQ.CHARSET));
+        bs.send("NODE_ID".getBytes(ZMQ.CHARSET));
+
+        // Pode ser colocado num while com bs.hasReceiveMore()
+        String neighbour = new String(bs.recv(),ZMQ.CHARSET);
+        String port = new String(bs.recv(),ZMQ.CHARSET);
+        System.out.println("Connection id -> \t" + neighbour + ":" + port);
+
+        /* ---------------------------------------- */
 
         // ZeroMQ para PUBLISHER
         ZMQ.Socket pubPublic = context.socket(SocketType.PUB);
