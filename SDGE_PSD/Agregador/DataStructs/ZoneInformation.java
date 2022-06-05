@@ -1,10 +1,12 @@
 package DataStructs;
 
+import java.io.Serializable;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 
-public class ZoneInformation {
+public class ZoneInformation implements Serializable {
 
     private Map<String, Integer> eventCounter;   // Map that saves the nr of events of each type. Key -> Type ; Value -> Nr of events of that type.
 
@@ -20,46 +22,70 @@ public class ZoneInformation {
         this.onlineCounter = new HashMap<>();
     }
 
-    public void merge(ZoneInformation received){
+    public boolean merge(ZoneInformation received){
 
+        boolean res = false;
         // Percorrer eventCounter
         for (Map.Entry<String,Integer> event : received.eventCounter.entrySet()){
             if(this.eventCounter.containsKey(event.getKey())){
-                this.eventCounter.put(event.getKey(), Math.max(this.eventCounter.get(event.getKey()), event.getValue()));
+                if (event.getValue() > this.eventCounter.get(event.getKey())){
+                    this.eventCounter.put(event.getKey(), event.getValue());
+                    res = true;
+                }
+
             } else {
                 this.eventCounter.put(event.getKey(), event.getValue());
+                res = true;
             }
         }
 
         // Percorrer onlineRecord
         for (Map.Entry<String,Integer> record : received.onlineRecord.entrySet()) {
             if(this.onlineRecord.containsKey(record.getKey())){
-                this.onlineRecord.put(record.getKey(), Math.max(this.onlineRecord.get(record.getKey()), record.getValue()));
+                if (record.getValue() > this.onlineRecord.get(record.getKey())){
+                    this.onlineRecord.put(record.getKey(), record.getValue());
+                    res = true;
+                }
+
             } else {
                 this.onlineRecord.put(record.getKey(), record.getValue());
+                res = true;
             }
         }
 
         // Percorrer OnlineCounter
         for (Map.Entry<String,Pair> counter : received.onlineCounter.entrySet()) {
             if(this.onlineCounter.containsKey(counter.getKey())){
-                int maxFst = Math.max(this.onlineCounter.get(counter.getKey()).getFst(), counter.getValue().getFst());
-                int maxSnd = Math.max(this.onlineCounter.get(counter.getKey()).getSnd(), counter.getValue().getSnd());
-                this.onlineCounter.put(counter.getKey(), new Pair(maxFst, maxSnd));
+                Pair aux = this.onlineCounter.get(counter.getKey());
+                int maxFst = Math.max(aux.getFst(), counter.getValue().getFst());
+                int maxSnd = Math.max(aux.getSnd(), counter.getValue().getSnd());
+                if (maxFst > aux.getFst() || maxSnd > aux.getSnd()){
+                    this.onlineCounter.put(counter.getKey(), new Pair(maxFst, maxSnd));
+                    res = true;
+                }
+
             } else {
                 this.onlineCounter.put(counter.getKey(), counter.getValue());
+                res = true;
             }
         }
 
         for (Map.Entry<Integer,Pair> device : received.onlineDevices.entrySet()) {
             if(this.onlineDevices.containsKey(device.getKey())){
-                int maxFst = Math.max(this.onlineDevices.get(device.getKey()).getFst(), device.getValue().getFst());
-                int maxSnd = Math.max(this.onlineDevices.get(device.getKey()).getSnd(), device.getValue().getSnd());
-                this.onlineDevices.put(device.getKey(), new Pair(maxFst, maxSnd));
+                Pair aux = this.onlineDevices.get(device.getKey());
+                int maxFst = Math.max(aux.getFst(), device.getValue().getFst());
+                int maxSnd = Math.max(aux.getSnd(), device.getValue().getSnd());
+                if (maxFst > aux.getFst() || maxSnd > aux.getSnd()){
+                    this.onlineDevices.put(device.getKey(), new Pair(maxFst, maxSnd));
+                    res = true;
+                }
             } else {
                 this.onlineDevices.put(device.getKey(), device.getValue());
+                res = true;
             }
         }
+
+        return res;
     }
 
 
@@ -78,9 +104,9 @@ public class ZoneInformation {
         return p.getFst() - p.getSnd();
     }
 
-    public Long getOnlineDevices(){
+    public Integer getOnlineCounter() {
         return this.onlineCounter.values().stream()
-                .mapToLong(a -> a.getFst() - a.getSnd())
+                .mapToInt(a -> a.getFst() - a.getSnd())
                 .sum();
     }
 
@@ -95,6 +121,38 @@ public class ZoneInformation {
         //this.eventCounter.put(eventType, this.eventCounter.get(eventType)+1);
 
         this.eventCounter.merge(eventType, 1, Integer::sum); // TODO: Testar se funfa lmao. Se nao funfar, usar as 2 de cima.
+    }
+
+    // TODO: verificar se é preciso lançar alguma notificaçao
+    public void addEvents(List<String> eventsList){
+        for(String e: eventsList){
+            if (this.eventCounter.containsKey(e))
+                this.eventCounter.put(e, this.eventCounter.get(e) + 1);
+            else
+                this.eventCounter.put(e, 1);
+        }
+    }
+
+    // TODO: verificar se é preciso lançar alguma notificaçao
+    public void updateDeviceState(Integer deviceId, String deviceState, String deviceType){
+        Pair pOnline = this.onlineDevices.get(deviceId);
+        Pair pCounter = this.onlineCounter.get(deviceType);
+
+        if (deviceState.equals("on")) {
+            pOnline.addToFst(1);
+            pCounter.addToFst(1);
+            int pCounterValue = pCounter.getPairValue();
+
+            if ( pCounterValue > this.onlineRecord.get(deviceType))
+                this.onlineRecord.put(deviceType, pCounterValue);
+        }
+        else {
+            pOnline.addToSnd(1);
+            pCounter.addToSnd(1);
+        }
+
+        this.onlineDevices.put(deviceId, pOnline);
+        this.onlineCounter.put(deviceType, pCounter);
     }
 
 }

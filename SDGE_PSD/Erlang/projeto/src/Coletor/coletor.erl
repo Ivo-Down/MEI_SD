@@ -61,6 +61,7 @@ handle_device(Sock, ChumakSocket, State, TRef, DevicesInfo) ->
           timer:cancel(TRef),  % vai criar um novo timer para a questao da atividade
           {ok, NewTRef} = timer:send_after(?AliveTime, alive_timeout),   
 
+          maps:update(id, DeviceId, State),
           maps:update(online, true, State),
           maps:update(eventsList, maps:get(eventsList, State) ++ Event, State),
           handle_device(Sock, ChumakSocket, State, NewTRef, DevicesInfo);
