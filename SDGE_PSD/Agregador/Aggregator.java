@@ -11,11 +11,6 @@ public class Aggregator {
 
     private final Table neighbors;
 
-    // Key -> AggregatorID. Value -> Information of the devices of that aggregator.
-    //private Map<Integer, Map<String, DeviceTypeInformation>> struct;
-
-    // Map that saves the nr of events of each type. Key -> Type;
-    //private Map<String, Integer> eventsCounter;
     private final StateCRDT stateInfo;
 
     private HashMap<Integer, ZMQ.Socket> vizinhos; // id -> socketPush
@@ -79,7 +74,7 @@ public class Aggregator {
         this.stateInfo.updateDeviceState(deviceId, deviceState, deviceType, this.id);
     }
     public String toString() {
-        return "Agregator{" +
+        return "Aggregator{" +
                 "id=" + id +
                 ", neighbors=" + neighbors.toString() +
                 '}';

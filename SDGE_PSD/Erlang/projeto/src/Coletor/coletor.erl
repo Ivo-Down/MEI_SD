@@ -3,7 +3,7 @@
 -define(CollectTime, 5000).
 -define(AliveTime, 20000).
 -define(DevicesFileName, "dispositivos1.json").
--define(AggregatorPort, 8888).
+-define(AggregatorPort, 8003).
 
 
 start(Port) ->

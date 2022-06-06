@@ -1,3 +1,5 @@
+import com.ericsson.otp.erlang.OtpErlangMap;
+import com.ericsson.otp.erlang.OtpInputStream;
 import org.zeromq.ZMQ;
 import org.zeromq.ZMsg;
 
@@ -23,11 +25,9 @@ public class AggregatorNetwork implements Runnable{
         while(true){
            //Aqui uma função de receber e dar parse da mensagem
             try{
-                //String response = new String(pub.recv(),ZMQ.CHARSET); // IMPORTANT (CONTENT)
-                //byte[] data  = pub.recv();
 
                 ZMsg msg = ZMsg.recvMsg(this.pull);
-                System.out.println("received msg");
+                System.out.println("Pulled request:\t" + msg.toString());
 
                 String aux = new String(msg.pop().getData(),ZMQ.CHARSET);
 
@@ -41,13 +41,14 @@ public class AggregatorNetwork implements Runnable{
                         this.aggregator.propagateState();
                     }
 
-                    //System.out.println(state.toString());
 
 
                 } else if (aux.equals("C")) {
                     // Receber +1 frame que identifica o tipo de not.
 
                     String notificationType = new String(msg.pop().getData(),ZMQ.CHARSET);
+                    OtpErlangMap request = new OtpErlangMap(new OtpInputStream(msg.pop().getData()));
+                    System.out.println("Conteudo da msg recebida:\t" + request.toString());
 
                     if (notificationType.equals("D")){
                         // TODO: Testar se o deserialize abaixo funciona
@@ -66,7 +67,7 @@ public class AggregatorNetwork implements Runnable{
 
 
                 //System.out.println("Received an update: " + response);
-                Thread.sleep(2000);
+                Thread.sleep(1000);
             }
             catch(Exception e){
                 e.printStackTrace();
