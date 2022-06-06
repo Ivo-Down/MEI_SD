@@ -1,3 +1,5 @@
+import com.ericsson.otp.erlang.OtpErlangMap;
+import com.ericsson.otp.erlang.OtpInputStream;
 import org.zeromq.SocketType;
 import org.zeromq.ZMQ;
 import org.zeromq.ZMsg;
@@ -11,45 +13,85 @@ import java.util.concurrent.TimeUnit;
 
 // Args [ID-AGG] [PUB-PORT] [REP-PORT] [ZONE] [PULL-PORT] [PUSH-PORT]
 public class AggregatorServer {
+<<<<<<< Updated upstream
     private static final ZMQ.Context context = ZMQ.context(1);
     public static final int bootstrapper_port = 8888;
 
 
     public static void main(String[] args) throws Exception{
+=======
+
+    public static void main(String[] args) throws Exception{
+        ZMQ.Context context = ZMQ.context(1);
+        Aggregator ag = new Aggregator(Integer.parseInt(args[1]));
+
+        /*
+        /* ------------ Inicialization ------------ */
+        /*ZMQ.Socket bs = context.socket(SocketType.REQ);
+        bs.connect("tcp://localhost:" + args[5]);
+
+        bs.sendMore("NODE_ID".getBytes(ZMQ.CHARSET));
+        bs.send("NODE_ID".getBytes(ZMQ.CHARSET));
+
+        // Pode ser colocado num while com bs.hasReceiveMore()
+        String neighbour = new String(bs.recv(),ZMQ.CHARSET);
+        String port = new String(bs.recv(),ZMQ.CHARSET);
+        System.out.println("Connection id -> \t" + neighbour + ":" + port); */
+>>>>>>> Stashed changes
 
         //ID
         Aggregator ag = handleNeighbors(Integer.parseInt(args[0]));
         System.out.println(ag);
 
         // ZeroMQ para PUBLISHER
+<<<<<<< Updated upstream
         ZMQ.Socket pubPublic = context.socket(SocketType.PUB);
         pubPublic.connect("tcp://localhost:" + args[1]); // connect to broker
 
         // ZeroMQ para REPLY
         ZMQ.Socket rep = context.socket(SocketType.REP);
         rep.bind("tcp://localhost:" + args[2]);
+=======
+       /* ZMQ.Socket pubPublic = context.socket(SocketType.PUB);
+        pubPublic.connect("tcp://localhost:" + args[0]); // connect to broker
+
+        // ZeroMQ para REPLY
+        ZMQ.Socket rep = context.socket(SocketType.REP);
+        rep.bind("tcp://localhost:" + args[1]); */
+>>>>>>> Stashed changes
 
         // ZeroMQ para PUSH
         ZMQ.Socket pll = context.socket(SocketType.PULL);
         pll.bind("tcp://localhost:8888");
 
         // ZeroMQ para PULL
-        ZMQ.Socket psh = context.socket(SocketType.PUSH);
-        psh.connect("tcp://localhost:8888");
+        //ZMQ.Socket psh = context.socket(SocketType.PUSH);
+        //psh.connect("tcp://localhost:8888");
 
+<<<<<<< Updated upstream
         // Receives and sends requests from collectors and other aggregators
         AggregatorNetwork network = new AggregatorNetwork(pll,psh,ag);
         // Notifies users about specific state changes
         AggregatorNotifier notif = new AggregatorNotifier(pubPublic, ag);
         // Allows users to query the state
         //AggregatorQueries quer = new AggregatorQueries(rep, ag);
+=======
+        //AggregatorNetwork network = new AggregatorNetwork(pll,ag);
+        //AggregatorQueries quer = new AggregatorQueries(rep,ag);
+
+        //System.out.println("A publicar na porta:\t" + args[0]);
+        //System.out.println("A responder a queries porta:\t" + args[1]);
+
+
+>>>>>>> Stashed changes
 
         ZMsg msg = new ZMsg();
         msg.add("A");
         msg.add(new byte[100000]);
-        msg.send(psh);
+        //msg.send(psh);
         //psh.send(pushMessage.getBytes(ZMQ.CHARSET));    // IMPORTANT (CONTENT)
 
+<<<<<<< Updated upstream
         new Thread(network).start();
         new Thread(notif).start();
         //new Thread(quer).start();
@@ -57,6 +99,12 @@ public class AggregatorServer {
         // Propagate state, TODO: maybe try with new class
         new Thread(() -> {
             while(!Thread.currentThread().isInterrupted()){
+=======
+       // new Thread(network).start();
+
+       /* new Thread(() -> {
+            while(true){
+>>>>>>> Stashed changes
                 ag.propagateState();
                 try {
                     Thread.sleep(10000);
@@ -64,6 +112,7 @@ public class AggregatorServer {
                     throw new RuntimeException(e);
                 }
             }
+<<<<<<< Updated upstream
         }).start();
     }
 
@@ -76,6 +125,28 @@ public class AggregatorServer {
         String s = Integer.toString(id);
         reqneighbours.sendMore("Quero os meus vizinhos...".getBytes(ZMQ.CHARSET));
         reqneighbours.send(s.getBytes(ZMQ.CHARSET)); //manda ID
+=======
+        }).start(); */
+
+        //AggregatorNotifier notif = new AggregatorNotifier(pubPublic, ag);
+        //AggregatorQueries quer = new AggregatorQueries(rep, ag);
+        //AggregatorReceiver pusher = new AggregatorReceiver(psh, pll, ag);
+        while(true){
+            //Aqui uma função de receber e dar parse da mensagem
+            try{
+                OtpErlangMap request = new OtpErlangMap(new OtpInputStream(pll.recv()));
+                System.out.println("Pulled request:\t" + request.toString());
+            }
+            catch(Exception e){
+                e.printStackTrace();
+            }
+        }
+/*
+        System.out.println("Publishing Port:\t" + args[0]);
+        System.out.println("Reply Port:\t\t\t" + args[1]);
+        System.out.println("Pull Port:\t\t\t" + args[3]);
+        System.out.println("Push Port:\t\t\t" + args[4]); */
+>>>>>>> Stashed changes
 
         // Recebe a resposta do Bootstrapper
         String resposta = new String(reqneighbours.recv(),ZMQ.CHARSET); // Vem a mensagem introdutória
@@ -85,6 +156,12 @@ public class AggregatorServer {
 
         return new Aggregator(id, neighbors);
 
+<<<<<<< Updated upstream
     }
 
+=======
+        //new Thread(notif).start();
+        //new Thread(quer).start();
+        //new Thread(pusher).start();
+>>>>>>> Stashed changes
     }

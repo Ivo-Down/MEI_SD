@@ -3,5 +3,10 @@
       "id": 1,
       "password": "pw_1",
       "type": "phone"
+    },
+    {
+      "id": 2,
+      "password": "pw_2",
+      "type": "fridge"
     }
 ]

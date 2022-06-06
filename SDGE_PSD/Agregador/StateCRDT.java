@@ -150,4 +150,37 @@ public class StateCRDT  implements Serializable {
             this.l.unlock();
         }
     }
+<<<<<<< Updated upstream
+=======
+
+    /*
+    public boolean getIsDeviceOnline(int deviceId){
+        return zoneInfo != null &&
+                zoneInfo.values().stream()
+                        .anyMatch(a -> a != null && a.checkDeviceOnline(deviceId));
+    }
+    public long getDevicesOnline(){
+        return zoneInfo != null ?
+                zoneInfo.values().stream()
+                        .mapToLong(a -> a != null ? a.getOnlineDevices() : 0)
+                        .sum() :
+                0;
+    }
+    public long getDevicesOnlineOfType(String type){
+        return zoneInfo != null ?
+                zoneInfo.values().stream()
+                        .mapToLong(a -> a != null ? a.getOnlineCounterDeviceType(type) : 0)
+                        .sum() :
+                0;
+    }
+    public int getNumberEvents(String eventType){
+        return zoneInfo != null ?
+                zoneInfo.values().stream()
+                        .mapToInt(a -> a != null ? a.getEventCounter(eventType) : 0)
+                        .sum() :
+                0;
+    }
+
+    */
+>>>>>>> Stashed changes
 }

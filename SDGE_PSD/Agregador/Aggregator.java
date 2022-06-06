@@ -21,14 +21,21 @@ public class Aggregator {
     private HashMap<Integer, ZMQ.Socket> vizinhos; // id -> socketPush
 
 
+<<<<<<< Updated upstream
     public Aggregator(int id, Table neighbors){
+=======
+    public Aggregator(int id){
+>>>>>>> Stashed changes
         this.id = id;
         this.neighbors = neighbors;
         this.stateInfo = new StateCRDT();
         this.vizinhos = new HashMap<>();
     }
 
+<<<<<<< Updated upstream
 
+=======
+>>>>>>> Stashed changes
     public int getId(){
         return this.id;
     }
