@@ -22,11 +22,7 @@ public class Aggregator {
 
 
 <<<<<<< Updated upstream
-<<<<<<< Updated upstream
     public Aggregator(int id, Table neighbors){
-=======
-    public Aggregator(int id){
->>>>>>> Stashed changes
 =======
     public Aggregator(int id){
 >>>>>>> Stashed changes
@@ -37,10 +33,7 @@ public class Aggregator {
     }
 
 <<<<<<< Updated upstream
-<<<<<<< Updated upstream
 
-=======
->>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
     public int getId(){

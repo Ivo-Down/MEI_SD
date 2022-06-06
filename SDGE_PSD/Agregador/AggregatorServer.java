@@ -14,15 +14,12 @@ import java.util.concurrent.TimeUnit;
 // Args [ID-AGG] [PUB-PORT] [REP-PORT] [ZONE] [PULL-PORT] [PUSH-PORT]
 public class AggregatorServer {
 <<<<<<< Updated upstream
-<<<<<<< Updated upstream
     private static final ZMQ.Context context = ZMQ.context(1);
     public static final int bootstrapper_port = 8888;
 
 
     public static void main(String[] args) throws Exception{
 =======
-=======
->>>>>>> Stashed changes
 
     public static void main(String[] args) throws Exception{
         ZMQ.Context context = ZMQ.context(1);
@@ -40,9 +37,6 @@ public class AggregatorServer {
         String neighbour = new String(bs.recv(),ZMQ.CHARSET);
         String port = new String(bs.recv(),ZMQ.CHARSET);
         System.out.println("Connection id -> \t" + neighbour + ":" + port); */
-<<<<<<< Updated upstream
->>>>>>> Stashed changes
-=======
 >>>>>>> Stashed changes
 
         //ID
@@ -51,7 +45,6 @@ public class AggregatorServer {
 
         // ZeroMQ para PUBLISHER
 <<<<<<< Updated upstream
-<<<<<<< Updated upstream
         ZMQ.Socket pubPublic = context.socket(SocketType.PUB);
         pubPublic.connect("tcp://localhost:" + args[1]); // connect to broker
 
@@ -59,17 +52,12 @@ public class AggregatorServer {
         ZMQ.Socket rep = context.socket(SocketType.REP);
         rep.bind("tcp://localhost:" + args[2]);
 =======
-=======
->>>>>>> Stashed changes
        /* ZMQ.Socket pubPublic = context.socket(SocketType.PUB);
         pubPublic.connect("tcp://localhost:" + args[0]); // connect to broker
 
         // ZeroMQ para REPLY
         ZMQ.Socket rep = context.socket(SocketType.REP);
         rep.bind("tcp://localhost:" + args[1]); */
-<<<<<<< Updated upstream
->>>>>>> Stashed changes
-=======
 >>>>>>> Stashed changes
 
         // ZeroMQ para PUSH
@@ -81,7 +69,6 @@ public class AggregatorServer {
         //psh.connect("tcp://localhost:8888");
 
 <<<<<<< Updated upstream
-<<<<<<< Updated upstream
         // Receives and sends requests from collectors and other aggregators
         AggregatorNetwork network = new AggregatorNetwork(pll,psh,ag);
         // Notifies users about specific state changes
@@ -89,8 +76,6 @@ public class AggregatorServer {
         // Allows users to query the state
         //AggregatorQueries quer = new AggregatorQueries(rep, ag);
 =======
-=======
->>>>>>> Stashed changes
         //AggregatorNetwork network = new AggregatorNetwork(pll,ag);
         //AggregatorQueries quer = new AggregatorQueries(rep,ag);
 
@@ -107,7 +92,6 @@ public class AggregatorServer {
         //psh.send(pushMessage.getBytes(ZMQ.CHARSET));    // IMPORTANT (CONTENT)
 
 <<<<<<< Updated upstream
-<<<<<<< Updated upstream
         new Thread(network).start();
         new Thread(notif).start();
         //new Thread(quer).start();
@@ -118,10 +102,6 @@ public class AggregatorServer {
 =======
        // new Thread(network).start();
 
-=======
-       // new Thread(network).start();
-
->>>>>>> Stashed changes
        /* new Thread(() -> {
             while(true){
 >>>>>>> Stashed changes
@@ -132,7 +112,6 @@ public class AggregatorServer {
                     throw new RuntimeException(e);
                 }
             }
-<<<<<<< Updated upstream
 <<<<<<< Updated upstream
         }).start();
     }
@@ -147,8 +126,6 @@ public class AggregatorServer {
         reqneighbours.sendMore("Quero os meus vizinhos...".getBytes(ZMQ.CHARSET));
         reqneighbours.send(s.getBytes(ZMQ.CHARSET)); //manda ID
 =======
-=======
->>>>>>> Stashed changes
         }).start(); */
 
         //AggregatorNotifier notif = new AggregatorNotifier(pubPublic, ag);
@@ -169,9 +146,6 @@ public class AggregatorServer {
         System.out.println("Reply Port:\t\t\t" + args[1]);
         System.out.println("Pull Port:\t\t\t" + args[3]);
         System.out.println("Push Port:\t\t\t" + args[4]); */
-<<<<<<< Updated upstream
->>>>>>> Stashed changes
-=======
 >>>>>>> Stashed changes
 
         // Recebe a resposta do Bootstrapper
@@ -180,17 +154,11 @@ public class AggregatorServer {
         System.out.println("->Received neighbors information from bootstrapper.\n");
         Table neighbors = (Table) StaticMethods.deserialize(data);
 
-<<<<<<< Updated upstream
         return new Aggregator(id, neighbors);
 
 <<<<<<< Updated upstream
     }
 
-=======
-        //new Thread(notif).start();
-        //new Thread(quer).start();
-        //new Thread(pusher).start();
->>>>>>> Stashed changes
 =======
         //new Thread(notif).start();
         //new Thread(quer).start();
