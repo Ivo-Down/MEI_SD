@@ -41,30 +41,23 @@ public class AggregatorNetwork implements Runnable{
                         this.aggregator.propagateState();
                     }
 
-
-
                 } else if (aux.equals("C")) {
                     // Receber +1 frame que identifica o tipo de not.
 
-                    String notificationType = new String(msg.pop().getData(),ZMQ.CHARSET);
-                    OtpErlangMap request = new OtpErlangMap(new OtpInputStream(msg.pop().getData()));
-                    System.out.println("Conteudo da msg recebida:\t" + request.toString());
+                    OtpErlangMap deviceInfo = new OtpErlangMap(new OtpInputStream(msg.pop().getData()));
+                    System.out.println("Conteudo da msg recebida:\t" + deviceInfo.toString());
 
-                    if (notificationType.equals("D")){
-                        // TODO: Testar se o deserialize abaixo funciona
-                        Integer deviceId = (Integer) StateCRDT.deserialize(msg.pop().getData());
-                        String deviceState = (String) StateCRDT.deserialize(msg.pop().getData());
-                        String deviceType = (String) StateCRDT.deserialize(msg.pop().getData());
-                        this.aggregator.updateDeviceState(deviceId, deviceState, deviceType);
-                        this.aggregator.propagateState();
+                    // TODO: Testar se o deserialize abaixo funciona
+                    Integer deviceId = (Integer) StateCRDT.deserialize(msg.pop().getData());
+                    String deviceState = (String) StateCRDT.deserialize(msg.pop().getData());
+                    String deviceType = (String) StateCRDT.deserialize(msg.pop().getData());
+                    this.aggregator.updateDeviceState(deviceId, deviceState, deviceType);
+                    this.aggregator.propagateState();
 
-                    } else if (notificationType.equals("E")) {
-                        // TODO: Testar se o deserialize abaixo funciona
-                        ArrayList<String> eventsList = (ArrayList<String>) StateCRDT.deserialize(msg.pop().getData());
-                        this.aggregator.addEvents(eventsList);
-                    }
+                    // TODO: Testar se o deserialize abaixo funciona
+                    ArrayList<String> eventsList = (ArrayList<String>) StateCRDT.deserialize(msg.pop().getData());
+                    this.aggregator.addEvents(eventsList);
                 }
-
 
                 //System.out.println("Received an update: " + response);
                 Thread.sleep(1000);

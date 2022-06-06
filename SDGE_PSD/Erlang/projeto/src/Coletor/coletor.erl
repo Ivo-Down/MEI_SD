@@ -49,7 +49,7 @@ handle_device(Sock, ChumakSocket, State, TRef, DevicesInfo) ->
       case maps:get(mode, Msg) of
         auth -> 
           io:fwrite("\nColetor recebeu auth info ~p .\n", [Msg]),
-          login(maps:get(id, Msg), maps:get(password, Msg), DevicesInfo),
+          login(maps:get(id, Msg), maps:get(password, Msg), maps:get(type, Msg), DevicesInfo),
           timer:send_after(?CollectTime, aggregator), % começa aqui o timer para depois enviar info ao agregador
           handle_device(Sock, ChumakSocket, State, TRef, DevicesInfo);
 
@@ -73,11 +73,14 @@ handle_device(Sock, ChumakSocket, State, TRef, DevicesInfo) ->
     {tcp_error, _, _} ->
       io:fwrite("\nConnection error.\n");
 
-    {auth_ok, DeviceId} ->
+    {auth_ok, DeviceId, DeviceType} ->
       io:fwrite("\nAuthentication was successful.\n"),
-      ok = gen_tcp:send(Sock, atom_to_binary(auth_ok)),  %enviar para o device a confirmaçao de auth
-      {ok, NewTRef} = timer:send_after(?AliveTime, alive_timeout),  % começar o timer para ver se está vivo  
-      handle_device(Sock, ChumakSocket, maps:put(id, DeviceId, State), NewTRef, DevicesInfo);
+      ok = gen_tcp:send(Sock, atom_to_binary(auth_ok)),  %enviar para o device a confirmaçao de auth para ele começar a enviar eventos
+      {ok, NewTRef} = timer:send_after(?AliveTime, alive_timeout),  % começar o timer para ver se está vivo 
+      StateAux1 = maps:put(id, DeviceId, State),
+      StateAux2 = maps:put(type, DeviceType, StateAux1),
+      ok = sendState(ChumakSocket, StateAux2), % warns aggregator that device turned on
+      handle_device(Sock, ChumakSocket, StateAux2, NewTRef, DevicesInfo);
 
     auth_error ->
       io:fwrite("\nFailed to authenticate.\n"),
@@ -86,14 +89,13 @@ handle_device(Sock, ChumakSocket, State, TRef, DevicesInfo) ->
 
     alive_timeout ->
       io:fwrite("\nDevice has not sent anything in a while. Turning it to offline.\n"),
-      maps:update(online, false, State),
+      ok = sendState(ChumakSocket, maps:update(online, false, State)), % warns aggregator that device turned off
       handle_device(Sock, ChumakSocket, State, TRef, DevicesInfo);
 
     aggregator ->
       io:fwrite("\nSending info to aggregator: ~p\n",[State]),
       % Envia estado para o agregador através de um push zeromq socket
-      ok = chumak:send(ChumakSocket, term_to_binary(State)),
-      timer:send_after(?CollectTime, aggregator),
+      ok = sendState(ChumakSocket, State),
       handle_device(Sock, ChumakSocket, maps:update(eventsList, [], State), TRef, DevicesInfo)
   end.
 
@@ -102,7 +104,7 @@ handle_device(Sock, ChumakSocket, State, TRef, DevicesInfo) ->
 
 
 
-login(DeviceId, DevicePw, DevicesInfo) ->
+login(DeviceId, DevicePw, DeviceType, DevicesInfo) ->
   DeviceDictionary = lists:nth(DeviceId, DevicesInfo),
   case maps:find(id, DeviceDictionary) of
 
@@ -110,7 +112,7 @@ login(DeviceId, DevicePw, DevicesInfo) ->
       case maps:find(password, DeviceDictionary) of
         {ok, DevicePw} ->
           io:fwrite("\nAuth successful.\n"),
-          self() ! {auth_ok, DeviceId};
+          self() ! {auth_ok, DeviceId, DeviceType};
         {ok, _} ->
           io:fwrite("\nAuth failed.\n"),
           self() ! auth_error      
@@ -120,3 +122,11 @@ login(DeviceId, DevicePw, DevicesInfo) ->
       io:fwrite("\nAuth failed.\n"),
       self() ! auth_error  
   end.
+
+
+% Sends device's state to aggregator
+sendState(ChumakSocket, State) ->
+  ToSend = [<<"C">>, term_to_binary(State)],
+  ok = chumak:send_multipart(ChumakSocket, ToSend),
+  timer:send_after(?CollectTime, aggregator),
+  ok.
