@@ -183,6 +183,9 @@ public class StateCRDT  implements Serializable {
 
     */
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
