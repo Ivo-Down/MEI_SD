@@ -16,15 +16,12 @@ public class AggregatorServer {
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
-<<<<<<< Updated upstream
     private static final ZMQ.Context context = ZMQ.context(1);
     public static final int bootstrapper_port = 8888;
 
 
     public static void main(String[] args) throws Exception{
 =======
-=======
->>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
 =======
@@ -46,7 +43,6 @@ public class AggregatorServer {
         String neighbour = new String(bs.recv(),ZMQ.CHARSET);
         String port = new String(bs.recv(),ZMQ.CHARSET);
         System.out.println("Connection id -> \t" + neighbour + ":" + port); */
-<<<<<<< Updated upstream
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
 >>>>>>> Stashed changes
@@ -74,12 +70,6 @@ public class AggregatorServer {
 >>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
-=======
-
-        /* ---------------------------------------- */
-
-        // ZeroMQ para PUBLISHER
->>>>>>> Stashed changes
        /* ZMQ.Socket pubPublic = context.socket(SocketType.PUB);
         pubPublic.connect("tcp://localhost:" + args[0]); // connect to broker
 
@@ -88,9 +78,6 @@ public class AggregatorServer {
         rep.bind("tcp://localhost:" + args[1]); */
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
-<<<<<<< Updated upstream
->>>>>>> Stashed changes
-=======
 >>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
@@ -108,7 +95,6 @@ public class AggregatorServer {
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
-<<<<<<< Updated upstream
         // Receives and sends requests from collectors and other aggregators
         AggregatorNetwork network = new AggregatorNetwork(pll,psh,ag);
         // Notifies users about specific state changes
@@ -116,8 +102,6 @@ public class AggregatorServer {
         // Allows users to query the state
         //AggregatorQueries quer = new AggregatorQueries(rep, ag);
 =======
-=======
->>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
 =======
@@ -140,7 +124,6 @@ public class AggregatorServer {
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
-<<<<<<< Updated upstream
         new Thread(network).start();
         new Thread(notif).start();
         //new Thread(quer).start();
@@ -151,10 +134,6 @@ public class AggregatorServer {
 =======
        // new Thread(network).start();
 
-=======
-       // new Thread(network).start();
-
->>>>>>> Stashed changes
 =======
        // new Thread(network).start();
 
@@ -176,7 +155,6 @@ public class AggregatorServer {
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
-<<<<<<< Updated upstream
         }).start();
     }
 
@@ -190,8 +168,6 @@ public class AggregatorServer {
         reqneighbours.sendMore("Quero os meus vizinhos...".getBytes(ZMQ.CHARSET));
         reqneighbours.send(s.getBytes(ZMQ.CHARSET)); //manda ID
 =======
-=======
->>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
 =======
@@ -218,7 +194,6 @@ public class AggregatorServer {
         System.out.println("Push Port:\t\t\t" + args[4]); */
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
-<<<<<<< Updated upstream
 >>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
@@ -235,8 +210,6 @@ public class AggregatorServer {
 <<<<<<< Updated upstream
     }
 =======
-=======
->>>>>>> Stashed changes
 
 >>>>>>> Stashed changes
 
@@ -245,14 +218,11 @@ public class AggregatorServer {
         //new Thread(quer).start();
         //new Thread(pusher).start();
 <<<<<<< Updated upstream
-<<<<<<< Updated upstream
 >>>>>>> Stashed changes
 =======
         //new Thread(notif).start();
         //new Thread(quer).start();
         //new Thread(pusher).start();
->>>>>>> Stashed changes
-=======
 >>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
