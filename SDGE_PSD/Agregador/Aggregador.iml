@@ -25,6 +25,5 @@
         <SOURCES />
       </library>
     </orderEntry>
-    <orderEntry type="library" name="erlang.otp.jinterface" level="project" />
   </component>
 </module>

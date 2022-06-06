@@ -1,8 +1,7 @@
 -module(devices).
 -export([start/1]).
 -define(EventList, [alarm, error, accident]).
--define(DevicesFileName, "dispositivos1.json").
--define(EventTime, 1000).
+-define(DevicesFileName, "dispositivos.json").
 
 
 % Este módulo tem como objetivo criar dispositivos IOT e enviar eventos
@@ -56,7 +55,7 @@ send_events(Socket, DeviceInfo) ->
   io:fwrite("\nSou um device, vou mandar event info ~p.\n", [Event]),
   EventInfo = #{id=>maps:get(id,DeviceInfo), event_type=>Event, mode=>event},
   ok = gen_tcp:send(Socket, term_to_binary(EventInfo)),  %envia o evento ao coletor
-  timer:sleep(?EventTime),
+  timer:sleep(1000),
   send_events(Socket, DeviceInfo).
 
 
