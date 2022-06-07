@@ -66,7 +66,7 @@ public class AggregatorNetwork implements Runnable{
                     OtpErlangMap deviceInfo = new OtpErlangMap(new OtpInputStream(msg.pop().getData()));
                     System.out.println("Conteudo da msg recebida:\t" + deviceInfo.toString());
                     OtpErlangList eventsList = ((OtpErlangList) deviceInfo.get(new OtpErlangAtom("eventsList")));
-                    //ArrayList<String> eventsList = (ArrayList<String>) DataStructs.StateCRDT.deserialize(msg.pop().getData());
+                    //ArrayList<String> eventsList = (ArrayList<String>) StateCRDT.deserialize(msg.pop().getData());
                     //this.aggregator.addEvents(eventsList);
                 }
 
