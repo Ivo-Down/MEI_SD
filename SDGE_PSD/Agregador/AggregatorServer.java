@@ -41,8 +41,6 @@ public class AggregatorServer {
 
         // Receives and sends requests from collectors and other aggregators
         AggregatorNetwork network = new AggregatorNetwork(pull, push, pub, ag);
-        // Notifies users about specific state changes
-        AggregatorNotifier notif = new AggregatorNotifier(pub, ag);
         // Allows users to query the state
         AggregatorQueries quer = new AggregatorQueries(rep, ag);
 

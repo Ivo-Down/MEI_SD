@@ -1,4 +1,3 @@
-import DataStructs.NotificationData;
 import com.ericsson.otp.erlang.OtpErlangMap;
 import com.ericsson.otp.erlang.OtpInputStream;
 import org.zeromq.ZMQ;
@@ -11,7 +10,7 @@ public class AggregatorNetwork implements Runnable{
     private final ZMQ.Socket pull;
     private final ZMQ.Socket push;
     private final Aggregator aggregator;
-    private final NotificationData nData;
+    private final AggregatorNotifier aggregatorNotifier;
 
     //TODO: pensar em estruturas para guardar informações sobre notis. (Um id por tipo - 4 tipos diferentes (?))
     // Mudar os nomes destas cenas.
@@ -20,7 +19,7 @@ public class AggregatorNetwork implements Runnable{
         this.pull = pull;
         this.push = push;
         this.aggregator = aggregator;
-        this.nData = new NotificationData(pub);
+        this.aggregatorNotifier = new AggregatorNotifier(pub);
     }
 
     public void run(){
@@ -42,7 +41,7 @@ public class AggregatorNetwork implements Runnable{
 
                     if (this.aggregator.merge(state)){
                         this.aggregator.propagateState();
-                        this.nData.sendNotifications(state);
+                        this.aggregatorNotifier.sendNotifications(state);
                     }
 
                 } else if (aux.equals("C")) {
