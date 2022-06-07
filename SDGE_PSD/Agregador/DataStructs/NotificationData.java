@@ -1,5 +1,4 @@
 package DataStructs;
-
 import org.zeromq.ZMQ;
 
 public class NotificationData {

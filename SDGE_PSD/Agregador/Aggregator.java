@@ -1,10 +1,10 @@
+import DataStructs.StateCRDT;
 import DataStructs.Table;
 import org.zeromq.ZMQ;
 import org.zeromq.ZMsg;
 
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class Aggregator {
     private final int id;
@@ -70,7 +70,7 @@ public class Aggregator {
         this.stateInfo.addEvents(eventsList, this.id);
     }
 
-    public void updateDeviceState(Integer deviceId, String deviceState, String deviceType){
+    public void updateDeviceState(Integer deviceId, Boolean deviceState, String deviceType){
         this.stateInfo.updateDeviceState(deviceId, deviceState, deviceType, this.id);
     }
     public String toString() {

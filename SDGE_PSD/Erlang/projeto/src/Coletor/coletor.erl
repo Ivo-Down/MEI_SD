@@ -4,6 +4,8 @@
 -define(AliveTime, 20000).
 -define(DevicesFileName, "dispositivos1.json").
 -define(AggregatorPort, 8003).
+-define(CollectorDeviceMsg, "C_Device").
+-define(CollectorEventMsg, "C_Event").
 
 
 start(Port) ->
@@ -49,7 +51,7 @@ handle_device(Sock, ChumakSocket, State, TRef, DevicesInfo) ->
       case maps:get(mode, Msg) of
         auth -> 
           io:fwrite("\nColetor recebeu auth info ~p .\n", [Msg]),
-          login(maps:get(id, Msg), maps:get(password, Msg), maps:get(type, Msg), DevicesInfo),
+          login(maps:get(id, Msg), maps:get(password, Msg), binary_to_atom(maps:get(type, Msg)), DevicesInfo),
           timer:send_after(?CollectTime, aggregator), % começa aqui o timer para depois enviar info ao agregador
           handle_device(Sock, ChumakSocket, State, TRef, DevicesInfo);
 
@@ -79,7 +81,7 @@ handle_device(Sock, ChumakSocket, State, TRef, DevicesInfo) ->
       {ok, NewTRef} = timer:send_after(?AliveTime, alive_timeout),  % começar o timer para ver se está vivo 
       StateAux1 = maps:put(id, DeviceId, State),
       StateAux2 = maps:put(type, DeviceType, StateAux1),
-      ok = sendState(ChumakSocket, StateAux2), % warns aggregator that device turned on
+      ok = sendState(ChumakSocket, StateAux2, ?CollectorDeviceMsg), % warns aggregator that device turned on
       handle_device(Sock, ChumakSocket, StateAux2, NewTRef, DevicesInfo);
 
     auth_error ->
@@ -89,13 +91,13 @@ handle_device(Sock, ChumakSocket, State, TRef, DevicesInfo) ->
 
     alive_timeout ->
       io:fwrite("\nDevice has not sent anything in a while. Turning it to offline.\n"),
-      ok = sendState(ChumakSocket, maps:update(online, false, State)), % warns aggregator that device turned off
+      ok = sendState(ChumakSocket, maps:update(online, false, State), ?CollectorDeviceMsg), % warns aggregator that device turned off
       handle_device(Sock, ChumakSocket, State, TRef, DevicesInfo);
 
     aggregator ->
       io:fwrite("\nSending info to aggregator: ~p\n",[State]),
       % Envia estado para o agregador através de um push zeromq socket
-      ok = sendState(ChumakSocket, State),
+      ok = sendState(ChumakSocket, State, ?CollectorEventMsg),
       handle_device(Sock, ChumakSocket, maps:update(eventsList, [], State), TRef, DevicesInfo)
   end.
 
@@ -125,8 +127,8 @@ login(DeviceId, DevicePw, DeviceType, DevicesInfo) ->
 
 
 % Sends device's state to aggregator
-sendState(ChumakSocket, State) ->
-  ToSend = [<<"C">>, term_to_binary(State)],
+sendState(ChumakSocket, State, SendType) ->  %SendType: C_Event or _CDevice
+  ToSend = [<<SendType>>, term_to_binary(State)],
   ok = chumak:send_multipart(ChumakSocket, ToSend),
   timer:send_after(?CollectTime, aggregator),
   ok.

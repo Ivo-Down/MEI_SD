@@ -1,4 +1,4 @@
-import DataStructs.ZoneInformation;
+package DataStructs;
 
 import java.io.*;
 import java.util.HashMap;
@@ -142,7 +142,7 @@ public class StateCRDT  implements Serializable {
     }
 
 
-    public void updateDeviceState(Integer deviceId, String deviceState, String deviceType, Integer zoneId){
+    public void updateDeviceState(Integer deviceId, Boolean deviceState, String deviceType, Integer zoneId){
         try {
             this.lock.lock();
             this.zoneInfo.get(zoneId).updateDeviceState(deviceId, deviceState, deviceType);
