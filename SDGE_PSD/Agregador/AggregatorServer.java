@@ -24,8 +24,8 @@ public class AggregatorServer {
         System.out.println(ag);
 
         // ZeroMQ para PUBLISHER
-        ZMQ.Socket pubPublic = context.socket(SocketType.PUB);
-        pubPublic.connect("tcp://localhost:" + args[1]); // connect to broker
+        ZMQ.Socket pub = context.socket(SocketType.PUB);
+        pub.connect("tcp://localhost:" + args[1]); // connect to broker
 
         // ZeroMQ para REPLY
         ZMQ.Socket rep = context.socket(SocketType.REP);
@@ -40,9 +40,9 @@ public class AggregatorServer {
         push.connect("tcp://localhost:" + args[4]);
 
         // Receives and sends requests from collectors and other aggregators
-        AggregatorNetwork network = new AggregatorNetwork(pull,push,ag);
+        AggregatorNetwork network = new AggregatorNetwork(pull, push, pub, ag);
         // Notifies users about specific state changes
-        AggregatorNotifier notif = new AggregatorNotifier(pubPublic, ag);
+        AggregatorNotifier notif = new AggregatorNotifier(pub, ag);
         // Allows users to query the state
         AggregatorQueries quer = new AggregatorQueries(rep, ag);
 
