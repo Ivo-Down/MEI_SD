@@ -3,7 +3,7 @@ import com.ericsson.otp.erlang.OtpInputStream;
 import org.zeromq.ZMQ;
 import org.zeromq.ZMsg;
 
-import java.util.ArrayList;
+import java.util.Map;
 
 // This module will receive updates from other aggregators, connecting to its neighbours, as well as collectors
 public class AggregatorNetwork implements Runnable{
@@ -44,22 +44,30 @@ public class AggregatorNetwork implements Runnable{
                         this.aggregatorNotifier.sendNotifications(state);
                     }
 
-                } else if (aux.equals("C")) {
+                }
+                else if (aux.equals("C_Device")) {
                     // Receber +1 frame que identifica o tipo de not.
 
                     OtpErlangMap deviceInfo = new OtpErlangMap(new OtpInputStream(msg.pop().getData()));
                     System.out.println("Conteudo da msg recebida:\t" + deviceInfo.toString());
 
-                    // TODO: Testar se o deserialize abaixo funciona
-                    Integer deviceId = (Integer) StateCRDT.deserialize(msg.pop().getData());
-                    String deviceState = (String) StateCRDT.deserialize(msg.pop().getData());
-                    String deviceType = (String) StateCRDT.deserialize(msg.pop().getData());
+                    Integer deviceId = ((OtpErlangLong) deviceInfo.get(new OtpErlangAtom("id"))).intValue();
+                    Boolean deviceState = ((OtpErlangAtom) deviceInfo.get(new OtpErlangAtom("online"))).booleanValue();
+                    String deviceType = ((OtpErlangAtom) deviceInfo.get(new OtpErlangAtom("type"))).atomValue();
+
                     this.aggregator.updateDeviceState(deviceId, deviceState, deviceType);
                     this.aggregator.propagateState();
 
-                    // TODO: Testar se o deserialize abaixo funciona
-                    ArrayList<String> eventsList = (ArrayList<String>) StateCRDT.deserialize(msg.pop().getData());
-                    this.aggregator.addEvents(eventsList);
+
+                }
+
+                else if(aux.equals("C_Event")){
+
+                    OtpErlangMap deviceInfo = new OtpErlangMap(new OtpInputStream(msg.pop().getData()));
+                    System.out.println("Conteudo da msg recebida:\t" + deviceInfo.toString());
+                    OtpErlangList eventsList = ((OtpErlangList) deviceInfo.get(new OtpErlangAtom("eventsList")));
+                    //ArrayList<String> eventsList = (ArrayList<String>) DataStructs.StateCRDT.deserialize(msg.pop().getData());
+                    //this.aggregator.addEvents(eventsList);
                 }
 
                 //System.out.println("Received an update: " + response);

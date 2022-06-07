@@ -134,11 +134,11 @@ public class ZoneInformation implements Serializable {
     }
 
     // TODO: verificar se é preciso lançar alguma notificaçao
-    public void updateDeviceState(Integer deviceId, String deviceState, String deviceType){
+    public void updateDeviceState(Integer deviceId, Boolean deviceState, String deviceType){
         Pair pOnline = this.onlineDevices.get(deviceId);
         Pair pCounter = this.onlineCounter.get(deviceType);
 
-        if (deviceState.equals("on")) {
+        if (deviceState) {
             pOnline.addToFst(1);
             pCounter.addToFst(1);
             int pCounterValue = pCounter.getPairValue();
