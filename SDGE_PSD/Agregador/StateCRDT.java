@@ -11,15 +11,15 @@ public class StateCRDT  implements Serializable {
 
 
     // Key -> AggregatorID. Value -> Information of the devices of that aggreaator.
-    private Map<Integer, ZoneInformation> zoneInfo;
-    private Lock l;
+    private final Map<Integer, ZoneInformation> zoneInfo;
+    private final Lock lock;
 
     // TODO: Implementar locks nisto!
 
 
     public StateCRDT() {
         this.zoneInfo = new HashMap<>();
-        this.l = new ReentrantLock();
+        this.lock = new ReentrantLock();
     }
 
 
@@ -32,10 +32,10 @@ public class StateCRDT  implements Serializable {
         ByteArrayOutputStream boas = new ByteArrayOutputStream();
         try (ObjectOutputStream oos = new ObjectOutputStream(boas)){
             try {
-                this.l.lock();
+                this.lock.lock();
                 oos.writeObject(this.zoneInfo);
             } finally {
-                this.l.unlock();
+                this.lock.unlock();
             }
             oos.flush();
             oos.close();
@@ -58,7 +58,7 @@ public class StateCRDT  implements Serializable {
 
     public boolean merge(StateCRDT received){
         try {
-            this.l.lock();
+            this.lock.lock();
             boolean res = false;
             for(Map.Entry<Integer, ZoneInformation> aux : received.zoneInfo.entrySet()){
                 if (this.zoneInfo.containsKey(aux.getKey())) {
@@ -72,7 +72,7 @@ public class StateCRDT  implements Serializable {
             }
             return res;
         } finally {
-            this.l.unlock();
+            this.lock.unlock();
         }
 
     }
@@ -80,74 +80,74 @@ public class StateCRDT  implements Serializable {
 
     public int getNumberEvents(String eventType) {
         try {
-            this.l.lock();
+            this.lock.lock();
             return zoneInfo != null ?
                     zoneInfo.values().stream()
                             .mapToInt(a -> a != null ? a.getEventCounter(eventType) : 0)
                             .sum() :
                     0;
         } finally {
-            this.l.unlock();
+            this.lock.unlock();
         }
     }
 
 
     public int getDevicesOnlineOfType(String deviceType) {
         try {
-            this.l.lock();
+            this.lock.lock();
             return zoneInfo != null ?
                     zoneInfo.values().stream()
                             .mapToInt(a -> a != null ? a.getOnlineCounterDeviceType(deviceType) : 0)
                             .sum() :
                     0;
         } finally {
-            this.l.unlock();
+            this.lock.unlock();
         }
     }
 
 
     public boolean getIsDeviceOnline(int deviceId) {
         try {
-            this.l.lock();
+            this.lock.lock();
             return zoneInfo != null &&
                     zoneInfo.values().stream()
                             .anyMatch(a -> a != null && a.checkDeviceOnline(deviceId));
         } finally {
-            this.l.unlock();
+            this.lock.unlock();
         }
     }
 
 
     public int getDevicesOnline(){
         try {
-            this.l.lock();
+            this.lock.lock();
             return zoneInfo != null ?
                     zoneInfo.values().stream()
                             .mapToInt(a -> a != null ? a.getOnlineCounter() : 0)
                             .sum() :
                     0;
         } finally {
-            this.l.unlock();
+            this.lock.unlock();
         }
     }
 
 
     public void addEvents(List<String> eventsList, Integer zoneId){
         try {
-            this.l.lock();
+            this.lock.lock();
             this.zoneInfo.get(zoneId).addEvents(eventsList);
         } finally {
-            this.l.unlock();
+            this.lock.unlock();
         }
     }
 
 
     public void updateDeviceState(Integer deviceId, String deviceState, String deviceType, Integer zoneId){
         try {
-            this.l.lock();
+            this.lock.lock();
             this.zoneInfo.get(zoneId).updateDeviceState(deviceId, deviceState, deviceType);
         } finally {
-            this.l.unlock();
+            this.lock.unlock();
         }
     }
 }
