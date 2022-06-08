@@ -11,6 +11,7 @@ public class ZoneInformation implements Serializable {
     private Map<String, Integer> eventCounter;   // Map that saves the nr of events of each type. Key -> Type ; Value -> Nr of events of that type.
 
     private Map<String, Integer> onlineRecord;   // Record of online devices of each type.
+
     private Map<String, Pair> onlineCounter;     // Nr of online devices in each type.
 
     private Map<Integer, Pair> onlineDevices;    // Map that saves the state of each device (online or offline).
@@ -20,6 +21,17 @@ public class ZoneInformation implements Serializable {
         this.onlineRecord = new HashMap<>();
         this.onlineDevices = new HashMap<>();
         this.onlineCounter = new HashMap<>();
+    }
+    public Map<String, Integer> getEventCounter() {
+        return eventCounter;
+    }
+
+    public Map<String, Integer> getOnlineRecord() {
+        return onlineRecord;
+    }
+
+    public Map<Integer, Pair> getOnlineDevices() {
+        return onlineDevices;
     }
 
     public boolean merge(ZoneInformation received){
@@ -133,26 +145,41 @@ public class ZoneInformation implements Serializable {
         }
     }
 
-    // TODO: verificar se é preciso lançar alguma notificaçao
-    public void updateDeviceState(Integer deviceId, Boolean deviceState, String deviceType){
+    // TODO: verificar se é preciso lançar alguma notificaçao; Confirmar se a lógica está direitinha.
+    public boolean updateDeviceState(Integer deviceId, Boolean deviceState, String deviceType){
+        boolean res = false;
+
         Pair pOnline = this.onlineDevices.get(deviceId);
         Pair pCounter = this.onlineCounter.get(deviceType);
 
-        if (deviceState) {
-            pOnline.addToFst(1);
-            pCounter.addToFst(1);
-            int pCounterValue = pCounter.getPairValue();
+        // Ver o estado do device:
+        boolean state = pOnline.getPairValue() > 0;
 
-            if ( pCounterValue > this.onlineRecord.get(deviceType))
-                this.onlineRecord.put(deviceType, pCounterValue);
-        }
-        else {
-            pOnline.addToSnd(1);
-            pCounter.addToSnd(1);
+        // Se o estado for diferente, fazer coisas:
+        if(state != deviceState){
+            res = true;
+            if (deviceState) {
+               pOnline.addToFst(1);
+               pCounter.addToFst(1);
+
+                int pCounterValue = pCounter.getPairValue();
+
+               if(pCounterValue > this.onlineRecord.get(deviceType)){
+                   // Se o nr de dispositivos online for maior que o record, adicionar
+                   this.onlineRecord.put(deviceType, pCounterValue);
+               }
+            }
+            else {
+                pOnline.addToSnd(1);
+                pCounter.addToSnd(1);
+            }
+
+            this.onlineDevices.put(deviceId, pOnline);
+            this.onlineCounter.put(deviceType, pCounter);
         }
 
-        this.onlineDevices.put(deviceId, pOnline);
-        this.onlineCounter.put(deviceType, pCounter);
+
+        return res;
     }
 
 }

@@ -1,8 +1,10 @@
-import com.ericsson.otp.erlang.OtpErlangMap;
-import com.ericsson.otp.erlang.OtpInputStream;
+import com.ericsson.otp.erlang.*;
 import org.zeromq.ZMQ;
 import org.zeromq.ZMsg;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 // This module will receive updates from other aggregators, connecting to its neighbours, as well as collectors
@@ -55,8 +57,8 @@ public class AggregatorNetwork implements Runnable{
                     Boolean deviceState = ((OtpErlangAtom) deviceInfo.get(new OtpErlangAtom("online"))).booleanValue();
                     String deviceType = ((OtpErlangAtom) deviceInfo.get(new OtpErlangAtom("type"))).atomValue();
 
-                    this.aggregator.updateDeviceState(deviceId, deviceState, deviceType);
-                    this.aggregator.propagateState();
+                    if (this.aggregator.updateDeviceState(deviceId, deviceState, deviceType))
+                        this.aggregator.propagateState();
 
 
                 }
@@ -66,6 +68,7 @@ public class AggregatorNetwork implements Runnable{
                     OtpErlangMap deviceInfo = new OtpErlangMap(new OtpInputStream(msg.pop().getData()));
                     System.out.println("Conteudo da msg recebida:\t" + deviceInfo.toString());
                     OtpErlangList eventsList = ((OtpErlangList) deviceInfo.get(new OtpErlangAtom("eventsList")));
+                    List<String> events = Arrays.stream(eventsList.elements()).sequential().map(OtpErlangObject::toString).toList();
                     //ArrayList<String> eventsList = (ArrayList<String>) StateCRDT.deserialize(msg.pop().getData());
                     //this.aggregator.addEvents(eventsList);
                 }

@@ -69,8 +69,8 @@ public class Aggregator {
         this.stateInfo.addEvents(eventsList, this.id);
     }
 
-    public void updateDeviceState(Integer deviceId, Boolean deviceState, String deviceType){
-        this.stateInfo.updateDeviceState(deviceId, deviceState, deviceType, this.id);
+    public boolean updateDeviceState(Integer deviceId, Boolean deviceState, String deviceType){
+        return this.stateInfo.updateDeviceState(deviceId, deviceState, deviceType, this.id);
     }
     public String toString() {
         return "Aggregator{" +

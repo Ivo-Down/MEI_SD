@@ -1,11 +1,14 @@
 import DataStructs.ZoneInformation;
 
 import java.io.*;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class StateCRDT  implements Serializable {
 
@@ -14,7 +17,7 @@ public class StateCRDT  implements Serializable {
     private final Map<Integer, ZoneInformation> zoneInfo;
     private final Lock lock;
 
-    // TODO: Implementar locks nisto!
+    // TODO: Implementar locks nisto! -> Done
 
 
     public StateCRDT() {
@@ -142,10 +145,42 @@ public class StateCRDT  implements Serializable {
     }
 
 
-    public void updateDeviceState(Integer deviceId, Boolean deviceState, String deviceType, Integer zoneId){
+    public boolean updateDeviceState(Integer deviceId, Boolean deviceState, String deviceType, Integer zoneId){
         try {
             this.lock.lock();
-            this.zoneInfo.get(zoneId).updateDeviceState(deviceId, deviceState, deviceType);
+            return this.zoneInfo.get(zoneId).updateDeviceState(deviceId, deviceState, deviceType);
+        } finally {
+            this.lock.unlock();
+        }
+    }
+
+    //* NOTIFICATIONS CHECK *//
+    public List<String> checkTypesWithOnlineDevices(){
+        try {  //TODO: CHECK IF ONLINE RECORD IS THE CURRENT ONLINE DEVICES OF THAT TYPE
+            this.lock.lock();
+            return zoneInfo.values().stream()
+                    .map(a -> a.getOnlineRecord().entrySet().stream()
+                            .filter(b -> b.getValue() > 0)
+                            .map(Map.Entry::getKey)
+                            .collect(Collectors.toList()))
+                    .flatMap(Collection::stream)
+                    .collect(Collectors.toList());
+        } finally {
+            this.lock.unlock();
+        }
+    }
+    public float getOnlinePercentage(){
+        try {
+            this.lock.lock();
+            var online = zoneInfo.values().stream() // primeiro maior q segundo
+                    .mapToLong(a -> a.getOnlineDevices().values().stream()
+                            .filter(b -> b.getPairValue()>0)
+                            .count())
+                    .sum();
+            var total = zoneInfo.values().stream() // primeiro maior q segundo
+                    .mapToLong(a -> a.getOnlineDevices().size())
+                    .sum();
+            return (float)online / (float)total;
         } finally {
             this.lock.unlock();
         }

@@ -1,0 +1,11 @@
+<component name="libraryTable">
+  <library name="jeromq-0.5.2">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/../jeromq-0.5.2.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../jinterface-1.6.1.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../json-simple-1.1.1.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
