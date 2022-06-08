@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 // This module will receive updates from other aggregators, connecting to its neighbours, as well as collectors
 public class AggregatorNetwork implements Runnable{
@@ -37,7 +38,8 @@ public class AggregatorNetwork implements Runnable{
 
                 System.out.println(aux);
 
-                if(aux.equals("A")){
+
+                if(aux.equals("A")){  // Received info from an aggregator
                     System.out.println("Estado de agregador recebida.");
                     StateCRDT state = (StateCRDT) StateCRDT.deserialize(msg.pop().getData());
 
@@ -45,10 +47,10 @@ public class AggregatorNetwork implements Runnable{
                         this.aggregator.propagateState();
                         this.aggregatorNotifier.sendNotifications(state);
                     }
-
                 }
-                else if (aux.equals("C_Device")) {
-                    // Receber +1 frame que identifica o tipo de not.
+
+
+                else if (aux.equals("C_Device")) { // Received info from a colector about device's state
 
                     OtpErlangMap deviceInfo = new OtpErlangMap(new OtpInputStream(msg.pop().getData()));
                     System.out.println("Conteudo da msg recebida:\t" + deviceInfo.toString());
@@ -58,22 +60,22 @@ public class AggregatorNetwork implements Runnable{
                     String deviceType = ((OtpErlangAtom) deviceInfo.get(new OtpErlangAtom("type"))).atomValue();
 
                     if (this.aggregator.updateDeviceState(deviceId, deviceState, deviceType))
-                        this.aggregator.propagateState();
+                        this.aggregator.propagateState();   //TODO FAZER ISTO - RETORNAR SE DEU OU NAO UPDATE
 
 
                 }
 
-                else if(aux.equals("C_Event")){
+
+                else if(aux.equals("C_Event")){  // Received info from a colector about device's state
 
                     OtpErlangMap deviceInfo = new OtpErlangMap(new OtpInputStream(msg.pop().getData()));
                     System.out.println("Conteudo da msg recebida:\t" + deviceInfo.toString());
                     OtpErlangList eventsList = ((OtpErlangList) deviceInfo.get(new OtpErlangAtom("eventsList")));
-                    List<String> events = Arrays.stream(eventsList.elements()).sequential().map(OtpErlangObject::toString).toList();
-                    //ArrayList<String> eventsList = (ArrayList<String>) StateCRDT.deserialize(msg.pop().getData());
-                    //this.aggregator.addEvents(eventsList);
+                    List<OtpErlangObject> erlObjects = Arrays.stream(eventsList.elements()).sequential().collect(Collectors.toList());
+
+                    this.aggregator.addEvents(erlObjects);
                 }
 
-                //System.out.println("Received an update: " + response);
                 Thread.sleep(1000);
             }
             catch(Exception e){

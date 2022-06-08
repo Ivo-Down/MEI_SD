@@ -1,4 +1,5 @@
 import DataStructs.Table;
+import com.ericsson.otp.erlang.OtpErlangObject;
 import org.zeromq.ZMQ;
 import org.zeromq.ZMsg;
 
@@ -65,7 +66,7 @@ public class Aggregator {
         return this.stateInfo.getNumberEvents(eventType);
     }
 
-    public void addEvents(List<String> eventsList){
+    public void addEvents(List<OtpErlangObject> eventsList){
         this.stateInfo.addEvents(eventsList, this.id);
     }
 

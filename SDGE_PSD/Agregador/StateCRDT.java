@@ -1,4 +1,5 @@
 import DataStructs.ZoneInformation;
+import com.ericsson.otp.erlang.OtpErlangObject;
 
 import java.io.*;
 import java.util.Collection;
@@ -135,7 +136,7 @@ public class StateCRDT  implements Serializable {
     }
 
 
-    public void addEvents(List<String> eventsList, Integer zoneId){
+    public void addEvents(List<OtpErlangObject> eventsList, Integer zoneId){
         try {
             this.lock.lock();
             this.zoneInfo.get(zoneId).addEvents(eventsList);
