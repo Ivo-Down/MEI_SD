@@ -128,7 +128,7 @@ login(DeviceId, DevicePw, DeviceType, DevicesInfo) ->
 
 % Sends device's state to aggregator
 sendState(ChumakSocket, State, SendType) ->  %SendType: C_Event or _CDevice
-  ToSend = [<<SendType>>, term_to_binary(State)],
+  ToSend = [list_to_binary(SendType), term_to_binary(State)],
   ok = chumak:send_multipart(ChumakSocket, ToSend),
   timer:send_after(?CollectTime, aggregator),
   ok.
