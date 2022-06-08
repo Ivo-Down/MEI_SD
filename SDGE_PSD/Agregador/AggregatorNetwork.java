@@ -1,6 +1,5 @@
-import DataStructs.NotificationData;
-import DataStructs.StateCRDT;
-import com.ericsson.otp.erlang.*;
+import com.ericsson.otp.erlang.OtpErlangMap;
+import com.ericsson.otp.erlang.OtpInputStream;
 import org.zeromq.ZMQ;
 import org.zeromq.ZMsg;
 
@@ -11,7 +10,7 @@ public class AggregatorNetwork implements Runnable{
     private final ZMQ.Socket pull;
     private final ZMQ.Socket push;
     private final Aggregator aggregator;
-    private final NotificationData nData;
+    private final AggregatorNotifier aggregatorNotifier;
 
     //TODO: pensar em estruturas para guardar informações sobre notis. (Um id por tipo - 4 tipos diferentes (?))
     // Mudar os nomes destas cenas.
@@ -20,7 +19,7 @@ public class AggregatorNetwork implements Runnable{
         this.pull = pull;
         this.push = push;
         this.aggregator = aggregator;
-        this.nData = new NotificationData(pub);
+        this.aggregatorNotifier = new AggregatorNotifier(pub);
     }
 
     public void run(){
@@ -42,7 +41,7 @@ public class AggregatorNetwork implements Runnable{
 
                     if (this.aggregator.merge(state)){
                         this.aggregator.propagateState();
-                        //this.nData.sendNotifications(state);    TODO DESCOMENTAR
+                        this.aggregatorNotifier.sendNotifications(state);
                     }
 
                 }
@@ -67,7 +66,7 @@ public class AggregatorNetwork implements Runnable{
                     OtpErlangMap deviceInfo = new OtpErlangMap(new OtpInputStream(msg.pop().getData()));
                     System.out.println("Conteudo da msg recebida:\t" + deviceInfo.toString());
                     OtpErlangList eventsList = ((OtpErlangList) deviceInfo.get(new OtpErlangAtom("eventsList")));
-                    //ArrayList<String> eventsList = (ArrayList<String>) DataStructs.StateCRDT.deserialize(msg.pop().getData());
+                    //ArrayList<String> eventsList = (ArrayList<String>) StateCRDT.deserialize(msg.pop().getData());
                     //this.aggregator.addEvents(eventsList);
                 }
 
