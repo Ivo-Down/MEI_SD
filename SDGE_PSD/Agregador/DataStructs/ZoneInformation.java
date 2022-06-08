@@ -1,5 +1,8 @@
 package DataStructs;
 
+import com.ericsson.otp.erlang.OtpErlangAtom;
+import com.ericsson.otp.erlang.OtpErlangObject;
+
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.List;
@@ -124,12 +127,14 @@ public class ZoneInformation implements Serializable {
     }
 
     // TODO: verificar se é preciso lançar alguma notificaçao
-    public void addEvents(List<String> eventsList){
-        for(String e: eventsList){
-            if (this.eventCounter.containsKey(e))
-                this.eventCounter.put(e, this.eventCounter.get(e) + 1);
+    public void addEvents(List<OtpErlangObject> eventsList){
+        for(OtpErlangObject e: eventsList){
+            String event = e.toString();
+
+            if (this.eventCounter.containsKey(event))
+                this.eventCounter.put(event, this.eventCounter.get(event) + 1);
             else
-                this.eventCounter.put(e, 1);
+                this.eventCounter.put(event, 1);
         }
     }
 

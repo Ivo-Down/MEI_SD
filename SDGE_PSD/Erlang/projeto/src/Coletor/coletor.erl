@@ -1,7 +1,7 @@
 -module(coletor).
 -export([start/1]).
 -define(CollectTime, 5000).
--define(AliveTime, 20000).
+-define(AliveTime, 60000).
 -define(DevicesFileName, "dispositivos1.json").
 -define(AggregatorPort, 8003).
 -define(CollectorDeviceMsg, "C_Device").
