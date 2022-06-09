@@ -14,7 +14,7 @@ start(Port,AggregatorPort) ->
   % Criar zeromq socket para agregador (do tipo push)
   application:start(chumak),
   {ok, ChumakSocket} = chumak:socket(push),
-  case chumak:connect(ChumakSocket, tcp, "192.168.1.73", AggregatorPort) of
+  case chumak:connect(ChumakSocket, tcp, "localhost", AggregatorPort) of
     {ok, _BindPid} ->
         io:format("Binding OK with Pid: ~p\n", [ChumakSocket]);
     {error, Reason} ->
