@@ -51,7 +51,7 @@ public class ClientView {
             showMenu(k);
             this.op = lerOpcao();
             if (op>0 && !this.disponivel.get(op-1).validate()) {
-                System.out.println("Opção indisponível! Tente novamente.");
+                System.out.println(ANSI_RED + "Opção indisponível! Tente novamente." + ANSI_RESET);
             } else if (op>0) {
                 // executar handler
                 this.handlers.get(op-1).execute();
@@ -62,16 +62,16 @@ public class ClientView {
     private void showTitle(int i){
         switch (i) {
             case 1:
-                System.out.println("--- Menu Inicial ---");
+                System.out.println(ANSI_BLUE + "------ Menu Inicial ------" + ANSI_RESET);
                 break;
             case 2:
-                System.out.println("--- Indique qual a query a executar! ---");
+                System.out.println("------ Indique qual a query a executar! ------");
                 break;
             case 3:
-                System.out.println("--- Indique qual a notificação que pretende subscrever! ---");
+                System.out.println("------ Indique qual a notificação que pretende subscrever! ------");
                 break;
             case 4:
-                System.out.println("--- Indique qual a notificação que pretende CANCELAR a subscrição! ---");
+                System.out.println("------ Indique qual a notificação que pretende CANCELAR a subscrição! ------");
             default:
                 break;
         }
@@ -95,7 +95,7 @@ public class ClientView {
         System.out.print("Opção: ");
         op = is.nextInt();
         while ( op < 0 || op > this.opcoes.size()) {
-            System.out.println("Opção Inválida!");
+            System.out.println(ANSI_RED + "Opção Inválida!" + ANSI_RESET);
             op = lerOpcao();
         }
         return op;

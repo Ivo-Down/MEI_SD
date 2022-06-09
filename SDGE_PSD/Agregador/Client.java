@@ -13,7 +13,9 @@ public class Client {
     private static Scanner scin;
     private static ZMQ.Socket req;
     private static ZMQ.Socket sub;
-
+    public static final String ANSI_RED = "\u001B[31m";
+    public static final String ANSI_RESET = "\u001B[0m";
+    public static final String ANSI_GREEN = "\u001B[32m";
 
     public Client(){
         scin = new Scanner(System.in);
@@ -169,27 +171,27 @@ public class Client {
 
     private static void subscribe(String notif){
         if(!(subscriptions.contains(notif))){
-            System.out.println("Subscrição efetuada com sucesso!");
+            System.out.println(ANSI_GREEN + "Subscrição efetuada com sucesso!" + ANSI_RESET);
             sub.subscribe(notif);
             subscriptions.add(notif);
         }
         else {
-            System.out.println("Subscrição já efetuada!");
+            System.out.println(ANSI_RED + "Subscrição já efetuada!" + ANSI_RESET);
         }
     }
 
 
     private static void unsubscribe(String notif){
         if (subscriptions.isEmpty()) {
-            System.out.println("Não tem nenhuma Notificação subscrita!");
+            System.out.println(ANSI_RED + "Não tem nenhuma Notificação subscrita!" + ANSI_RESET);
         }
         else {
             if (subscriptions.contains(notif)) {
-                System.out.println("Anulou a subscrição com sucesso!");
+                System.out.println(ANSI_GREEN + "Anulou a subscrição com sucesso!" + ANSI_RESET);
                 sub.unsubscribe(notif);
                 subscriptions.remove(notif);
             } else {
-                System.out.println("ERRO: Não pode anular uma subscrição inexistente!");
+                System.out.println(ANSI_RED + "Não pode anular uma subscrição inexistente!" + ANSI_RESET);
             }
         }
     }
