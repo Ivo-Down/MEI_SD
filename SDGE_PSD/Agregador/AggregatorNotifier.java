@@ -32,7 +32,7 @@ public class AggregatorNotifier {
         if(missingTypes.size() == 0) return;
         for (var mType : missingTypes) {
             pushSocket.sendMore("TOPIC_TYPE_GONE");
-            pushSocket.send(mType + " went offline!");
+            pushSocket.send(mType + " deixaram de estar online!");
         }
     }
     // checkar atingido record de número de dispositivos online de um dado tipo na zona (com informação do
@@ -44,7 +44,7 @@ public class AggregatorNotifier {
         var newOnline = state.getDevicesOnline();
         if(newOnline - oldOnline <= 0) return;
         pushSocket.sendMore("TOPIC_ONLINE_INCREASE");
-        pushSocket.send("Online devices increased by " + (newOnline - oldOnline));
+        pushSocket.send("Número de dispositivos online aumentou em " + (newOnline - oldOnline));
     }
     // a percentagem de dispositivos online na zona face ao total online subiu, tendo ficado em mais de
     // X% dos dispositivos online, para X ∈ {10, 20, . . . , 90}
@@ -54,7 +54,7 @@ public class AggregatorNotifier {
         int newPercentage = (int)(state.getOnlinePercentage()*100) % 10;
         if(newPercentage > oldPercentage){
             pushSocket.sendMore("TOPIC_DEVICES_INCREASE");
-            pushSocket.send("Online percentage increased to " + (newPercentage*10));
+            pushSocket.send("Percentagem de dispositivos online aumentou " + (newPercentage*10));
         }
     }
     // a percentagem de dispositivos online na zona face ao total online desceu, tendo ficado em menos
@@ -65,7 +65,7 @@ public class AggregatorNotifier {
         int newPercentage = (int)(state.getOnlinePercentage()*100) % 10;
         if(newPercentage < oldPercentage){
             pushSocket.sendMore("TOPIC_DEVICES_DECREASE");
-            pushSocket.send("Online percentage decreased to " + (newPercentage*10));
+            pushSocket.send("Percentagem de dispositivos online diminuiu " + (newPercentage*10));
         }
     }
 }
