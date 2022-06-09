@@ -1,7 +1,7 @@
 -module(devices).
 -export([start/1]).
 -define(EventList, [alarm, error, accident]).
--define(DevicesFileName, "dispositivos1.json").
+-define(DevicesFileName, "dispositivos_1000.json").
 -define(EventTime, 1000).
 -define(ChangeZoneTimer, 5000).
 
@@ -99,7 +99,7 @@ device_auth(Socket, DeviceInfo) ->
 % Envia um evento ao coletor
 send_event(Socket, DeviceInfo) ->
   Event = lists:nth(rand:uniform(length(?EventList)), ?EventList),
-  io:fwrite("\nSou um device, vou mandar event info ~p.\n", [Event]),
+  io:fwrite("\nSou o device ~p, vou mandar event info ~p.\n", [DeviceInfo, Event]),
   EventInfo = #{id=>maps:get(id,DeviceInfo), event_type=>Event, mode=>event},
   ok = gen_tcp:send(Socket, term_to_binary(EventInfo)).  %envia o evento ao coletor
 

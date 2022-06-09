@@ -17,12 +17,20 @@ Build
     Para sair: ctrl + G e depois $ q
     
 
-Interpretador de JSON
+Para correr abrir um terminal para devices e um terminal por cada coletor:
 -----
     $ rebar3 compile
     
     $ rebar3 shell
+
+
+Para coletor:
+-----
+    $ c(coletor).
+    $ coletor:start(PortNumber).   -> no futuro vai levar tb porta do agregador
     
-    $ c(jsoninterpreter).
+Para devices:
+-----
+    $ c(devices).
     
-    $ jsoninterpreter:parse_file("nomeficheiro,json").
+    $ devices:start([ColPortNumber1, ColPortNumber2, ...]).

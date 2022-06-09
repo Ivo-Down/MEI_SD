@@ -2,7 +2,7 @@
 -export([start/1]).
 -define(CollectTime, 5000).
 -define(AliveTime, 60000).
--define(DevicesFileName, "dispositivos1.json").
+-define(DevicesFileName, "dispositivos_1000.json").
 -define(AggregatorPort, 8003).
 -define(CollectorDeviceMsg, "C_Device").
 -define(CollectorEventMsg, "C_Event").
@@ -70,8 +70,8 @@ handle_device(Sock, ChumakSocket, State, TRef, DevicesInfo) ->
       end;
 
     {tcp_closed, _} ->
-      ok = sendState(ChumakSocket, maps:update(online, false, State), ?CollectorDeviceMsg),
-      io:fwrite("\nConnection closed.\n");
+      io:fwrite("\nConnection closed.\n"),
+      ok = sendState(ChumakSocket, maps:update(online, false, State), ?CollectorDeviceMsg);
 
     {tcp_error, _, _} ->
       ok = sendState(ChumakSocket, maps:update(online, false, State), ?CollectorDeviceMsg),
@@ -97,7 +97,7 @@ handle_device(Sock, ChumakSocket, State, TRef, DevicesInfo) ->
       handle_device(Sock, ChumakSocket, State, TRef, DevicesInfo);
 
     aggregator ->
-      %io:fwrite("\nSending info to aggregator: ~p\n",[State]),
+      io:fwrite("\nSending info to aggregator: ~p\n",[State]),
       % Envia estado para o agregador através de um push zeromq socket
       ok = sendState(ChumakSocket, State, ?CollectorEventMsg),
       handle_device(Sock, ChumakSocket, maps:update(eventsList, [], State), TRef, DevicesInfo)
