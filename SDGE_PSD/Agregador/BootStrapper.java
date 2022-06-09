@@ -17,14 +17,6 @@ public class BootStrapper {
 
     public static final int bootstrapper_port = 8888;
 
-    // Ler os dados do json
-    // Fazer pre processamento
-    // Criar socket tipo rep
-    // Receber mensagem tipo req
-    // Retirar da mensagem id do agregador que enviou
-    // Ir buscar os vizinhos desse id
-    // Processo de serializar a table
-    // Enviar pelo socket rep
     public static void main(String[] args) {
         overlayNodes = processJsonData();
 

@@ -21,7 +21,6 @@ public class AggregatorNotifier {
         CheckOnlineDecrease(newState);
         cachedState = newState;
     }
-    // TODO: TRADUZIR PARA INGLISH
 
     // checkar quando deixar de haver dispositivos online de um dado tipo na zona;
     private void CheckOnlineDecrease(StateCRDT newstate) {
