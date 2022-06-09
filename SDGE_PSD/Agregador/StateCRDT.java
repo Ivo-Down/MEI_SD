@@ -11,6 +11,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+
 public class StateCRDT  implements Serializable {
 
 
@@ -45,16 +46,6 @@ public class StateCRDT  implements Serializable {
             oos.close();
             return boas.toByteArray();
         } catch (IOException ioe) {
-            ioe.printStackTrace();
-        }
-        throw new RuntimeException();
-    }
-
-    public static Object deserialize(byte[] bytes) {
-        InputStream is = new ByteArrayInputStream(bytes);
-        try (ObjectInputStream ois = new ObjectInputStream(is)) {
-            return ois.readObject();
-        } catch (IOException | ClassNotFoundException ioe) {
             ioe.printStackTrace();
         }
         throw new RuntimeException();

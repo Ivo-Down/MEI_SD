@@ -11,7 +11,9 @@ public class AggregatorNotifier {
     // - Instead of adding multiple fields, save a deep clone of the state and use streams to compare state
 
     public AggregatorNotifier(ZMQ.Socket pushSocket) {
+
         this.pushSocket = pushSocket;
+        this.cachedState = new StateCRDT();
     }
 
     public void sendNotifications(StateCRDT newState){

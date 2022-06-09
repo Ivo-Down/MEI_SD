@@ -1,7 +1,7 @@
 -module(devices).
 -export([start/1]).
 -define(EventList, [alarm, error, accident]).
--define(DevicesFileName, "dispositivos_1000.json").
+-define(DevicesFileName, "dispositivos.json").
 -define(EventTime, 1000).
 -define(ChangeZoneTimer, 5000).
 
@@ -77,7 +77,7 @@ device_auth(Socket, DeviceInfo) ->
   % Espera pela resposta da autenticação, é uma espera bloqueante
   case gen_tcp:recv(Socket, 0) of
     {ok, Binary}->% Send basic message.
-      Msg = binary_to_atom(Binary),
+      Msg = erlang:binary_to_atom(Binary),
       case Msg of
             
         auth_ok ->   

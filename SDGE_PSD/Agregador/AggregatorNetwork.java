@@ -41,7 +41,7 @@ public class AggregatorNetwork implements Runnable{
 
                 if(aux.equals("A")){  // Received info from an aggregator
                     System.out.println("Estado de agregador recebida.");
-                    StateCRDT state = (StateCRDT) StateCRDT.deserialize(msg.pop().getData());
+                    StateCRDT state = (StateCRDT) StaticMethods.deserialize(msg.pop().getData());
 
                     if (this.aggregator.merge(state)){
                         this.aggregator.propagateState();

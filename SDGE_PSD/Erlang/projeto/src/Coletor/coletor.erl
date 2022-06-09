@@ -1,21 +1,20 @@
 -module(coletor).
--export([start/1]).
+-export([start/2]).
 -define(CollectTime, 5000).
 -define(AliveTime, 60000).
--define(DevicesFileName, "dispositivos_1000.json").
--define(AggregatorPort, 8003).
+-define(DevicesFileName, "dispositivos.json").
 -define(CollectorDeviceMsg, "C_Device").
 -define(CollectorEventMsg, "C_Event").
 
 
-start(Port) ->
+start(Port,AggregatorPort) ->
   % Criar SocketListener para os dispositivos
   {ok, LSock} = gen_tcp:listen(Port, [binary, {active, once}, {packet, 4}, {reuseaddr, true}]),
 
   % Criar zeromq socket para agregador (do tipo push)
   application:start(chumak),
   {ok, ChumakSocket} = chumak:socket(push),
-  case chumak:connect(ChumakSocket, tcp, "localhost", ?AggregatorPort) of
+  case chumak:connect(ChumakSocket, tcp, "192.168.1.73", AggregatorPort) of
     {ok, _BindPid} ->
         io:format("Binding OK with Pid: ~p\n", [ChumakSocket]);
     {error, Reason} ->
@@ -51,7 +50,7 @@ handle_device(Sock, ChumakSocket, State, TRef, DevicesInfo) ->
       case maps:get(mode, Msg) of
         auth -> 
           io:fwrite("\nColector received: Auth info ~p .\n", [Msg]),
-          login(maps:get(id, Msg), maps:get(password, Msg), binary_to_atom(maps:get(type, Msg)), DevicesInfo),
+          login(maps:get(id, Msg), maps:get(password, Msg), erlang:binary_to_atom(maps:get(type, Msg)), DevicesInfo),
           timer:send_after(?CollectTime, aggregator), % começa aqui o timer para depois enviar info ao agregador
           handle_device(Sock, ChumakSocket, State, TRef, DevicesInfo);
 
@@ -79,7 +78,7 @@ handle_device(Sock, ChumakSocket, State, TRef, DevicesInfo) ->
 
     {auth_ok, DeviceId, DeviceType} ->
       io:fwrite("\nAuthentication was successful.\n"),
-      ok = gen_tcp:send(Sock, atom_to_binary(auth_ok)),  %enviar para o device a confirmaçao de auth para ele começar a enviar eventos
+      ok = gen_tcp:send(Sock, erlang:atom_to_binary(auth_ok)),  %enviar para o device a confirmaçao de auth para ele começar a enviar eventos
       {ok, NewTRef} = timer:send_after(?AliveTime, alive_timeout),  % começar o timer para ver se está vivo 
       StateAux1 = maps:put(id, DeviceId, State),
       StateAux2 = maps:put(type, DeviceType, StateAux1),
@@ -88,7 +87,7 @@ handle_device(Sock, ChumakSocket, State, TRef, DevicesInfo) ->
 
     auth_error ->
       io:fwrite("\nFailed to authenticate.\n"),
-      ok = gen_tcp:send(Sock, atom_to_binary(auth_error)),
+      ok = gen_tcp:send(Sock, erlang:atom_to_binary(auth_error)),
       gen_tcp:close(Sock);  % acaba a conexão com o dispositivo
 
     alive_timeout ->

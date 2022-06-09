@@ -9,23 +9,17 @@ import java.util.Scanner;
 //Args: [SUB-PORT] [REQ-PORT]
 public class Client {
 
-    private static List<String> subscriptions;
-    private static Scanner scin;
+    private static List<String> subscriptions = new ArrayList<>();
+    private static Scanner scin = new Scanner(System.in);
     private static ZMQ.Socket req;
     private static ZMQ.Socket sub;
     public static final String ANSI_RED = "\u001B[31m";
     public static final String ANSI_RESET = "\u001B[0m";
     public static final String ANSI_GREEN = "\u001B[32m";
 
-    public Client(){
-        scin = new Scanner(System.in);
-
-    }
 
 
     public static void main(String[] args){
-        
-        subscriptions = new ArrayList<>();
 
         ZMQ.Context context = ZMQ.context(1);
 
