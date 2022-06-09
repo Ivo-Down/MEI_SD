@@ -11,7 +11,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 // Args [BOOT_PORT]
-public class BootSrapper {
+public class BootStrapper {
     private static ZMQ.Socket rep;
     private static Table overlayNodes;
 

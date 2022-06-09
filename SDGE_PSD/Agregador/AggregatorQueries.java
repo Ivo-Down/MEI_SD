@@ -16,7 +16,7 @@ public class AggregatorQueries implements Runnable{
            //Aqui uma função de receber e dar parse da mensagem
             try{
                 HandleQuery();
-                Thread.sleep(2000);
+                //Thread.sleep(2000);
             }
             catch(Exception e){
                 e.printStackTrace();

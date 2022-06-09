@@ -1,31 +1,31 @@
 import DataStructs.Table;
 import com.ericsson.otp.erlang.OtpErlangObject;
+import org.zeromq.SocketType;
 import org.zeromq.ZMQ;
 import org.zeromq.ZMsg;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class Aggregator {
     private final int id;
-
-    private final Table neighbors;
 
     private final StateCRDT stateInfo;
 
     private HashMap<Integer, ZMQ.Socket> vizinhos; // id -> socketPush
 
 
-    public Aggregator(int id, Table neighbors){
+    public Aggregator(int id, Table neighbours, ZMQ.Context context){
         this.id = id;
-        this.neighbors = neighbors;
         this.stateInfo = new StateCRDT();
         this.vizinhos = new HashMap<>();
-    }
 
-
-    public int getId(){
-        return this.id;
+        for (Map.Entry<Integer, Integer> vizinho : neighbours.getMap().entrySet()){
+            ZMQ.Socket push = context.socket(SocketType.PUSH);
+            push.connect("tcp://localhost:" + vizinho.getValue());
+            this.vizinhos.put(vizinho.getKey(), push);
+        }
     }
 
 
@@ -42,11 +42,6 @@ public class Aggregator {
         }
     }
 
-    public void receiveState(byte[] data){
-        StateCRDT received = (StateCRDT) StateCRDT.deserialize(data);
-        this.stateInfo.merge(received);
-    }
-
 
     public boolean merge(StateCRDT newState){
         return this.stateInfo.merge(newState);
@@ -56,12 +51,15 @@ public class Aggregator {
     public boolean getIsDeviceOnline(int deviceId){
         return this.stateInfo.getIsDeviceOnline(deviceId);
     }
+
     public int getDevicesOnline(){
         return this.stateInfo.getDevicesOnline();
     }
+
     public int getDevicesOnlineOfType(String type){
         return this.stateInfo.getDevicesOnlineOfType(type);
     }
+
     public int getNumberEvents(String eventType){
         return this.stateInfo.getNumberEvents(eventType);
     }
@@ -73,10 +71,13 @@ public class Aggregator {
     public boolean updateDeviceState(Integer deviceId, Boolean deviceState, String deviceType){
         return this.stateInfo.updateDeviceState(deviceId, deviceState, deviceType, this.id);
     }
+
+    /*
     public String toString() {
         return "Aggregator{" +
                 "id=" + id +
-                ", neighbors=" + neighbors.toString() +
+                ", neighbors=" + neighbours.toString() +
                 '}';
     }
+     */
 }

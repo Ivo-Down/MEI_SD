@@ -60,7 +60,7 @@ public class AggregatorNetwork implements Runnable{
                     String deviceType = ((OtpErlangAtom) deviceInfo.get(new OtpErlangAtom("type"))).atomValue();
 
                     if (this.aggregator.updateDeviceState(deviceId, deviceState, deviceType))
-                        this.aggregator.propagateState();   //TODO FAZER ISTO - RETORNAR SE DEU OU NAO UPDATE
+                        this.aggregator.propagateState();
 
 
                 }
@@ -76,7 +76,7 @@ public class AggregatorNetwork implements Runnable{
                     this.aggregator.addEvents(erlObjects);
                 }
 
-                Thread.sleep(1000);
+                //Thread.sleep(1000);
             }
             catch(Exception e){
                 e.printStackTrace();

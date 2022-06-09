@@ -20,7 +20,7 @@ public class AggregatorServer {
     public static void main(String[] args) throws Exception{
 
         //ID
-        Aggregator ag = handleNeighbors(Integer.parseInt(args[0]));
+        Aggregator ag = handleNeighbours(Integer.parseInt(args[0]));
         System.out.println(ag);
 
         // ZeroMQ para PUBLISHER
@@ -44,15 +44,9 @@ public class AggregatorServer {
         // Allows users to query the state
         AggregatorQueries quer = new AggregatorQueries(rep, ag);
 
-        /*ZMsg msg = new ZMsg();
-        msg.add("A");
-        msg.add(new byte[100000]);
-        msg.send(push);*/
-        //psh.send(pushMessage.getBytes(ZMQ.CHARSET));    // IMPORTANT (CONTENT)
 
         new Thread(network).start();
-        //new Thread(notif).start();    //TODO DESCOMENTAR
-        //new Thread(quer).start();
+        new Thread(quer).start();
 
         // Propagate state, TODO: maybe try with new class
         new Thread(() -> {
@@ -81,7 +75,7 @@ public class AggregatorServer {
 
     }
 
-    private static Aggregator handleNeighbors(Integer id) {
+    private static Aggregator handleNeighbours(Integer id) {
         /* ------------ Initialization ------------ */
         ZMQ.Socket reqNeighbours = context.socket(SocketType.REQ);
         reqNeighbours.connect("tcp://localhost:" + bootstrapper_port);
@@ -95,9 +89,9 @@ public class AggregatorServer {
         String resposta = new String(reqNeighbours.recv(),ZMQ.CHARSET); // Vem a mensagem introdutória
         byte[] data = reqNeighbours.recv(); //Vem a tabela
         System.out.println("->Received neighbors information from bootstrapper.\n");
-        Table neighbors = (Table) StaticMethods.deserialize(data);
+        Table neighbours = (Table) StaticMethods.deserialize(data);
 
-        return new Aggregator(id, neighbors);
+        return new Aggregator(id, neighbours, context);
 
     }
 

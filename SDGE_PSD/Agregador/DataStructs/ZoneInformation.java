@@ -45,12 +45,12 @@ public class ZoneInformation implements Serializable {
             if(this.eventCounter.containsKey(event.getKey())){
                 if (event.getValue() > this.eventCounter.get(event.getKey())){
                     this.eventCounter.put(event.getKey(), event.getValue());
-                    res = true;
+                    res = true; //TODO: Return False caso nao se queira enviar eventos.
                 }
 
             } else {
                 this.eventCounter.put(event.getKey(), event.getValue());
-                res = true;
+                res = true; // Aqui tb
             }
         }
 

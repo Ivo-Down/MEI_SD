@@ -21,7 +21,8 @@ public class Client {
     }
 
 
-    public static void main(String[] args) throws Exception{
+    public static void main(String[] args){
+        
         subscriptions = new ArrayList<>();
 
         ZMQ.Context context = ZMQ.context(1);
@@ -76,10 +77,10 @@ public class Client {
     /* - - - - - QUERIES - - - - - - */
     private static void execOnlineDevicesType() {
 
-        System.out.print("Indique o tipo de dispositivo que pretende saber o número de dispositivos online:  ");
+        System.out.print("Indique o tipo de dispositivo que pretende saber o número de dispositivos online: ");
         String type = scin.nextLine();
 
-        System.out.println("Número de dispositivos do tipo " + type + " online:" + doQuery(QueryType.QUERY_TOTAL_DEVICES_TYPE + " " +type));
+        System.out.println("Número de dispositivos do tipo " + type + " online:\t" + doQuery(QueryType.QUERY_TOTAL_DEVICES_TYPE + " " +type));
 
 
     }
@@ -98,10 +99,10 @@ public class Client {
 
     private static void execEventsNumberType() {
         // Fazer coisas
-        System.out.print("Indique o tipo de evento que pretende saber o número:  ");
+        System.out.print("Indique o tipo de evento que pretende saber o número: ");
         String type = scin.nextLine();
 
-        System.out.println("Número de eventos do tipo " + type + " ocorridos no sistema:" + doQuery(QueryType.QUERY_EVENT_NUMBER + " " + type));
+        System.out.println("Número de eventos do tipo " + type + " ocorridos no sistema:\t" + doQuery(QueryType.QUERY_EVENT_NUMBER + " " + type));
     }
 
     /* - - - - - - - - - - - - - -- - - - */
@@ -166,11 +167,6 @@ public class Client {
     private static void unsubDevicesDecrease() { unsubscribe("TOPIC_DEVICES_DECREASE"); }
 
 
-    private static String doQuery(String queryType){
-        req.send(queryType.getBytes(ZMQ.CHARSET));
-        return new String(req.recv(),ZMQ.CHARSET); // TOPIC
-    }
-
     private static void subscribe(String notif){
         if(!(subscriptions.contains(notif))){
             System.out.println("Subscrição efetuada com sucesso!");
@@ -196,6 +192,12 @@ public class Client {
                 System.out.println("ERRO: Não pode anular uma subscrição inexistente!");
             }
         }
+    }
+
+
+    private static String doQuery(String queryType){
+        req.send(queryType.getBytes(ZMQ.CHARSET));
+        return new String(req.recv(),ZMQ.CHARSET); // TOPIC
     }
 
 }
