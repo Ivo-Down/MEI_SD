@@ -2,7 +2,7 @@
 -export([start/1]).
 -define(EventList, [alarm, error, accident]).
 -define(DevicesFileName, "dispositivos_10000.json").
--define(EventTime, 2000).
+-define(EventTime, 5000).
 -define(ChangeZoneTimer, 5000).
 
 
@@ -26,6 +26,7 @@ create_devices(PortList, [H|T]) ->
   DevicePid = spawn(fun() -> device_loop1(Socket, H, PortList, no_auth, Collector) end),
   timer:send_after(?ChangeZoneTimer, DevicePid, change_zone),  % envia o 1º pedido de mudar zona passado x tempo
   %io:fwrite("\nList size ~p\n",[H]),
+  timer:sleep(5),
   create_devices(PortList, T).
 
 
