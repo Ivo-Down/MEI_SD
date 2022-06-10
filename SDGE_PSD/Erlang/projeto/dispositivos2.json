@@ -1,0 +1,17 @@
+[
+    {
+        "id": 4,
+        "password": "pw_4",
+        "type": "fridge"
+      },
+      {
+        "id": 5,
+        "password": "pw_5",
+        "type": "phone"
+      },
+      {
+        "id": 6,
+        "password": "pw_6",
+        "type": "fridge"
+      }
+]
