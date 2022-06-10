@@ -21,10 +21,12 @@ public class Aggregator {
         this.stateInfo = new StateCRDT(id);
         this.vizinhos = new HashMap<>();
 
+        System.out.println(neighbours.toString());
+
         for (Map.Entry<Integer, Integer> vizinho : neighbours.getMap().entrySet()){
             ZMQ.Socket push = context.socket(SocketType.PUSH);
-            push.connect("tcp://localhost:" + vizinho.getValue());
-            this.vizinhos.put(vizinho.getKey(), push);
+            push.connect("tcp://localhost:" + vizinho.getKey());
+            this.vizinhos.put(vizinho.getValue(), push);
         }
     }
 
@@ -35,6 +37,7 @@ public class Aggregator {
     // Função que envia o estado aos vizinhos TODO: Confirmar este send, por causa da identificação do envio do estado.
     public void propagateState(){
         for(ZMQ.Socket pushSocket: this.vizinhos.values()){
+            System.out.println("Propagatin to " + pushSocket);
             ZMsg msg = new ZMsg();
             msg.add("A");
             msg.add(stateInfo.serialize());

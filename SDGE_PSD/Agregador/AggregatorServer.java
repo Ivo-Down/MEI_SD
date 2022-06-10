@@ -25,7 +25,7 @@ public class AggregatorServer {
 
         // ZeroMQ para PUBLISHER
         ZMQ.Socket pub = context.socket(SocketType.PUB);
-        pub.connect("tcp://localhost:" + args[1]); // connect to broker
+        pub.bind("tcp://localhost:" + args[1]); // connect to broker
 
         // ZeroMQ para REPLY
         ZMQ.Socket rep = context.socket(SocketType.REP);

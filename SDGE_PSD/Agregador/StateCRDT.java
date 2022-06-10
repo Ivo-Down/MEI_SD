@@ -43,7 +43,7 @@ public class StateCRDT  implements Serializable {
         try (ObjectOutputStream oos = new ObjectOutputStream(boas)){
             try {
                 this.lock.lock();
-                oos.writeObject(this.zoneInfo);
+                oos.writeObject(this);
             } finally {
                 this.lock.unlock();
             }
