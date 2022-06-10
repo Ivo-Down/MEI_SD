@@ -30,24 +30,24 @@ start(Port,AggregatorPort) ->
 
   % Carregar os dados dos dispositivos para memória
   DevicesInfo = json_interpreter:parse_file(?DevicesFileName),
-
-  spawn(fun() -> acceptor(LSock, ChumakSocket, DevicesInfo) end),
+  LoginManagerPid = spawn(fun() -> login_manager(DevicesInfo) end),
+  spawn(fun() -> acceptor(LSock, ChumakSocket, LoginManagerPid) end),
   started.
   
 
 
-acceptor(LSock, ChumakSocket, DevicesInfo) ->
+acceptor(LSock, ChumakSocket, LoginManagerPid) ->
   % Fica à espera de uma nova conexão
   {ok, Sock} = gen_tcp:accept(LSock),
   %io:fwrite("\nNew device connected to socket: ~p.\n", [Sock]),
-  Pid = spawn(fun() -> handle_device(Sock, ChumakSocket, #{eventsList=>[], online=>true}, null, DevicesInfo) end),
+  Pid = spawn(fun() -> handle_device(Sock, ChumakSocket, #{eventsList=>[], online=>true}, null, LoginManagerPid) end),
   gen_tcp:controlling_process(Sock, Pid),
-  acceptor(LSock, ChumakSocket, DevicesInfo).
+  acceptor(LSock, ChumakSocket, LoginManagerPid).
   
 
 
 % State = #{eventsList=>List, online=>Bool}, TRef é a referencia para o timer de inatividade
-handle_device(Sock, ChumakSocket, State, TRef, DevicesInfo) ->
+handle_device(Sock, ChumakSocket, State, TRef, LoginManagerPid) ->
   receive
     {tcp, _, Data} ->
       inet:setopts(Sock, [{active, once}]),
@@ -57,7 +57,7 @@ handle_device(Sock, ChumakSocket, State, TRef, DevicesInfo) ->
           io:fwrite("\nColector received: Auth info ~p .\n", [maps:get(id, Msg)]),
           login(maps:get(id, Msg), maps:get(password, Msg), erlang:binary_to_atom(maps:get(type, Msg)), DevicesInfo),
           timer:send_after(random_interval(?CollectTime), aggregator), % começa aqui o timer para depois enviar info ao agregador
-          handle_device(Sock, ChumakSocket, State, TRef, DevicesInfo);
+          handle_device(Sock, ChumakSocket, State, TRef, LoginManagerPid);
 
         event -> 
           Event = maps:get(event_type, Msg),
@@ -68,7 +68,7 @@ handle_device(Sock, ChumakSocket, State, TRef, DevicesInfo) ->
           {ok, NewTRef} = timer:send_after(?AliveTime, alive_timeout),   
 
           StateAux1 = maps:update(eventsList, maps:get(eventsList, State) ++ [Event], State),
-          handle_device(Sock, ChumakSocket, StateAux1, NewTRef, DevicesInfo);
+          handle_device(Sock, ChumakSocket, StateAux1, NewTRef, LoginManagerPid);
 
         _ -> io:fwrite("\nInvalid Message!\n")
       end;
@@ -89,7 +89,7 @@ handle_device(Sock, ChumakSocket, State, TRef, DevicesInfo) ->
       StateAux1 = maps:put(id, DeviceId, State),
       StateAux2 = maps:put(type, DeviceType, StateAux1),
       ok = sendState(ChumakSocket, StateAux2, ?CollectorDeviceMsg), % warns aggregator that device turned on
-      handle_device(Sock, ChumakSocket, StateAux2, NewTRef, DevicesInfo);
+      handle_device(Sock, ChumakSocket, StateAux2, NewTRef, LoginManagerPid);
 
     auth_error ->
       io:fwrite("\nFailed to authenticate.\n"),
@@ -99,13 +99,13 @@ handle_device(Sock, ChumakSocket, State, TRef, DevicesInfo) ->
     alive_timeout ->
       io:fwrite("\nDevice has not sent anything in a while. Turning it to offline.\n"),
       ok = sendState(ChumakSocket, maps:update(online, false, State), ?CollectorDeviceMsg), % warns aggregator that device turned off
-      handle_device(Sock, ChumakSocket, State, TRef, DevicesInfo);
+      handle_device(Sock, ChumakSocket, State, TRef, LoginManagerPid);
 
     aggregator ->
       %io:fwrite("\nSending info to aggregator: ~p\n",[State]),
       % Envia estado para o agregador através de um push zeromq socket
       ok = sendState(ChumakSocket, State, ?CollectorEventMsg),
-      handle_device(Sock, ChumakSocket, maps:update(eventsList, [], State), TRef, DevicesInfo)
+      handle_device(Sock, ChumakSocket, maps:update(eventsList, [], State), TRef, LoginManagerPid)
   end.
 
 
@@ -113,25 +113,36 @@ handle_device(Sock, ChumakSocket, State, TRef, DevicesInfo) ->
 
 
 
-login(DeviceId, DevicePw, DeviceType, DevicesInfo) ->
 
+
+login_manager(DevicesInfo) ->
+  receive
+    {auth, DeviceId, DevicePw, From} -> 
+        spawn(fun() -> login_handler(From, DeviceId, DevicePw, DevicesInfo) end), % cria um ator para processar o login
+        login_manager(DevicesInfo)
+  end.
+
+
+login_handler(From, DeviceId, DevicePw, DevicesInfo) ->
   DeviceDictionary = lists:nth(DeviceId, DevicesInfo),
   case maps:find(id, DeviceDictionary) of
 
     {ok, DeviceId} ->
       case maps:find(password, DeviceDictionary) of
         {ok, DevicePw} ->
-          %io:fwrite("\nAuth successful.\n"),
-          self() ! {auth_ok, DeviceId, DeviceType};
+
+          From ! {auth_ok, DeviceId, DeviceType};
         {ok, _} ->
           io:fwrite("\nAuth failed.\n"),
-          self() ! auth_error      
+          From ! auth_error      
       end;
       
     {ok, _} ->
       io:fwrite("\nAuth failed.\n"),
-      self() ! auth_error  
+      From ! auth_error  
   end.
+
+
 
 
 % Sends device's state to aggregator
