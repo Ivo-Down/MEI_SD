@@ -2,19 +2,19 @@
 -export([start/2]).
 -define(CollectTime, 5000).
 -define(AliveTime, 60000).
--define(DevicesFileName, "dispositivos2.json").
+-define(DevicesFileName, "dispositivos_10000.json").
 -define(CollectorDeviceMsg, "C_Device").
 -define(CollectorEventMsg, "C_Event").
 
 %coletor:start(1234,8100).
 %coletor:start(1235,8101).
-%devices:start([1234,1235]).
+%devices:start([1234]).
 
 start(Port,AggregatorPort) ->
   io:fwrite("\nDevices file: ~p\n",[?DevicesFileName]),
 
   % Criar SocketListener para os dispositivos
-  {ok, LSock} = gen_tcp:listen(Port, [binary, {active, once}, {packet, 4}, {reuseaddr, true}]),
+  {ok, LSock} = gen_tcp:listen(Port, [binary, {active, once}, {packet, 4}, {reuseaddr, true}, {backlog, 1000}]),
 
   % Criar zeromq socket para agregador (do tipo push)
   application:start(chumak),
@@ -39,7 +39,7 @@ start(Port,AggregatorPort) ->
 acceptor(LSock, ChumakSocket, DevicesInfo) ->
   % Fica à espera de uma nova conexão
   {ok, Sock} = gen_tcp:accept(LSock),
-  io:fwrite("\nNew device connected to socket: ~p.\n", [Sock]),
+  %io:fwrite("\nNew device connected to socket: ~p.\n", [Sock]),
   Pid = spawn(fun() -> handle_device(Sock, ChumakSocket, #{eventsList=>[], online=>true}, null, DevicesInfo) end),
   gen_tcp:controlling_process(Sock, Pid),
   acceptor(LSock, ChumakSocket, DevicesInfo).
@@ -54,15 +54,15 @@ handle_device(Sock, ChumakSocket, State, TRef, DevicesInfo) ->
       Msg = binary_to_term(Data),
       case maps:get(mode, Msg) of
         auth -> 
-          io:fwrite("\nColector received: Auth info ~p .\n", [Msg]),
+          io:fwrite("\nColector received: Auth info ~p .\n", [maps:get(id, Msg)]),
           login(maps:get(id, Msg), maps:get(password, Msg), erlang:binary_to_atom(maps:get(type, Msg)), DevicesInfo),
-          timer:send_after(?CollectTime, aggregator), % começa aqui o timer para depois enviar info ao agregador
+          timer:send_after(random_interval(?CollectTime), aggregator), % começa aqui o timer para depois enviar info ao agregador
           handle_device(Sock, ChumakSocket, State, TRef, DevicesInfo);
 
         event -> 
           Event = maps:get(event_type, Msg),
           DeviceId = maps:get(id, Msg),
-          io:fwrite("\nColector received: Device ~p - Event: ~p.\n", [Event, DeviceId]),
+          %io:fwrite("\nColector received: Device ~p - Event: ~p.\n", [Event, DeviceId]),
 
           timer:cancel(TRef),  % vai criar um novo timer para a questao da atividade
           {ok, NewTRef} = timer:send_after(?AliveTime, alive_timeout),   
@@ -74,15 +74,16 @@ handle_device(Sock, ChumakSocket, State, TRef, DevicesInfo) ->
       end;
 
     {tcp_closed, _} ->
-      io:fwrite("\nConnection closed.\n"),
-      ok = sendState(ChumakSocket, maps:update(online, false, State), ?CollectorDeviceMsg);
+      NewMap = maps:update(online, false, State),
+      ok = sendState(ChumakSocket, NewMap, ?CollectorDeviceMsg),
+      io:fwrite("\nConnection closed. ~p\n", [NewMap]);
 
     {tcp_error, _, _} ->
       ok = sendState(ChumakSocket, maps:update(online, false, State), ?CollectorDeviceMsg),
       io:fwrite("\nConnection error.\n");
 
     {auth_ok, DeviceId, DeviceType} ->
-      io:fwrite("\nAuthentication was successful.\n"),
+      %io:fwrite("\nAuthentication was successful.\n"),
       ok = gen_tcp:send(Sock, erlang:atom_to_binary(auth_ok)),  %enviar para o device a confirmaçao de auth para ele começar a enviar eventos
       {ok, NewTRef} = timer:send_after(?AliveTime, alive_timeout),  % começar o timer para ver se está vivo 
       StateAux1 = maps:put(id, DeviceId, State),
@@ -101,7 +102,7 @@ handle_device(Sock, ChumakSocket, State, TRef, DevicesInfo) ->
       handle_device(Sock, ChumakSocket, State, TRef, DevicesInfo);
 
     aggregator ->
-      io:fwrite("\nSending info to aggregator: ~p\n",[State]),
+      %io:fwrite("\nSending info to aggregator: ~p\n",[State]),
       % Envia estado para o agregador através de um push zeromq socket
       ok = sendState(ChumakSocket, State, ?CollectorEventMsg),
       handle_device(Sock, ChumakSocket, maps:update(eventsList, [], State), TRef, DevicesInfo)
@@ -113,13 +114,14 @@ handle_device(Sock, ChumakSocket, State, TRef, DevicesInfo) ->
 
 
 login(DeviceId, DevicePw, DeviceType, DevicesInfo) ->
+
   DeviceDictionary = lists:nth(DeviceId, DevicesInfo),
   case maps:find(id, DeviceDictionary) of
 
     {ok, DeviceId} ->
       case maps:find(password, DeviceDictionary) of
         {ok, DevicePw} ->
-          io:fwrite("\nAuth successful.\n"),
+          %io:fwrite("\nAuth successful.\n"),
           self() ! {auth_ok, DeviceId, DeviceType};
         {ok, _} ->
           io:fwrite("\nAuth failed.\n"),
@@ -134,8 +136,11 @@ login(DeviceId, DevicePw, DeviceType, DevicesInfo) ->
 
 % Sends device's state to aggregator
 sendState(ChumakSocket, State, SendType) ->  %SendType: C_Event or _CDevice
-  io:fwrite("\nSending info to aggregator: ~p  type: ~p\n",[State, SendType]),
+  %io:fwrite("\nSending info to aggregator: ~p  type: ~p\n",[State, SendType]),
   ToSend = [list_to_binary(SendType), term_to_binary(State)],
   ok = chumak:send_multipart(ChumakSocket, ToSend),
-  timer:send_after(?CollectTime, aggregator),
+  timer:send_after(random_interval(?CollectTime), aggregator),
   ok.
+
+random_interval(Base) -> 
+  Base + round(((rand:uniform() * 3)-1)*1000).
