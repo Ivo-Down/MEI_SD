@@ -30,27 +30,22 @@ public class AggregatorNetwork implements Runnable{
         while(true){
            //Aqui uma função de receber e dar parse da mensagem
             try{
-
                 ZMsg msg = ZMsg.recvMsg(this.pull);
-                System.out.println("Pulled request:\t" + msg.toString());
+                //System.out.println("Pulled request:\t" + msg.toString());
 
                 String aux = new String(msg.pop().getData(),ZMQ.CHARSET);
 
                 System.out.println(aux);
 
-
-                if(aux.equals("A")){  // Received info from an aggregator
+                if (aux.equals("A")) {  // Received info from an aggregator
                     System.out.println("Estado de agregador recebida.");
                     StateCRDT state = (StateCRDT) StaticMethods.deserialize(msg.pop().getData());
 
-                    if (this.aggregator.merge(state)){
+                    if (this.aggregator.merge(state)) {
                         this.aggregator.propagateState();
                         this.aggregatorNotifier.sendNotifications(state);
                     }
-                }
-
-
-                else if (aux.equals("C_Device")) { // Received info from a colector about device's state
+                } else if (aux.equals("C_Device")) { // Received info from a colector about device's state
 
                     OtpErlangMap deviceInfo = new OtpErlangMap(new OtpInputStream(msg.pop().getData()));
                     System.out.println("Conteudo da msg recebida:\t" + deviceInfo.toString());
@@ -63,10 +58,7 @@ public class AggregatorNetwork implements Runnable{
                         this.aggregator.propagateState();
 
 
-                }
-
-
-                else if(aux.equals("C_Event")){  // Received info from a colector about device's state
+                } else if (aux.equals("C_Event")) {  // Received info from a colector about device's state
 
                     OtpErlangMap deviceInfo = new OtpErlangMap(new OtpInputStream(msg.pop().getData()));
                     System.out.println("Conteudo da msg recebida:\t" + deviceInfo.toString());
@@ -75,6 +67,7 @@ public class AggregatorNetwork implements Runnable{
 
                     this.aggregator.addEvents(erlObjects);
                 }
+
 
                 //Thread.sleep(1000);
             }

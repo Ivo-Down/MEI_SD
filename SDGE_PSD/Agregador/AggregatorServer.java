@@ -33,6 +33,7 @@ public class AggregatorServer {
 
         // ZeroMQ para PULL
         ZMQ.Socket pull = context.socket(SocketType.PULL);
+        pull.setBacklog(1000);
         pull.bind("tcp://localhost:" + args[3]);
 
         // ZeroMQ para PUSH

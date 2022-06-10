@@ -107,15 +107,25 @@ public class ZoneInformation implements Serializable {
     /* - - - - - - - FUNÇÕES AUXILIARES - - - - - - - - */
 
     public Integer getEventCounter(String eventType){
-        return this.eventCounter.get(eventType);
+        Integer res = this.eventCounter.get(eventType);
+        if (res == null) return 0;
+        else {
+            return this.eventCounter.get(eventType);
+        }
     }
 
+
     public Integer getOnlineRecordType(String deviceType){
-        return this.onlineRecord.get(deviceType);
+        Integer res = this.onlineRecord.get(deviceType);
+        if (res == null) return 0;
+        else {
+            return this.onlineRecord.get(deviceType);
+        }
     }
 
     public Integer getOnlineCounterDeviceType(String deviceType){
         Pair p = this.onlineCounter.get(deviceType);
+        if(p == null) return 0;
         return p.getFst() - p.getSnd();
     }
 
@@ -127,6 +137,7 @@ public class ZoneInformation implements Serializable {
 
     public Boolean checkDeviceOnline(Integer deviceID){
         Pair p = this.onlineDevices.get(deviceID);
+        if(p == null) return false;
         return p.getFst() > p.getSnd();
     }
 
