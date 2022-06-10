@@ -21,9 +21,14 @@ public class StateCRDT  implements Serializable {
 
     // TODO: Implementar locks nisto! -> Done
 
-
     public StateCRDT() {
         this.zoneInfo = new HashMap<>();
+        this.lock = new ReentrantLock();
+    }
+
+    public StateCRDT(int id) {
+        this.zoneInfo = new HashMap<>();
+        this.zoneInfo.put(id, new ZoneInformation());
         this.lock = new ReentrantLock();
     }
 
@@ -140,6 +145,7 @@ public class StateCRDT  implements Serializable {
     public boolean updateDeviceState(Integer deviceId, Boolean deviceState, String deviceType, Integer zoneId){
         try {
             this.lock.lock();
+            System.out.println();
             return this.zoneInfo.get(zoneId).updateDeviceState(deviceId, deviceState, deviceType);
         } finally {
             this.lock.unlock();

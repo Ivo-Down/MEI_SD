@@ -1,6 +1,8 @@
 package DataStructs;
 
-public class Pair {
+import java.io.Serializable;
+
+public class Pair implements Serializable {
     private Integer p1;
     private Integer p2;
 

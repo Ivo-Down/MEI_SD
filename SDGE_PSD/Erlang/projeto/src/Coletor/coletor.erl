@@ -2,12 +2,17 @@
 -export([start/2]).
 -define(CollectTime, 5000).
 -define(AliveTime, 60000).
--define(DevicesFileName, "dispositivos.json").
+-define(DevicesFileName, "dispositivos2.json").
 -define(CollectorDeviceMsg, "C_Device").
 -define(CollectorEventMsg, "C_Event").
 
+%coletor:start(1234,8100).
+%coletor:start(1235,8101).
+%devices:start([1234,1235]).
 
 start(Port,AggregatorPort) ->
+  io:fwrite("\nDevices file: ~p\n",[?DevicesFileName]),
+
   % Criar SocketListener para os dispositivos
   {ok, LSock} = gen_tcp:listen(Port, [binary, {active, once}, {packet, 4}, {reuseaddr, true}]),
 

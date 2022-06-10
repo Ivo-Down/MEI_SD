@@ -1,7 +1,7 @@
 -module(devices).
 -export([start/1]).
 -define(EventList, [alarm, error, accident]).
--define(DevicesFileName, "dispositivos.json").
+-define(DevicesFileName, "dispositivos2.json").
 -define(EventTime, 1000).
 -define(ChangeZoneTimer, 5000).
 
@@ -11,6 +11,7 @@
 
 
 start(PortList) ->
+  io:fwrite("\nDevices file: ~p\n",[?DevicesFileName]),
   DevicesInfo = json_interpreter:parse_file(?DevicesFileName),
   create_devices(PortList, DevicesInfo).
 

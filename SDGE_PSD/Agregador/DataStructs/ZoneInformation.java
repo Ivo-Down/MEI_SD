@@ -157,6 +157,17 @@ public class ZoneInformation implements Serializable {
         Pair pOnline = this.onlineDevices.get(deviceId);
         Pair pCounter = this.onlineCounter.get(deviceType);
 
+        if(pOnline == null){
+            this.onlineDevices.put(deviceId, new Pair());
+            pOnline = this.onlineDevices.get(deviceId);
+        }
+        if(pCounter == null){
+            this.onlineCounter.put(deviceType, new Pair());
+            this.eventCounter.put(deviceType, 0);
+            this.onlineRecord.put(deviceType, 0);
+            pCounter = this.onlineCounter.get(deviceType);
+        }
+
         // Ver o estado do device:
         boolean state = pOnline.getPairValue() > 0;
 

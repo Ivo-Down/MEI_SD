@@ -18,7 +18,7 @@ public class Aggregator {
 
     public Aggregator(int id, Table neighbours, ZMQ.Context context){
         this.id = id;
-        this.stateInfo = new StateCRDT();
+        this.stateInfo = new StateCRDT(id);
         this.vizinhos = new HashMap<>();
 
         for (Map.Entry<Integer, Integer> vizinho : neighbours.getMap().entrySet()){
