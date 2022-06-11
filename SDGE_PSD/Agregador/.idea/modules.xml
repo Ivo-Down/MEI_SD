@@ -3,6 +3,8 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/Aggregador.iml" filepath="$PROJECT_DIR$/Aggregador.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../Client/Client.iml" filepath="$PROJECT_DIR$/../Client/Client.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../Constants/Constants.iml" filepath="$PROJECT_DIR$/../Constants/Constants.iml" />
     </modules>
   </component>
 </project>

@@ -1,4 +1,3 @@
-import Constants.QueryType;
 import org.zeromq.SocketType;
 import org.zeromq.ZMQ;
 

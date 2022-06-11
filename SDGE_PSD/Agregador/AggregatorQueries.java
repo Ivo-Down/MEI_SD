@@ -1,4 +1,3 @@
-import Constants.QueryType;
 import org.zeromq.ZMQ;
 
 public class AggregatorQueries implements Runnable{

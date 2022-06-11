@@ -27,5 +27,6 @@
     </orderEntry>
     <orderEntry type="library" name="erlang.otp.jinterface" level="project" />
     <orderEntry type="library" name="jeromq-0.5.2" level="project" />
+    <orderEntry type="module" module-name="Constants" />
   </component>
 </module>
