@@ -23,13 +23,22 @@ public class Client {
 
         ZMQ.Context context = ZMQ.context(1);
 
+
+        Integer aggId = Integer.parseInt(args[0]);
+        if(aggId > 100){
+            System.out.println("Invalid ID (must be below 100)");
+            return;
+        }
+        Integer subPort = 8100 + aggId;
+        Integer reqPort = 8200 + aggId;
+
         // ZeroMQ Socket para SUBSCRIBER
         sub = context.socket(SocketType.SUB);
-        sub.connect("tcp://localhost:" + args[0]);
+        sub.connect("tcp://localhost:" + subPort);
 
         // ZeroMQ Socket para REQUEST
         req = context.socket(SocketType.REQ);
-        req.connect("tcp://localhost:" + args[1]);
+        req.connect("tcp://localhost:" + reqPort);
 
         // Thread exclusiva para notificações
         ClientNotifier cr = new ClientNotifier(sub);

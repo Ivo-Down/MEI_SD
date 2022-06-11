@@ -19,26 +19,39 @@ public class AggregatorServer {
 
     public static void main(String[] args) throws Exception{
 
+        Integer id = Integer.parseInt(args[0]);
+
+        if(id > 100){
+            System.out.println("Invalid ID (must be below 100)");
+            return;
+        }
         //ID
-        Aggregator ag = handleNeighbours(Integer.parseInt(args[0]));
+        Aggregator ag = handleNeighbours(id);
         System.out.println(ag);
+
+        Integer pubPort = 8100 + id;
+        Integer repPort = 8200 + id;
+        Integer pullPort = 8300 + id;
+        Integer pushPort = 8400 + id;
+
+        System.out.println("pubPort: " + pubPort + " repPort: " + repPort + " pullPort: " + pullPort + " pushPort: " + pushPort);
 
         // ZeroMQ para PUBLISHER
         ZMQ.Socket pub = context.socket(SocketType.PUB);
-        pub.bind("tcp://localhost:" + args[1]); // connect to broker
+        pub.bind("tcp://localhost:" + pubPort); // connect to broker
 
         // ZeroMQ para REPLY
         ZMQ.Socket rep = context.socket(SocketType.REP);
-        rep.bind("tcp://localhost:" + args[2]);
+        rep.bind("tcp://localhost:" + repPort);
 
         // ZeroMQ para PULL
         ZMQ.Socket pull = context.socket(SocketType.PULL);
         pull.setBacklog(2000);
-        pull.bind("tcp://localhost:" + args[3]);
+        pull.bind("tcp://localhost:" + pullPort);
 
         // ZeroMQ para PUSH
         ZMQ.Socket push = context.socket(SocketType.PUSH);
-        push.connect("tcp://localhost:" + args[4]);
+        push.connect("tcp://localhost:" + pushPort);
 
         // Receives and sends requests from collectors and other aggregators
         AggregatorNetwork network = new AggregatorNetwork(pull, push, pub, ag);
@@ -54,7 +67,7 @@ public class AggregatorServer {
             while(!Thread.currentThread().isInterrupted()){
                 ag.propagateState();
                 try {
-                    Thread.sleep(10000);
+                    Thread.sleep(1000);
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);
                 }
