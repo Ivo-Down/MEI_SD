@@ -2,8 +2,8 @@
 -export([start/1, start/2]).
 -define(EventList, [alarm, error, accident]).
 -define(DevicesFileName, "dispositivos.json").
--define(EventTime, 5000).
--define(ChangeZoneTimer, 5000).
+-define(EventTime, 10000).
+-define(ChangeZoneTimer, 30000).
 
 
 
@@ -46,7 +46,7 @@ device_loop1(Socket, DeviceInfo, PortList, AuthState, ActualCol) ->
 
     AuthState == auth ->      
       send_event(Socket, DeviceInfo),
-      timer:sleep(random_interval(?EventTime)),
+      timer:sleep(random_interval(?EventTime, 5, 3)),
       device_loop2(Socket, DeviceInfo, PortList, auth, ActualCol)
   end.
 
@@ -56,13 +56,13 @@ device_loop2(Socket, DeviceInfo, PortList, AuthState, ActualCol) ->
   receive
     change_zone ->
       NewCol = choose_colector(PortList),  % escolhe um novo coletor
-      timer:send_after(random_interval(?ChangeZoneTimer), change_zone), %cria novo timer
+      timer:send_after(random_interval(?ChangeZoneTimer, 10 , 5), change_zone), %cria novo timer
       c:flush(), % limpa a queue de mensagens, penso ser desnecessário
 
       if
         NewCol /= ActualCol ->
           %io:fwrite("\nChanging zone to: ~p\n",[NewCol]),
-          ok = gen_tcp:shutdown(Socket, read),  % fecha a ligação com o coletor antigo
+          ok = gen_tcp:close(Socket),  % fecha a ligação com o coletor antigo
           {ok, NewSocket} = gen_tcp:connect("localhost", NewCol, [binary,{packet,4}, {active, false}]),
           device_loop1(NewSocket, DeviceInfo, PortList, no_auth, NewCol);
 
@@ -117,5 +117,5 @@ choose_colector(ColList) ->
   Collector = lists:nth(rand:uniform(length(ColList)), ColList),
   Collector.
 
-random_interval(Base) -> 
-  Base + round(((rand:uniform() * 6)-3)*1000).
+random_interval(Base, TotalRange, Below) -> 
+  Base + round(((rand:uniform() * TotalRange)-Below)*1000).

@@ -1,7 +1,7 @@
 import json
 import random
 
-number_of_devices = 500
+number_of_devices = 20000
 types_of_devices = ['drone', 'car', 'phone', 'fridge']
 result = []
 
