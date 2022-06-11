@@ -32,6 +32,8 @@ run-aggregators:
 	java -cp .:../lib/* AggregatorServer 1 & \
 	java -cp .:../lib/* AggregatorServer 2 & \
 	java -cp .:../lib/* AggregatorServer 3 & \
+	java -cp .:../lib/* AggregatorServer 4 & \
+	java -cp .:../lib/* AggregatorServer 5 & \
 
 kill-all: kill-aggregators kill-bootstrap
 
@@ -42,3 +44,5 @@ kill-aggregators:
 	kill -9 $$(lsof -t -i:8101) ; \
 	kill -9 $$(lsof -t -i:8102) ; \
 	kill -9 $$(lsof -t -i:8103) ; \
+	kill -9 $$(lsof -t -i:8104) ; \
+	kill -9 $$(lsof -t -i:8105) ; \
