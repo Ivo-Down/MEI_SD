@@ -10,14 +10,12 @@ public class Task implements Runnable{
     private AggregatorNotifier aggregatorNotifier;
     private String aux;
     private ZMsg msg;
-    private Integer count;
 
-    public Task(String aux, Aggregator aggregator, AggregatorNotifier aggregatorNotifier, ZMsg msg, Integer count){
+    public Task(String aux, Aggregator aggregator, AggregatorNotifier aggregatorNotifier, ZMsg msg){
         this.aggregator = aggregator;
         this.aux = aux;
         this.aggregatorNotifier = aggregatorNotifier;
         this.msg = msg;
-        this.count = count;
     }
     @Override
     public void run() {
@@ -37,10 +35,6 @@ public class Task implements Runnable{
                 //System.out.println("Conteudo da msg recebida:\t" + deviceInfo.toString());
 
                 Integer deviceId = ((OtpErlangLong) deviceInfo.get(new OtpErlangAtom("id"))).intValue();
-
-                count++;
-
-                //System.out.println(count + " " + deviceId);
 
                 Boolean deviceState = ((OtpErlangAtom) deviceInfo.get(new OtpErlangAtom("online"))).booleanValue();
                 String deviceType = ((OtpErlangAtom) deviceInfo.get(new OtpErlangAtom("type"))).atomValue();

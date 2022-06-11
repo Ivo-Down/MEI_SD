@@ -34,7 +34,6 @@ public class AggregatorNetwork implements Runnable{
         ThreadPoolExecutor threadPool = new ThreadPoolExecutor(2, 4, 20, TimeUnit.SECONDS,taskQueue);
 
         threadPool.prestartAllCoreThreads();
-        Integer count = 0;
         while(true){
            //Aqui uma função de receber e dar parse da mensagem
             try{
@@ -46,7 +45,7 @@ public class AggregatorNetwork implements Runnable{
 
                 //System.out.println(aux);
 
-                taskQueue.offer(new Task(aux, this.aggregator, this.aggregatorNotifier, msg, count));
+                taskQueue.offer(new Task(aux, this.aggregator, this.aggregatorNotifier, msg));
 
                 //Thread.sleep(1000);
             }
