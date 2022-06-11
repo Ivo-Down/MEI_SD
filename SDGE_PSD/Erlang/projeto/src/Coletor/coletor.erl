@@ -1,15 +1,18 @@
 -module(coletor).
--export([start/2]).
+-export([start/2, start/3]).
 -import(login_manager,[start/1, login/2]).
 -define(CollectTime, 15000).
 -define(AliveTime, 60000).
--define(DevicesFileName, "dispositivos_10000.json").
+-define(DevicesFileName, "dispositivos_100.json").
 -define(CollectorDeviceMsg, "C_Device").
 -define(CollectorEventMsg, "C_Event").
 
 %coletor:start(1234,8100).
 %coletor:start(1235,8101).
+%coletor:start(1234,8100,"dispositivos_100.json").
+
 %devices:start([1234]).
+%devices:start([1234],"dispositivos_100.json").
 
 start(Port,AggregatorPort) ->
   io:fwrite("\nDevices file: ~p\n",[?DevicesFileName]),
@@ -33,6 +36,31 @@ start(Port,AggregatorPort) ->
   spawn(fun() -> acceptor(LSock, ChumakSocket) end),
   started.
   
+
+start(Port,AggregatorPort, JsonFile) ->
+  io:fwrite("\nDevices file: ~p\n",[JsonFile]),
+
+  % Criar SocketListener para os dispositivos
+  {ok, LSock} = gen_tcp:listen(Port, [binary, {active, once}, {packet, 4}, {reuseaddr, true}, {backlog, 1000}]),
+
+  % Criar zeromq socket para agregador (do tipo push)
+  application:start(chumak),
+  {ok, ChumakSocket} = chumak:socket(push),
+  case chumak:connect(ChumakSocket, tcp, "localhost", AggregatorPort) of
+    {ok, _BindPid} ->
+        io:format("Binding OK with Pid: ~p\n", [ChumakSocket]);
+    {error, Reason} ->
+        io:format("Connection Failed for this reason: ~p\n", [Reason]);
+    X ->
+        io:format("Unhandled reply for bind ~p \n", [X])
+  end,
+
+  login_manager:start(JsonFile),
+  spawn(fun() -> acceptor(LSock, ChumakSocket) end),
+  started.
+
+
+
 
 
 acceptor(LSock, ChumakSocket) ->
@@ -82,7 +110,6 @@ handle_device(Sock, ChumakSocket, State, TRef) ->
       io:fwrite("\nConnection error.\n");
 
     {auth_ok, DeviceId, DeviceType} ->
-      io:fwrite("\nAuthentication was successful.\n"),
       ok = gen_tcp:send(Sock, erlang:atom_to_binary(auth_ok)),  %enviar para o device a confirmaçao de auth para ele começar a enviar eventos
       {ok, NewTRef} = timer:send_after(?AliveTime, alive_timeout),  % começar o timer para ver se está vivo 
       StateAux1 = maps:put(id, DeviceId, State),
@@ -91,7 +118,6 @@ handle_device(Sock, ChumakSocket, State, TRef) ->
       handle_device(Sock, ChumakSocket, StateAux2, NewTRef);
 
     auth_error ->
-      io:fwrite("\nFailed to authenticate.\n"),
       ok = gen_tcp:send(Sock, erlang:atom_to_binary(auth_error)),
       gen_tcp:close(Sock);  % acaba a conexão com o dispositivo
 

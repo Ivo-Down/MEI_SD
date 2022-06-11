@@ -1,7 +1,7 @@
 -module(devices).
--export([start/1]).
+-export([start/1, start/2]).
 -define(EventList, [alarm, error, accident]).
--define(DevicesFileName, "dispositivos_10000.json").
+-define(DevicesFileName, "dispositivos_100.json").
 -define(EventTime, 5000).
 -define(ChangeZoneTimer, 5000).
 
@@ -15,10 +15,16 @@ start(PortList) ->
   DevicesInfo = json_interpreter:parse_file(?DevicesFileName),
   create_devices(PortList, DevicesInfo).
   
-  
+
+start(PortList, JsonFile) ->
+  io:fwrite("\nDevices file: ~p\n",[JsonFile]),
+  DevicesInfo = json_interpreter:parse_file(JsonFile),
+  create_devices(PortList, DevicesInfo).
+
+
   
   % Cria X dispositivos e mete-os a mandar eventos para o coletor
-  create_devices(_,[]) ->
+create_devices(_,[]) ->
   ok;
 create_devices(PortList, [H|T]) ->
   Collector = choose_colector(PortList),

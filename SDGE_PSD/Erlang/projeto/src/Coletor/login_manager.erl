@@ -1,5 +1,5 @@
 -module(login_manager).
--export([start/1, login/4, logout/2]).
+-export([start/1, login/4]).
 %maps
 
 %registar pid do login manager
@@ -15,9 +15,9 @@ login(Username, Password, DeviceType, From) ->
     io:fwrite("Login\n"),
     ?MODULE ! {login, Username, Password, DeviceType, From}.
 
-logout(Username, From) -> 
-    ?MODULE ! {logout, Username, self()},
-    ok.
+%logout(Username, From) -> 
+%    ?MODULE ! {logout, Username, self()},
+%    ok.
 
 %server process
 loop(DevicesInfo) ->
