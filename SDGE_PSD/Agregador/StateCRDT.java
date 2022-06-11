@@ -2,14 +2,11 @@ import DataStructs.ZoneInformation;
 import com.ericsson.otp.erlang.OtpErlangObject;
 
 import java.io.*;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 
 public class StateCRDT  implements Serializable {
@@ -32,6 +29,13 @@ public class StateCRDT  implements Serializable {
         this.lock = new ReentrantLock();
     }
 
+    public StateCRDT(StateCRDT old){
+        this.zoneInfo = new HashMap<>();
+        for(Integer zone: old.zoneInfo.keySet()){
+            zoneInfo.put(zone, new ZoneInformation(old.zoneInfo.get(zone)));
+        }
+        this.lock = new ReentrantLock();
+    }
 
     public String toString(){
         return "olá";
@@ -117,6 +121,14 @@ public class StateCRDT  implements Serializable {
         }
     }
 
+    public Map<String, Integer> getRecords(Integer agg){
+        try {
+            this.lock.lock();
+            return zoneInfo.get(agg).getOnlineRecord();
+        } finally {
+            this.lock.unlock();
+        }
+    }
 
     public int getDevicesOnline(){
         try {
@@ -153,32 +165,22 @@ public class StateCRDT  implements Serializable {
     }
 
     //* NOTIFICATIONS CHECK *//
-    public List<String> checkTypesWithOnlineDevices(){
-        try {  //TODO: CHECK IF ONLINE RECORD IS THE CURRENT ONLINE DEVICES OF THAT TYPE
+    public List<String> checkTypesWithOnlineDevices(Integer aggID){
+        try {
             this.lock.lock();
-            return zoneInfo.values().stream()
-                    .map(a -> a.getOnlineRecord().entrySet().stream()
-                            .filter(b -> b.getValue() > 0)
-                            .map(Map.Entry::getKey)
-                            .collect(Collectors.toList()))
-                    .flatMap(Collection::stream)
-                    .collect(Collectors.toList());
+            ZoneInformation thisZoneInfo = this.zoneInfo.get(aggID);
+            return thisZoneInfo.getOnlineTypes();
         } finally {
             this.lock.unlock();
         }
     }
-    public float getOnlinePercentage(){
+    public Integer getOnlinePercentage(Integer agg){
         try {
             this.lock.lock();
-            var online = zoneInfo.values().stream() // primeiro maior q segundo
-                    .mapToLong(a -> a.getOnlineDevices().values().stream()
-                            .filter(b -> b.getPairValue()>0)
-                            .count())
-                    .sum();
-            var total = zoneInfo.values().stream() // primeiro maior q segundo
-                    .mapToLong(a -> a.getOnlineDevices().size())
-                    .sum();
-            return (float)online / (float)total;
+            var zoneOnline = zoneInfo.get(agg).getOnlineCounter();
+            var totalOnline = this.getDevicesOnline();
+            Integer percentage = Math.round(((float)zoneOnline / (float) totalOnline)*100);
+            return percentage;
         } finally {
             this.lock.unlock();
         }

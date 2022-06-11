@@ -26,7 +26,7 @@ public class AggregatorNetwork implements Runnable{
         this.pull = pull;
         this.push = push;
         this.aggregator = aggregator;
-        this.aggregatorNotifier = new AggregatorNotifier(pub);
+        this.aggregatorNotifier = new AggregatorNotifier(pub, aggregator.getId());
     }
 
     public void run(){

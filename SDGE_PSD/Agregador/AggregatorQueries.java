@@ -2,11 +2,11 @@ import Constants.QueryType;
 import org.zeromq.ZMQ;
 
 public class AggregatorQueries implements Runnable{
-    private final ZMQ.Socket req;
+    private final ZMQ.Socket rep;
     private final Aggregator ag;
 
-    public AggregatorQueries(ZMQ.Socket req, Aggregator ag) throws Exception {
-        this.req = req;
+    public AggregatorQueries(ZMQ.Socket rep, Aggregator ag) throws Exception {
+        this.rep = rep;
         this.ag = ag;
     }
 
@@ -25,23 +25,23 @@ public class AggregatorQueries implements Runnable{
     }
 
     private void HandleQuery(){
-        var query = new String(req.recv(),ZMQ.CHARSET);
+        var query = new String(rep.recv(),ZMQ.CHARSET);
         var queryArgs = query.split(" ");
         switch (queryArgs[0]){
             case QueryType.QUERY_SPECIFIC_DEVICE:
-                req.send(HandleSpecificDeviceOnline(queryArgs).getBytes(ZMQ.CHARSET));
+                rep.send(HandleSpecificDeviceOnline(queryArgs).getBytes(ZMQ.CHARSET));
                 break;
             case QueryType.QUERY_EVENT_NUMBER:
-                req.send(HandleEventTypeTotal(queryArgs).getBytes(ZMQ.CHARSET));
+                rep.send(HandleEventTypeTotal(queryArgs).getBytes(ZMQ.CHARSET));
                 break;
             case QueryType.QUERY_TOTAL_DEVICES:
-                req.send(HandleTotalDevicesOnline().getBytes(ZMQ.CHARSET));
+                rep.send(HandleTotalDevicesOnline().getBytes(ZMQ.CHARSET));
                 break;
             case QueryType.QUERY_TOTAL_DEVICES_TYPE:
-                req.send(HandleTotalDevicesOnlineOfType(queryArgs).getBytes(ZMQ.CHARSET));
+                rep.send(HandleTotalDevicesOnlineOfType(queryArgs).getBytes(ZMQ.CHARSET));
                 break;
             default:
-                req.send("ERROR: UNKNOWN QUERY!");
+                rep.send("ERROR: UNKNOWN QUERY!");
                 break;
         }
     }

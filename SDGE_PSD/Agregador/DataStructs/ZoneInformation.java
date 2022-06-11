@@ -4,6 +4,7 @@ import com.ericsson.otp.erlang.OtpErlangAtom;
 import com.ericsson.otp.erlang.OtpErlangObject;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,6 +26,23 @@ public class ZoneInformation implements Serializable {
         this.onlineDevices = new HashMap<>();
         this.onlineCounter = new HashMap<>();
     }
+
+    public ZoneInformation(ZoneInformation old){
+        this.eventCounter = new HashMap<>();
+        this.onlineRecord = new HashMap<>();
+        this.onlineDevices = new HashMap<>();
+        this.onlineCounter = new HashMap<>();
+
+        this.eventCounter.putAll(old.eventCounter);
+        this.onlineRecord.putAll(old.onlineRecord);
+        for(Map.Entry<String, Pair> entry: old.onlineCounter.entrySet()){
+            this.onlineCounter.put(entry.getKey(),new Pair(entry.getValue()));
+        }
+        for(Map.Entry<Integer, Pair> entry: old.onlineDevices.entrySet()){
+            this.onlineDevices.put(entry.getKey(),new Pair(entry.getValue()));
+        }
+    }
+
     public Map<String, Integer> getEventCounter() {
         return eventCounter;
     }
@@ -114,6 +132,16 @@ public class ZoneInformation implements Serializable {
         }
     }
 
+    public List<String> getOnlineTypes(){
+        List<String> types = new ArrayList<>();
+        for(String type: this.onlineCounter.keySet()){
+            if(getOnlineCounterDeviceType(type) > 0){
+                types.add(type);
+            }
+        }
+        return types;
+    }
+
 
     public Integer getOnlineRecordType(String deviceType){
         Integer res = this.onlineRecord.get(deviceType);
@@ -131,7 +159,7 @@ public class ZoneInformation implements Serializable {
 
     public Integer getOnlineCounter() {
         return this.onlineCounter.values().stream()
-                .mapToInt(a -> a.getFst() - a.getSnd())
+                .mapToInt(a -> a==null ? 0: a.getFst() - a.getSnd())
                 .sum();
     }
 

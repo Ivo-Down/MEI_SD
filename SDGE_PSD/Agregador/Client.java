@@ -132,7 +132,7 @@ public class Client {
 
     private static void subNoOnlineDevices() { subscribe("TOPIC_TYPE_GONE"); }
 
-    private static void subOnlineRecord() { subscribe("TOPIC_ONLINE_INCREASE");}
+    private static void subOnlineRecord() { subscribe("TOPIC_NEW_RECORD");}
 
     private static void subDevicesIncrease() { subscribe("TOPIC_DEVICES_INCREASE"); }
 
@@ -165,7 +165,7 @@ public class Client {
 
     private static void unsubNoOnlineDevices() { unsubscribe("TOPIC_TYPE_GONE"); }
 
-    private static void unsubOnlineRecord() { unsubscribe("TOPIC_ONLINE_INCREASE"); }
+    private static void unsubOnlineRecord() { unsubscribe("TOPIC_NEW_RECORD"); }
 
     private static void unsubDevicesIncrease() { unsubscribe("TOPIC_DEVICES_INCREASE"); }
 

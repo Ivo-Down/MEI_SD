@@ -16,6 +16,11 @@ public class Pair implements Serializable {
         this.p2 = p2;
     }
 
+    public Pair(Pair old){
+        this.p1 = old.p1;
+        this.p2 = old.p2;
+    }
+
     public Integer getFst(){
         return this.p1;
     }

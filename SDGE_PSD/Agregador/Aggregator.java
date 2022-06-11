@@ -37,12 +37,20 @@ public class Aggregator {
     // Função que envia o estado aos vizinhos TODO: Confirmar este send, por causa da identificação do envio do estado.
     public void propagateState(){
         for(ZMQ.Socket pushSocket: this.vizinhos.values()){
-            System.out.println("Propagating to " + pushSocket);
+            //System.out.println("Propagating to " + pushSocket);
             ZMsg msg = new ZMsg();
             msg.add("A");
             msg.add(stateInfo.serialize());
             msg.send(pushSocket);
         }
+    }
+
+    public Integer getId(){
+        return this.id;
+    }
+
+    public StateCRDT getState(){
+        return this.stateInfo;
     }
 
 

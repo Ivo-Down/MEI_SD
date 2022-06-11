@@ -28,7 +28,7 @@ public class Task implements Runnable{
 
                 if (this.aggregator.merge(state)) {
                     //this.aggregator.propagateState();
-                    this.aggregatorNotifier.sendNotifications(state);
+                    this.aggregatorNotifier.sendNotifications(this.aggregator.getState());
                 }
 
             } else if (aux.equals("C_Device")) { // Received info from a colector about device's state
@@ -46,6 +46,7 @@ public class Task implements Runnable{
                 String deviceType = ((OtpErlangAtom) deviceInfo.get(new OtpErlangAtom("type"))).atomValue();
 
                 this.aggregator.updateDeviceState(deviceId, deviceState, deviceType);
+                this.aggregatorNotifier.sendNotifications(this.aggregator.getState());
                 //if (this.aggregator.updateDeviceState(deviceId, deviceState, deviceType))
                     //this.aggregator.propagateState();
 
