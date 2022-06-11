@@ -1,0 +1,40 @@
+[
+  {
+    "node": "1",
+    "neighbors": [
+      2
+    ],
+    "port": "8301"
+  },
+  {
+    "node": "2",
+    "neighbors": [
+      1,
+      3,
+      4
+    ],
+    "port": "8302"
+  },
+  {
+    "node": "3",
+    "neighbors": [
+      2,
+      5
+    ],
+    "port": "8303"
+  },
+  {
+    "node": "4",
+    "neighbors": [
+      2
+    ],
+    "port": "8304"
+  },
+  {
+    "node": "5",
+    "neighbors": [
+      3
+    ],
+    "port": "8305"
+  }
+]
