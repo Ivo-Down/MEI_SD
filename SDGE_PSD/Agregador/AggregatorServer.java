@@ -62,30 +62,14 @@ public class AggregatorServer {
         new Thread(network).start();
         new Thread(quer).start();
 
-        // Propagate state, TODO: maybe try with new class
-        new Thread(() -> {
-            while(!Thread.currentThread().isInterrupted()){
-                ag.propagateState();
-                try {
-                    Thread.sleep(1000);
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
+        while(!Thread.currentThread().isInterrupted()){
+            ag.propagateState();
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
             }
-        }).start();
-
-        /*
-        while(true){
-            //Aqui uma função de receber e dar parse da mensagem
-            try{
-                ZMsg msg = ZMsg.recvMsg(pull);
-                OtpErlangMap request = new OtpErlangMap(new OtpInputStream(msg.pop().getData()));
-                System.out.println("Pulled request:\t" + request.toString());
-            }
-            catch(Exception e){
-                e.printStackTrace();
-            }
-        }*/
+        }
 
     }
 
