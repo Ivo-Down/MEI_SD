@@ -27,7 +27,7 @@ public class Task implements Runnable{
                 StateCRDT state = (StateCRDT) StaticMethods.deserialize(msg.pop().getData());
 
                 if (this.aggregator.merge(state)) {
-                    this.aggregator.propagateState();
+                    //this.aggregator.propagateState();
                     this.aggregatorNotifier.sendNotifications(state);
                 }
 
@@ -45,9 +45,9 @@ public class Task implements Runnable{
                 Boolean deviceState = ((OtpErlangAtom) deviceInfo.get(new OtpErlangAtom("online"))).booleanValue();
                 String deviceType = ((OtpErlangAtom) deviceInfo.get(new OtpErlangAtom("type"))).atomValue();
 
-                
-                if (this.aggregator.updateDeviceState(deviceId, deviceState, deviceType))
-                    this.aggregator.propagateState();
+                this.aggregator.updateDeviceState(deviceId, deviceState, deviceType);
+                //if (this.aggregator.updateDeviceState(deviceId, deviceState, deviceType))
+                    //this.aggregator.propagateState();
 
 
 
