@@ -1,7 +1,7 @@
 -module(devices).
 -export([start/1, start/2]).
 -define(EventList, [alarm, error, accident]).
--define(DevicesFileName, "dispositivos_100.json").
+-define(DevicesFileName, "dispositivos.json").
 -define(EventTime, 5000).
 -define(ChangeZoneTimer, 5000).
 
@@ -118,4 +118,4 @@ choose_colector(ColList) ->
   Collector.
 
 random_interval(Base) -> 
-  Base + round(((rand:uniform() * 3)-1)*1000).
+  Base + round(((rand:uniform() * 6)-3)*1000).

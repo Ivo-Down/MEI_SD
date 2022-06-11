@@ -8,8 +8,19 @@
 start(DevicesFile) ->
   % Carregar os dados dos dispositivos para memória
     DevicesInfo = json_interpreter:parse_file(DevicesFile),
-    register(?MODULE, spawn(fun() -> loop(DevicesInfo) end)).
+    DevicesMap = loadFileToMap(DevicesInfo, #{}),
+    io:fwrite("~p \n", [DevicesMap]),
+    register(?MODULE, spawn(fun() -> loop(DevicesMap) end)).
 
+
+loadFileToMap([], Map) ->
+    Map;
+
+loadFileToMap([H|T], Map) ->
+    {ok, DeviceID} = maps:find(id, H),
+    {ok, DevicePassword} = maps:find(password, H),
+    {ok, DeviceType} = maps:find(type, H),
+    loadFileToMap(T, maps:put(DeviceID, {DevicePassword, erlang:binary_to_atom(DeviceType)}, Map)).
 
 login(Username, Password, DeviceType, From) ->
     io:fwrite("Login\n"),
@@ -20,28 +31,19 @@ login(Username, Password, DeviceType, From) ->
 %    ok.
 
 %server process
-loop(DevicesInfo) ->
+loop(DevicesMap) ->
     receive
     {login, DeviceId, DevicePw, DeviceType, From} ->
-        io:fwrite("Login in loop\n"),
-        DeviceDictionary = lists:nth(DeviceId, DevicesInfo),
-            case maps:find(id, DeviceDictionary) of
-                {ok, DeviceId} ->
-                    case maps:find(password, DeviceDictionary) of
-                        {ok, DevicePw} ->
-                            io:fwrite("\nAuth success.\n"),
-                            From ! {auth_ok, DeviceId, DeviceType},
-                            loop(DevicesInfo);
-                        {ok, _} ->
-                            io:fwrite("\nAuth failed.\n"),
-                            From ! auth_error,
-                            loop(DevicesInfo)
-                    end;
-                
-                {ok, _} ->
-                    io:fwrite("\nAuth failed.\n"),
+        %io:fwrite("Login in loop ~p ~p ~p\n", [DeviceId, DevicePw, DeviceType]),
+            case maps:find(DeviceId, DevicesMap) of
+                {ok, {DevicePw, DeviceType}} ->
+                    io:fwrite("\nAuth success.\n"),
+                    From ! {auth_ok, DeviceId, DeviceType},
+                    loop(DevicesMap);
+                Other ->
+                    io:fwrite("\nAuth failed. ~p\n", [Other]),
                     From ! auth_error,
-                    loop(DevicesInfo)
+                    loop(DevicesMap)
 
             end;
         %{logout, Username, From} ->

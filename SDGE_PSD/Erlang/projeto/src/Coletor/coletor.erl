@@ -3,16 +3,16 @@
 -import(login_manager,[start/1, login/2]).
 -define(CollectTime, 15000).
 -define(AliveTime, 60000).
--define(DevicesFileName, "dispositivos_100.json").
+-define(DevicesFileName, "dispositivos.json").
 -define(CollectorDeviceMsg, "C_Device").
 -define(CollectorEventMsg, "C_Event").
 
-%coletor:start(1234,8100).
-%coletor:start(1235,8101).
-%coletor:start(1234,8100,"dispositivos_100.json").
+%coletor:start(1234,8301,"dispositivos_10000.json").
+%coletor:start(1235,8302).
+%coletor:start(1235,8302,"dispositivos_20000.json").
 
-%devices:start([1234]).
-%devices:start([1234],"dispositivos_100.json").
+%devices:start([1234],"dispositivos_10000.json").
+%devices:start([1235],"dispositivos_20000.json").
 
 start(Port,AggregatorPort) ->
   io:fwrite("\nDevices file: ~p\n",[?DevicesFileName]),
@@ -136,11 +136,11 @@ handle_device(Sock, ChumakSocket, State, TRef) ->
 
 % Sends device's state to aggregator
 sendState(ChumakSocket, State, SendType) ->  %SendType: C_Event or _CDevice
-  %io:fwrite("\nSending info to aggregator: ~p  type: ~p\n",[State, SendType]),
+  io:fwrite("\nSending info to aggregator type: ~p\n",[SendType]),
   ToSend = [list_to_binary(SendType), term_to_binary(State)],
   ok = chumak:send_multipart(ChumakSocket, ToSend),
   timer:send_after(random_interval(?CollectTime), aggregator),
   ok.
 
 random_interval(Base) -> 
-  Base + round(((rand:uniform() * 3)-1)*1000).
+  Base + round(((rand:uniform() * 8)-3)*1000).
