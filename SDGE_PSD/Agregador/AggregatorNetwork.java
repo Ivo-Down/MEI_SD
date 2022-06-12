@@ -15,16 +15,12 @@ import java.util.stream.Collectors;
 // This module will receive updates from other aggregators, connecting to its neighbours, as well as collectors
 public class AggregatorNetwork implements Runnable{
     private final ZMQ.Socket pull;
-    private final ZMQ.Socket push;
     private final Aggregator aggregator;
     private final AggregatorNotifier aggregatorNotifier;
 
-    //TODO: pensar em estruturas para guardar informações sobre notis. (Um id por tipo - 4 tipos diferentes (?))
-    // Mudar os nomes destas cenas.
 
-    public AggregatorNetwork(ZMQ.Socket pull, ZMQ.Socket push, ZMQ.Socket pub, Aggregator aggregator) throws Exception {
+    public AggregatorNetwork(ZMQ.Socket pull, ZMQ.Socket pub, Aggregator aggregator){
         this.pull = pull;
-        this.push = push;
         this.aggregator = aggregator;
         this.aggregatorNotifier = new AggregatorNotifier(pub, aggregator.getId());
     }
@@ -35,14 +31,10 @@ public class AggregatorNetwork implements Runnable{
 
         threadPool.prestartAllCoreThreads();
         while(true){
-           //Aqui uma função de receber e dar parse da mensagem
             try{
-
                 ZMsg msg = ZMsg.recvMsg(this.pull);
 
                 String aux = new String(msg.pop().getData(),ZMQ.CHARSET);
-
-                //System.out.println(aux);
 
                 taskQueue.offer(new Task(aux, this.aggregator, this.aggregatorNotifier, msg));
             }

@@ -15,7 +15,6 @@ public class StaticMethods {
         throw new RuntimeException();
     }
 
-
     public static Object deserialize(byte[] bytes) {
         InputStream is = new ByteArrayInputStream(bytes);
         try (ObjectInputStream ois = new ObjectInputStream(is)) {
@@ -25,6 +24,5 @@ public class StaticMethods {
         }
         throw new RuntimeException();
     }
-
 
 }

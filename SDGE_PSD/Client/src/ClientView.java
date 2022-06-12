@@ -6,14 +6,8 @@ import java.util.Scanner;
 public class ClientView {
 
     public static final String ANSI_RESET = "\u001B[0m";
-    public static final String ANSI_BLACK = "\u001B[30m";
     public static final String ANSI_RED = "\u001B[31m";
-    public static final String ANSI_GREEN = "\u001B[32m";
-    public static final String ANSI_YELLOW = "\u001B[33m";
     public static final String ANSI_BLUE = "\u001B[34m";
-    public static final String ANSI_PURPLE = "\u001B[35m";
-    public static final String ANSI_CYAN = "\u001B[36m";
-    public static final String ANSI_WHITE = "\u001B[37m";
 
     public interface MenuHandler {
         void execute();
@@ -24,12 +18,12 @@ public class ClientView {
     }
 
     // Varíavel de classe para suportar leitura
-    private static Scanner is = new Scanner(System.in);
+    private static final Scanner is = new Scanner(System.in);
 
     // variáveis de instância
-    private List<String> opcoes;
-    private List<MenuPreCondition> disponivel;  // Lista de pré-condições
-    private List<MenuHandler> handlers;         // Lista de handlers
+    private final List<String> opcoes;
+    private final List<MenuPreCondition> disponivel;  // Lista de pré-condições
+    private final List<MenuHandler> handlers;         // Lista de handlers
 
     private int op;
 
@@ -53,7 +47,6 @@ public class ClientView {
             if (op>0 && !this.disponivel.get(op-1).validate()) {
                 System.out.println(ANSI_RED + "Opção indisponível! Tente novamente." + ANSI_RESET);
             } else if (op>0) {
-                // executar handler
                 this.handlers.get(op-1).execute();
             }
         } while (this.op != 0);
@@ -90,7 +83,6 @@ public class ClientView {
 
     private int lerOpcao() {
         int op;
-        //Scanner is = new Scanner(System.in);
 
         System.out.print("Opção: ");
         op = is.nextInt();
@@ -102,24 +94,6 @@ public class ClientView {
     }
 
     /**
-     * Método para obter a última opção lida
-     */
-    public int getOpcao() {
-        return this.op;
-    }
-
-
-    /**
-     * Método que regista uma uma pré-condição numa opção do menu.
-     *
-     * @param i índice da opção (começa em 1)
-     * @param b pré-condição a registar
-     */
-    public void setPreCondition(int i, MenuPreCondition b) {
-        this.disponivel.set(i-1,b);
-    }
-
-    /**
      * Método para registar um handler numa opção do menu.
      *
      * @param i indice da opção  (começa em 1)
@@ -128,11 +102,5 @@ public class ClientView {
     public void setHandler(int i, MenuHandler h) {
         this.handlers.set(i-1, h);
     }
-
-
-
-
-
-
 
 }

@@ -6,10 +6,10 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class Task implements Runnable{
-    private Aggregator aggregator;
-    private AggregatorNotifier aggregatorNotifier;
-    private String aux;
-    private ZMsg msg;
+    private final Aggregator aggregator;
+    private final AggregatorNotifier aggregatorNotifier;
+    private final String aux;
+    private final ZMsg msg;
 
     public Task(String aux, Aggregator aggregator, AggregatorNotifier aggregatorNotifier, ZMsg msg){
         this.aggregator = aggregator;
@@ -28,10 +28,10 @@ public class Task implements Runnable{
                     this.aggregatorNotifier.sendNotifications(this.aggregator.getState());
                 }
 
-            } else if (aux.equals("C_Device")) { // Received info from a colector about device's state
+            } else if (aux.equals("C_Device")) { // Received device's state from collector
                 OtpErlangMap deviceInfo = new OtpErlangMap(new OtpInputStream(msg.pop().getData()));
 
-                System.out.println("AGG"+ aggregator.getId() +" - Device state receives:\t" + deviceInfo.toString());
+                System.out.println("AGG"+ aggregator.getId() +" - Device state receives:\t" + deviceInfo);
 
                 Integer deviceId = ((OtpErlangLong) deviceInfo.get(new OtpErlangAtom("id"))).intValue();
 
@@ -41,10 +41,10 @@ public class Task implements Runnable{
                 this.aggregator.updateDeviceState(deviceId, deviceState, deviceType);
                 this.aggregatorNotifier.sendNotifications(this.aggregator.getState());
 
-            } else if (aux.equals("C_Event")) {  // Received info from a colector about device's state
+            } else if (aux.equals("C_Event")) {  // Received events from collector
 
                 OtpErlangMap deviceInfo = new OtpErlangMap(new OtpInputStream(msg.pop().getData()));
-                System.out.println("AGG"+ aggregator.getId() +" - Events received:\t" + deviceInfo.toString());
+                System.out.println("AGG"+ aggregator.getId() +" - Events received:\t" + deviceInfo);
                 OtpErlangList eventsList = ((OtpErlangList) deviceInfo.get(new OtpErlangAtom("eventsList")));
                 List<OtpErlangObject> erlObjects = Arrays.stream(eventsList.elements()).sequential().collect(Collectors.toList());
 

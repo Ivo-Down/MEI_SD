@@ -9,10 +9,9 @@ public class ClientNotifier implements Runnable{
     }
 
     public void run() {
-        System.out.println("Client Notification Handler Initialized!");
         System.out.println("Waiting for notifications...");
         while(!Thread.currentThread().isInterrupted() ) {
-            System.out.println("[DEBUG] - Tópico:\t" + new String(sub.recv(), ZMQ.CHARSET)); // TOPIC
+            sub.recv(); //debug receive
             while (sub.hasReceiveMore()) {
                 System.out.println(ANSI_YELLOW + "*** NOTIFICAÇÃO RECEBIDA:\t" + new String(sub.recv(), ZMQ.CHARSET) + "***" + ANSI_RESET); // DATA
             }

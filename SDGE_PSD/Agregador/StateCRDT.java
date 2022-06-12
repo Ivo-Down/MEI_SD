@@ -11,17 +11,9 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class StateCRDT  implements Serializable {
 
-
-    // Key -> AggregatorID. Value -> Information of the devices of that aggreaator.
+    // Key -> AggregatorID. Value -> Information of the devices of that aggregator.
     private final Map<Integer, ZoneInformation> zoneInfo;
     private final Lock lock;
-
-    // TODO: Implementar locks nisto! -> Done
-
-    public StateCRDT() {
-        this.zoneInfo = new HashMap<>();
-        this.lock = new ReentrantLock();
-    }
 
     public StateCRDT(int id) {
         this.zoneInfo = new HashMap<>();
@@ -42,11 +34,6 @@ public class StateCRDT  implements Serializable {
 
         this.lock = new ReentrantLock();
     }
-
-    public String toString(){
-        return "olá";
-    }
-
 
     public byte[] serialize() {
         ByteArrayOutputStream boas = new ByteArrayOutputStream();
@@ -73,7 +60,6 @@ public class StateCRDT  implements Serializable {
             for(Map.Entry<Integer, ZoneInformation> aux : received.zoneInfo.entrySet()){
                 if (this.zoneInfo.containsKey(aux.getKey())) {
                     res = this.zoneInfo.get(aux.getKey()).merge(aux.getValue());
-
                 }
                 else {
                     this.zoneInfo.put(aux.getKey(), aux.getValue());
@@ -86,7 +72,6 @@ public class StateCRDT  implements Serializable {
         }
 
     }
-
 
     public int getNumberEvents(String eventType) {
         try {
@@ -101,7 +86,6 @@ public class StateCRDT  implements Serializable {
         }
     }
 
-
     public int getDevicesOnlineOfType(String deviceType) {
         try {
             this.lock.lock();
@@ -114,7 +98,6 @@ public class StateCRDT  implements Serializable {
             this.lock.unlock();
         }
     }
-
 
     public boolean getIsDeviceOnline(int deviceId) {
         try {
@@ -149,7 +132,6 @@ public class StateCRDT  implements Serializable {
         }
     }
 
-
     public void addEvents(List<OtpErlangObject> eventsList, Integer zoneId){
         try {
             this.lock.lock();
@@ -158,7 +140,6 @@ public class StateCRDT  implements Serializable {
             this.lock.unlock();
         }
     }
-
 
     public boolean updateDeviceState(Integer deviceId, Boolean deviceState, String deviceType, Integer zoneId){
         try {
@@ -170,7 +151,6 @@ public class StateCRDT  implements Serializable {
         }
     }
 
-    //* NOTIFICATIONS CHECK *//
     public List<String> checkTypesWithOnlineDevices(Integer aggID){
         try {
             this.lock.lock();
@@ -180,13 +160,13 @@ public class StateCRDT  implements Serializable {
             this.lock.unlock();
         }
     }
+
     public Integer getOnlinePercentage(Integer agg){
         try {
             this.lock.lock();
             var zoneOnline = zoneInfo.get(agg).getOnlineCounter();
             var totalOnline = this.getDevicesOnline();
-            Integer percentage = Math.round(((float)zoneOnline / (float) totalOnline)*100);
-            return percentage;
+            return Math.round(((float)zoneOnline / (float) totalOnline)*100);
         } finally {
             this.lock.unlock();
         }

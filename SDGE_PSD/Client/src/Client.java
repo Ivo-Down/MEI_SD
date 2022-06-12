@@ -8,8 +8,8 @@ import java.util.Scanner;
 //Args: [SUB-PORT] [REQ-PORT]
 public class Client {
 
-    private static List<String> subscriptions = new ArrayList<>();
-    private static Scanner scin = new Scanner(System.in);
+    private static final List<String> subscriptions = new ArrayList<>();
+    private static final Scanner scin = new Scanner(System.in);
     private static ZMQ.Socket req;
     private static ZMQ.Socket sub;
     public static final String ANSI_RED = "\u001B[31m";
@@ -17,29 +17,27 @@ public class Client {
     public static final String ANSI_GREEN = "\u001B[32m";
 
 
-
     public static void main(String[] args){
 
         ZMQ.Context context = ZMQ.context(1);
 
-
-        Integer aggId = Integer.parseInt(args[0]);
+        int aggId = Integer.parseInt(args[0]);
         if(aggId > 100){
             System.out.println("Invalid ID (must be below 100)");
             return;
         }
-        Integer subPort = 8100 + aggId;
-        Integer reqPort = 8200 + aggId;
+        int subPort = 8100 + aggId;
+        int reqPort = 8200 + aggId;
 
-        // ZeroMQ Socket para SUBSCRIBER
+        // ZeroMQ Socket for SUBSCRIBER
         sub = context.socket(SocketType.SUB);
         sub.connect("tcp://localhost:" + subPort);
 
-        // ZeroMQ Socket para REQUEST
+        // ZeroMQ Socket for REQUEST
         req = context.socket(SocketType.REQ);
         req.connect("tcp://localhost:" + reqPort);
 
-        // Thread exclusiva para notificações
+        // Thread for notifications
         ClientNotifier cr = new ClientNotifier(sub);
         new Thread(cr).start();
 

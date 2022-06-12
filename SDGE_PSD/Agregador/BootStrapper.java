@@ -25,24 +25,21 @@ public class BootStrapper {
         // ZeroMQ para REPLY
         rep = context.socket(SocketType.REP);
         rep.bind("tcp://localhost:" + bootstrapper_port);
+
         while(true){
             handleRequest();
         }
     }
 
     private static void handleRequest() {
-        int nodeId = -1;
-        //Partir a request para buscar id
         System.out.println("BOOTSTRAPPER - Handling neighbour request");
         String id = new String(rep.recv(),ZMQ.CHARSET); //"Id"
         System.out.println("ID: \t" + id);
 
-
-        //Calcular vizinhos
+        //Get neighbours from overlay
         Table requestedNeighbors = getNeighbors(Integer.parseInt(id));
         byte[] data = StaticMethods.serialize(requestedNeighbors);
 
-        //serializar info
         rep.send(data);
     }
 

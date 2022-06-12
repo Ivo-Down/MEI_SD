@@ -4,18 +4,15 @@ public class AggregatorQueries implements Runnable{
     private final ZMQ.Socket rep;
     private final Aggregator ag;
 
-    public AggregatorQueries(ZMQ.Socket rep, Aggregator ag) throws Exception {
+    public AggregatorQueries(ZMQ.Socket rep, Aggregator ag) {
         this.rep = rep;
         this.ag = ag;
     }
 
     public void run(){
-        String res;
         while(true){
-           //Aqui uma função de receber e dar parse da mensagem
-            try{
-                HandleQuery();
-                //Thread.sleep(2000);
+            try {
+                handleQuery();
             }
             catch(Exception e){
                 e.printStackTrace();
@@ -23,7 +20,7 @@ public class AggregatorQueries implements Runnable{
         }
     }
 
-    private void HandleQuery(){
+    private void handleQuery(){
         var query = new String(rep.recv(),ZMQ.CHARSET);
         var queryArgs = query.split(" ");
         switch (queryArgs[0]){
@@ -59,5 +56,4 @@ public class AggregatorQueries implements Runnable{
         if(query.length<2) return "ERROR: INVALID ARGUMENTS!";
         else return String.valueOf(ag.getNumberEvents(query[1]));
     }
-
 }

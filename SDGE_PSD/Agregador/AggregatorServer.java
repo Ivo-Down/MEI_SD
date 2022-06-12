@@ -19,21 +19,19 @@ public class AggregatorServer {
 
     public static void main(String[] args) throws Exception{
 
-        Integer id = Integer.parseInt(args[0]);
+        int id = Integer.parseInt(args[0]);
 
-        if(id > 100){
+        if(id > 100) {
             System.out.println("Invalid ID (must be below 100)");
             return;
         }
-        //ID
         Aggregator ag = handleNeighbours(id);
 
-        Integer pubPort = 8100 + id;
-        Integer repPort = 8200 + id;
-        Integer pullPort = 8300 + id;
-        Integer pushPort = 8400 + id;
+        int pubPort = 8100 + id;
+        int repPort = 8200 + id;
+        int pullPort = 8300 + id;
 
-        System.out.println("pubPort: " + pubPort + " repPort: " + repPort + " pullPort: " + pullPort + " pushPort: " + pushPort);
+        System.out.println("pubPort: " + pubPort + " repPort: " + repPort + " pullPort: " + pullPort);
 
         // ZeroMQ para PUBLISHER
         ZMQ.Socket pub = context.socket(SocketType.PUB);
@@ -48,18 +46,13 @@ public class AggregatorServer {
         pull.setBacklog(2000);
         pull.bind("tcp://localhost:" + pullPort);
 
-        // ZeroMQ para PUSH
-        ZMQ.Socket push = context.socket(SocketType.PUSH);
-        push.connect("tcp://localhost:" + pushPort);
-
         // Receives and sends requests from collectors and other aggregators
-        AggregatorNetwork network = new AggregatorNetwork(pull, push, pub, ag);
+        AggregatorNetwork network = new AggregatorNetwork(pull, pub, ag);
         // Allows users to query the state
-        AggregatorQueries quer = new AggregatorQueries(rep, ag);
-
+        AggregatorQueries queries = new AggregatorQueries(rep, ag);
 
         new Thread(network).start();
-        new Thread(quer).start();
+        new Thread(queries).start();
 
         while(!Thread.currentThread().isInterrupted()){
             ag.propagateState();
@@ -79,15 +72,14 @@ public class AggregatorServer {
 
         // Envia o Pedido de vizinhos
         String s = Integer.toString(id);
-        reqNeighbours.send(s.getBytes(ZMQ.CHARSET)); //manda ID
+        reqNeighbours.send(s.getBytes(ZMQ.CHARSET));
 
         // Recebe a resposta do Bootstrapper
-        byte[] data = reqNeighbours.recv(); //Vem a tabela
+        byte[] data = reqNeighbours.recv();
         System.out.println("AGG - Received neighbors information from bootstrapper.\n");
         Table neighbours = (Table) StaticMethods.deserialize(data);
 
         return new Aggregator(id, neighbours, context);
 
     }
-
-    }
+}
