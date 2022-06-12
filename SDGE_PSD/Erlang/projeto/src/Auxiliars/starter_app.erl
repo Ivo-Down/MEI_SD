@@ -8,7 +8,7 @@
 -export([start/2, stop/1]).
 
 -define(NumberOfRegions, 5).
--define(DevicesFileName, "dispositivos.json").
+-define(DevicesFileName, "dispositivos_10000.json").
 -define(BaseCollectorPort, 1233).
 -define(BaseAggregatorPort, 8300).
 
@@ -36,5 +36,3 @@ portList(NumberOfRegions, CollList, AggList) ->
 
 stop(_State) ->
     ok.
-
-%% internal functions

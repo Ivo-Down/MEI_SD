@@ -1,6 +1,9 @@
 help:
 	@echo "use build (build-client build-aggregator) run (run-bootstrap run-aggregators) run-client kill-all (kill-aggregators kill-bootstrap)"
 
+clean:
+	rm -r bin/
+
 build: build-client build-aggregator
 
 build-client:

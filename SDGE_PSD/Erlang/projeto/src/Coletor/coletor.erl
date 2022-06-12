@@ -7,13 +7,6 @@
 -define(CollectorDeviceMsg, "C_Device").
 -define(CollectorEventMsg, "C_Event").
 
-%coletor:start(1234,8301,"dispositivos.json").
-%coletor:start(1235,8302).
-%coletor:start(1235,8302,"dispositivos.json").
-
-%devices:start([1234],"dispositivos.json").
-%devices:start([1234,1235],"dispositivos.json").
-
 start(Port,AggregatorPort) ->
   io:fwrite("\nDevices file: ~p\n",[?DevicesFileName]),
 
@@ -23,6 +16,7 @@ start(Port,AggregatorPort) ->
   % Criar zeromq socket para agregador (do tipo push)
   application:start(chumak),
   {ok, ChumakSocket} = chumak:socket(push),
+
   case chumak:connect(ChumakSocket, tcp, "localhost", AggregatorPort) of
     {ok, _BindPid} ->
         io:format("Binding OK with Pid: ~p\n", [ChumakSocket]);
@@ -32,7 +26,6 @@ start(Port,AggregatorPort) ->
         io:format("Unhandled reply for bind ~p \n", [X])
   end,
 
-  %login_manager:start(?DevicesFileName),
   spawn(fun() -> acceptor(LSock, ChumakSocket) end),
   started.
   
@@ -46,6 +39,7 @@ start(Port,AggregatorPort, JsonFile) ->
   % Criar zeromq socket para agregador (do tipo push)
   application:start(chumak),
   {ok, ChumakSocket} = chumak:socket(push),
+
   case chumak:connect(ChumakSocket, tcp, "localhost", AggregatorPort) of
     {ok, _BindPid} ->
         io:format("Binding OK with Pid: ~p\n", [ChumakSocket]);
@@ -55,12 +49,8 @@ start(Port,AggregatorPort, JsonFile) ->
         io:format("Unhandled reply for bind ~p \n", [X])
   end,
 
-  %login_manager:start(JsonFile),
   spawn(fun() -> acceptor(LSock, ChumakSocket) end),
   started.
-
-
-
 
 
 acceptor(LSock, ChumakSocket) ->
@@ -81,17 +71,14 @@ handle_device(Sock, ChumakSocket, State, TRef) ->
       Msg = binary_to_term(Data),
       case maps:get(mode, Msg) of
         auth -> 
-          io:fwrite("\nColector received: Auth info ~p .\n", [maps:get(id, Msg)]),
           login_manager:login(maps:get(id, Msg), maps:get(password, Msg), erlang:binary_to_atom(maps:get(type, Msg)), self()),
           timer:send_after(random_interval(?CollectTime), aggregator), % começa aqui o timer para depois enviar info ao agregador
           handle_device(Sock, ChumakSocket, State, TRef);
 
         event -> 
           Event = maps:get(event_type, Msg),
-          DeviceId = maps:get(id, Msg),
-          %io:fwrite("\nColector received: Device ~p - Event: ~p.\n", [Event, DeviceId]),
 
-          timer:cancel(TRef),  % vai criar um novo timer para a questao da atividade
+          timer:cancel(TRef),  % vai criar um novo timer para inatividade
           {ok, NewTRef} = timer:send_after(?AliveTime, alive_timeout),   
 
           StateAux1 = maps:update(eventsList, maps:get(eventsList, State) ++ [Event], State),
@@ -127,7 +114,6 @@ handle_device(Sock, ChumakSocket, State, TRef) ->
       handle_device(Sock, ChumakSocket, State, TRef);
 
     aggregator ->
-      %io:fwrite("\nSending info to aggregator: ~p\n",[State]),
       % Envia estado para o agregador através de um push zeromq socket
       ok = sendState(ChumakSocket, State, ?CollectorEventMsg),
       handle_device(Sock, ChumakSocket, maps:update(eventsList, [], State), TRef)
@@ -136,14 +122,20 @@ handle_device(Sock, ChumakSocket, State, TRef) ->
 
 % Sends device's state to aggregator
 sendState(ChumakSocket, State, SendType) ->  %SendType: C_Event or _CDevice
-  %io:fwrite("\nSending info to aggregator type: ~p\n",[SendType]),
-  case length(maps:get(eventsList, State)) of 
-    0 -> timer:send_after(random_interval(?CollectTime), aggregator), ok; %if there are no events to send, don't send
-    _ -> ToSend = [list_to_binary(SendType), term_to_binary(State)],
-        ok = chumak:send_multipart(ChumakSocket, ToSend),
-        timer:send_after(random_interval(?CollectTime), aggregator),
-        ok
-  end.
+  case SendType of
+    ?CollectorDeviceMsg -> ToSend = [list_to_binary(SendType), term_to_binary(State)],
+                          ok = chumak:send_multipart(ChumakSocket, ToSend),
+                          timer:send_after(random_interval(?CollectTime), aggregator),
+                          ok;
+    ?CollectorEventMsg ->
+      case length(maps:get(eventsList, State)) of 
+        0 -> timer:send_after(random_interval(?CollectTime), aggregator), ok; %if there are no events to send, don't send
+        _ -> ToSend = [list_to_binary(SendType), term_to_binary(State)],
+            ok = chumak:send_multipart(ChumakSocket, ToSend),
+            timer:send_after(random_interval(?CollectTime), aggregator),
+            ok
+      end
+    end.
     
 
 random_interval(Base) -> 

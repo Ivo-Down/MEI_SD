@@ -5,10 +5,6 @@
 -export([init/1, handle_event/2]).
 
 parse_file(FN) ->
-    %{ok, File} = file:open(FN, [read, raw, binary]),
-    %Data = read(File, jsx:decoder(?MODULE, [], [stream, return_tail])),
-    %file:close(File),
-    %Data.
     {ok, File} = file:read_file(FN),
     Term = jsx:decode(File, [{labels, atom}]),
     Term.

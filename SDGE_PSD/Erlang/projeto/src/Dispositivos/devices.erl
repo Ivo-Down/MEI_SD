@@ -5,10 +5,7 @@
 -define(EventTime, 10000).
 -define(ChangeZoneTimer, 30000).
 
-
-
 % Este módulo tem como objetivo criar dispositivos IOT e enviar eventos a uns dos coletores
-
 
 start(PortList) ->
   io:fwrite("\nDevices file: ~p\n",[?DevicesFileName]),
@@ -22,8 +19,7 @@ start(PortList, JsonFile) ->
   create_devices(PortList, DevicesInfo).
 
 
-  
-  % Cria X dispositivos e mete-os a mandar eventos para o coletor
+% Cria X dispositivos e mete-os a mandar eventos para o coletor
 create_devices(_,[]) ->
   ok;
 create_devices(PortList, [H|T]) ->
@@ -31,7 +27,7 @@ create_devices(PortList, [H|T]) ->
   {ok,Socket} = gen_tcp:connect("localhost", Collector, [binary,{packet,4}, {active, false}]),  %cria uma nova ligaçao tcp ao coletor
   DevicePid = spawn(fun() -> device_loop1(Socket, H, PortList, no_auth, Collector) end),
   timer:send_after(?ChangeZoneTimer, DevicePid, change_zone),  % envia o 1º pedido de mudar zona passado x tempo
-  %io:fwrite("\nList size ~p\n",[H]),
+
   timer:sleep(5),
   create_devices(PortList, T).
 
@@ -61,13 +57,11 @@ device_loop2(Socket, DeviceInfo, PortList, AuthState, ActualCol) ->
 
       if
         NewCol /= ActualCol ->
-          %io:fwrite("\nChanging zone to: ~p\n",[NewCol]),
           ok = gen_tcp:close(Socket),  % fecha a ligação com o coletor antigo
           {ok, NewSocket} = gen_tcp:connect("localhost", NewCol, [binary,{packet,4}, {active, false}]),
           device_loop1(NewSocket, DeviceInfo, PortList, no_auth, NewCol);
 
         true ->
-          %io:fwrite("\nStaying in the same collector: ~p\n",[ActualCol]),
           device_loop1(Socket, DeviceInfo, PortList, AuthState, ActualCol)
       end
 
@@ -79,18 +73,15 @@ device_loop2(Socket, DeviceInfo, PortList, AuthState, ActualCol) ->
 
 %manda pedido de autenticação ao coletor
 device_auth(Socket, DeviceInfo) ->  
-  DeviceId = maps:get(id,DeviceInfo),
-  %io:fwrite("\nSou o device ~p, vou mandar auth info.\n", [DeviceId]),
   AuthDeviceInfo = maps:put(mode, auth, DeviceInfo),
   ok = gen_tcp:send(Socket, term_to_binary(AuthDeviceInfo)),  %envia pedido de autenticação ao coletor
   % Espera pela resposta da autenticação, é uma espera bloqueante
   case gen_tcp:recv(Socket, 0) of
-    {ok, Binary}->% Send basic message.
+    {ok, Binary}-> % Send basic message.
       Msg = erlang:binary_to_atom(Binary),
       case Msg of
             
         auth_ok ->   
-          %io:fwrite("\nDevice ~p authenticated!\n", [maps:get(id,AuthDeviceInfo)]),
           EventDeviceInfo = maps:put(mode, event, DeviceInfo),
           {ok, EventDeviceInfo};
 
@@ -107,7 +98,6 @@ device_auth(Socket, DeviceInfo) ->
 % Envia um evento ao coletor
 send_event(Socket, DeviceInfo) ->
   Event = lists:nth(rand:uniform(length(?EventList)), ?EventList),
-  %io:fwrite("\nSou o device ~p, vou mandar event.\n", [maps:get(id,DeviceInfo)]),
   EventInfo = #{id=>maps:get(id,DeviceInfo), event_type=>Event, mode=>event},
   ok = gen_tcp:send(Socket, term_to_binary(EventInfo)).  %envia o evento ao coletor
 

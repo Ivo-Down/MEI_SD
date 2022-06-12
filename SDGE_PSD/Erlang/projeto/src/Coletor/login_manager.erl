@@ -1,8 +1,5 @@
 -module(login_manager).
 -export([start/1, login/4]).
-%maps
-
-%registar pid do login manager
 
 %interface functions
 start(DevicesFile) ->
@@ -25,15 +22,10 @@ loadFileToMap([H|T], Map) ->
 login(Username, Password, DeviceType, From) ->
     ?MODULE ! {login, Username, Password, DeviceType, From}.
 
-%logout(Username, From) -> 
-%    ?MODULE ! {logout, Username, self()},
-%    ok.
-
 %server process
 loop(DevicesMap) ->
     receive
     {login, DeviceId, DevicePw, DeviceType, From} ->
-        %io:fwrite("Login in loop ~p ~p ~p\n", [DeviceId, DevicePw, DeviceType]),
             case maps:find(DeviceId, DevicesMap) of
                 {ok, {DevicePw, DeviceType}} ->
                     io:fwrite("\nAuth success.\n"),
@@ -45,11 +37,6 @@ loop(DevicesMap) ->
                     loop(DevicesMap)
 
             end;
-        %{logout, Username, From} ->
-        %    case maps:is_key(Username, Map) of
-        %        true -> From ! {ok, ?MODULE},loop(maps:update_with(Username, fun({P, _}) -> {P, false} end, Map));
-        %        false -> From ! {ok, ?MODULE},loop(DevicesInfo)
-        %    end;
         M ->
             error_logger:error_report(M)
     end.
