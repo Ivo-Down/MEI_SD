@@ -39,15 +39,12 @@ public class AggregatorNetwork implements Runnable{
             try{
 
                 ZMsg msg = ZMsg.recvMsg(this.pull);
-                //System.out.println("Pulled request:\t" + msg.toString());
 
                 String aux = new String(msg.pop().getData(),ZMQ.CHARSET);
 
                 //System.out.println(aux);
 
                 taskQueue.offer(new Task(aux, this.aggregator, this.aggregatorNotifier, msg));
-
-                //Thread.sleep(1000);
             }
             catch(Exception e){
                 e.printStackTrace();

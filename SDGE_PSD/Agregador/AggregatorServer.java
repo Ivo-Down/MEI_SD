@@ -27,7 +27,6 @@ public class AggregatorServer {
         }
         //ID
         Aggregator ag = handleNeighbours(id);
-        System.out.println(ag);
 
         Integer pubPort = 8100 + id;
         Integer repPort = 8200 + id;
@@ -80,13 +79,11 @@ public class AggregatorServer {
 
         // Envia o Pedido de vizinhos
         String s = Integer.toString(id);
-        reqNeighbours.sendMore("Quero os meus vizinhos...".getBytes(ZMQ.CHARSET));
         reqNeighbours.send(s.getBytes(ZMQ.CHARSET)); //manda ID
 
         // Recebe a resposta do Bootstrapper
-        String resposta = new String(reqNeighbours.recv(),ZMQ.CHARSET); // Vem a mensagem introdutória
         byte[] data = reqNeighbours.recv(); //Vem a tabela
-        System.out.println("->Received neighbors information from bootstrapper.\n");
+        System.out.println("AGG - Received neighbors information from bootstrapper.\n");
         Table neighbours = (Table) StaticMethods.deserialize(data);
 
         return new Aggregator(id, neighbours, context);

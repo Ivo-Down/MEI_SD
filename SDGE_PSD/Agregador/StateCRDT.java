@@ -31,9 +31,15 @@ public class StateCRDT  implements Serializable {
 
     public StateCRDT(StateCRDT old){
         this.zoneInfo = new HashMap<>();
-        for(Integer zone: old.zoneInfo.keySet()){
-            zoneInfo.put(zone, new ZoneInformation(old.zoneInfo.get(zone)));
+        try{
+            old.lock.lock();
+            for(Integer zone: old.zoneInfo.keySet()){
+                zoneInfo.put(zone, new ZoneInformation(old.zoneInfo.get(zone)));
+            }
+        } finally {
+            old.lock.unlock();
         }
+
         this.lock = new ReentrantLock();
     }
 

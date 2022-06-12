@@ -31,7 +31,6 @@ public class AggregatorNotifier {
         var onlineTypesOld = cachedState.checkTypesWithOnlineDevices(aggId);
         var onlineTypesNew = newstate.checkTypesWithOnlineDevices(aggId);
         var missingTypes = onlineTypesOld.stream().filter( t -> !onlineTypesNew.contains(t)).toList();
-        System.out.println("Missing " + missingTypes.toString());
         for (var mType : missingTypes) {
             pushSocket.sendMore("TOPIC_TYPE_GONE");
             pushSocket.send("Dispositivos do tipo " + mType + " deixaram de estar online!");
@@ -60,8 +59,6 @@ public class AggregatorNotifier {
         if(cachedState == null) return;
         int oldPercentage = (cachedState.getOnlinePercentage(aggId)) / 10;
         int newPercentage = (state.getOnlinePercentage(aggId)) / 10;
-
-        System.out.println(" old " + oldPercentage + " new " +newPercentage);
 
         if(newPercentage > oldPercentage){
             //System.out.println("Percentagem de dispositivos online aumentou para " + (newPercentage*10) + "%");

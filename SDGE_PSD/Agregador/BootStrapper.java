@@ -33,9 +33,8 @@ public class BootStrapper {
     private static void handleRequest() {
         int nodeId = -1;
         //Partir a request para buscar id
-        String intro = new String(rep.recv(),ZMQ.CHARSET); //"Quero os meus vizinhos..."
+        System.out.println("BOOTSTRAPPER - Handling neighbour request");
         String id = new String(rep.recv(),ZMQ.CHARSET); //"Id"
-        System.out.println("Intro: \t" + intro);
         System.out.println("ID: \t" + id);
 
 
@@ -44,7 +43,6 @@ public class BootStrapper {
         byte[] data = StaticMethods.serialize(requestedNeighbors);
 
         //serializar info
-        rep.sendMore("Aqui vão os vizinhos...".getBytes(ZMQ.CHARSET));
         rep.send(data);
     }
 
