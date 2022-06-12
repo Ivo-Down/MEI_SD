@@ -1,5 +1,5 @@
 help:
-	@echo "use build-agg build-cli build-coll build-dev run-cli "
+	@echo "use build (build-client build-aggregator) run (run-bootstrap run-aggregators) run-client kill-all (kill-aggregators kill-bootstrap)"
 
 build: build-client build-aggregator
 
@@ -10,13 +10,7 @@ build-aggregator:
 	javac -cp lib/\* Constants/src/*.java Agregador/DataStructs/*.java Agregador/*.java -d bin;
 	cp Agregador/overlay.json bin/
 
-build-collector:
-	@echo TODO
-
 run: run-bootstrap run-aggregators
-
-run-collector:
-	cd Erlang/projeto/ ; nohup rebar3 shell &
 
 run-bootstrap:
 	cd bin/; java -cp .:../lib/* BootStrapper 8888 &

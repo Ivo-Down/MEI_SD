@@ -103,7 +103,7 @@ handle_device(Sock, ChumakSocket, State, TRef) ->
     {tcp_closed, _} ->
       NewMap = maps:update(online, false, State),
       ok = sendState(ChumakSocket, NewMap, ?CollectorDeviceMsg),
-      io:fwrite("\nConnection closed. ~p\n", [NewMap]);
+      io:fwrite("\nConnection closed.\n");
 
     {tcp_error, _, _} ->
       ok = sendState(ChumakSocket, maps:update(online, false, State), ?CollectorDeviceMsg),
@@ -137,10 +137,14 @@ handle_device(Sock, ChumakSocket, State, TRef) ->
 % Sends device's state to aggregator
 sendState(ChumakSocket, State, SendType) ->  %SendType: C_Event or _CDevice
   %io:fwrite("\nSending info to aggregator type: ~p\n",[SendType]),
-  ToSend = [list_to_binary(SendType), term_to_binary(State)],
-  ok = chumak:send_multipart(ChumakSocket, ToSend),
-  timer:send_after(random_interval(?CollectTime), aggregator),
-  ok.
+  case length(maps:get(eventsList, State)) of 
+    0 -> timer:send_after(random_interval(?CollectTime), aggregator), ok; %if there are no events to send, don't send
+    _ -> ToSend = [list_to_binary(SendType), term_to_binary(State)],
+        ok = chumak:send_multipart(ChumakSocket, ToSend),
+        timer:send_after(random_interval(?CollectTime), aggregator),
+        ok
+  end.
+    
 
 random_interval(Base) -> 
   Base + round(((rand:uniform() * 8)-3)*1000).

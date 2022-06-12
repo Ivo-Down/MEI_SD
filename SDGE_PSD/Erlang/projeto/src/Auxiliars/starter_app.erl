@@ -8,13 +8,13 @@
 -export([start/2, stop/1]).
 
 -define(NumberOfRegions, 5).
--define(DevicesFileName, "dispositivos_10000.json").
+-define(DevicesFileName, "dispositivos.json").
 -define(BaseCollectorPort, 1233).
 -define(BaseAggregatorPort, 8300).
 
 start(_StartType, _StartArgs) ->
     {CollectorList, AggList} = portList(?NumberOfRegions, [], []),
-    io:fwrite("Result ~p ~p \n", [CollectorList, AggList]),
+    io:fwrite("Ports ~p ~p \n", [CollectorList, AggList]),
     login_manager:start(?DevicesFileName),
     start_collectors(CollectorList, AggList),
     devices:start(CollectorList, ?DevicesFileName),

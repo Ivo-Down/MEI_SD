@@ -23,7 +23,6 @@ loadFileToMap([H|T], Map) ->
     loadFileToMap(T, maps:put(DeviceID, {DevicePassword, erlang:binary_to_atom(DeviceType)}, Map)).
 
 login(Username, Password, DeviceType, From) ->
-    io:fwrite("Login\n"),
     ?MODULE ! {login, Username, Password, DeviceType, From}.
 
 %logout(Username, From) -> 
