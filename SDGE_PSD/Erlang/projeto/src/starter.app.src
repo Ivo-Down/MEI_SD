@@ -1,13 +1,13 @@
-{application, leitor,
+{application, starter,
  [{description, "An OTP application"},
   {vsn, "0.1.0"},
   {registered, []},
-  {mod, {leitor_app, []}},
+  {mod, {starter_app, []}},
   {applications,
    [kernel,
     stdlib
    ]},
-  {env,[]},
+  {env,[{file, "/usr/local/log"}]},
   {modules, []},
 
   {licenses, ["Apache 2.0"]},

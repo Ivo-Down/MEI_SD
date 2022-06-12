@@ -16,7 +16,7 @@ build-collector:
 run: run-bootstrap run-aggregators
 
 run-collector:
-	cd Erlang/projeto/ ; rebar3 shell ; $(shell 'coletor:start(1234,8301,"dispositivos.json"'))
+	cd Erlang/projeto/ ; nohup rebar3 shell &
 
 run-bootstrap:
 	cd bin/; java -cp .:../lib/* BootStrapper 8888 &
@@ -35,6 +35,7 @@ run-aggregators:
 	java -cp .:../lib/* AggregatorServer 4 & \
 	java -cp .:../lib/* AggregatorServer 5 & \
 
+
 kill-all: kill-aggregators kill-bootstrap
 
 kill-bootstrap:
@@ -46,3 +47,10 @@ kill-aggregators:
 	kill -9 $$(lsof -t -i:8103) ; \
 	kill -9 $$(lsof -t -i:8104) ; \
 	kill -9 $$(lsof -t -i:8105) ; \
+
+kill-collectors:
+	kill -9 $$(lsof -t -i:1234) ; \
+	kill -9 $$(lsof -t -i:1235) ; \
+	kill -9 $$(lsof -t -i:1236) ; \
+	kill -9 $$(lsof -t -i:1237) ; \
+	kill -9 $$(lsof -t -i:1238) ; \
