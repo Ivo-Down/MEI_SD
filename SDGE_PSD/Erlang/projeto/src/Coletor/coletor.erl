@@ -7,12 +7,12 @@
 -define(CollectorDeviceMsg, "C_Device").
 -define(CollectorEventMsg, "C_Event").
 
-%coletor:start(1234,8301,"dispositivos_10000.json").
+%coletor:start(1234,8301,"dispositivos.json").
 %coletor:start(1235,8302).
-%coletor:start(1235,8302,"dispositivos_10000.json").
+%coletor:start(1235,8302,"dispositivos.json").
 
-%devices:start([1234],"dispositivos_10000.json").
-%devices:start([1234,1235],"dispositivos_10000.json").
+%devices:start([1234],"dispositivos.json").
+%devices:start([1234,1235],"dispositivos.json").
 
 start(Port,AggregatorPort) ->
   io:fwrite("\nDevices file: ~p\n",[?DevicesFileName]),
@@ -32,7 +32,7 @@ start(Port,AggregatorPort) ->
         io:format("Unhandled reply for bind ~p \n", [X])
   end,
 
-  login_manager:start(?DevicesFileName),
+  %login_manager:start(?DevicesFileName),
   spawn(fun() -> acceptor(LSock, ChumakSocket) end),
   started.
   
@@ -55,7 +55,7 @@ start(Port,AggregatorPort, JsonFile) ->
         io:format("Unhandled reply for bind ~p \n", [X])
   end,
 
-  login_manager:start(JsonFile),
+  %login_manager:start(JsonFile),
   spawn(fun() -> acceptor(LSock, ChumakSocket) end),
   started.
 
